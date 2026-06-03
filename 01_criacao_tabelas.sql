@@ -15,12 +15,23 @@ DROP TYPE IF EXISTS status_despesa CASCADE;
 CREATE TYPE status_parcela AS ENUM ('PENDENTE', 'PAGO', 'ATRASADO');
 create type status_despesa as ENUM ('ATIVA','QUITADA','CANCELADA');
 
+
 create table usuario (
     id_usuario Serial primary key,
     nome VARCHAR (100) not NULL,
     senha VARCHAR (255) not NULL,
     email VARCHAR (254) UNIQUE not NULL
 );
+
+create table codigo_recuperacao(
+    id_codigo serial primary key,
+    codigo VARCHAR(255) not null,
+    data_expiracao timestamptz not null,
+    codigo_usado boolean not null default false,
+    tentativas INT NOT NULL DEFAULT 0,
+    id_usuario int not null references usuario(id_usuario) ON DELETE CASCADE
+);
+CREATE INDEX idx_codigo_recuperacao_usuario ON codigo_recuperacao(id_usuario);
 
 create TABLE grupo(
     id_grupo Serial primary key,
