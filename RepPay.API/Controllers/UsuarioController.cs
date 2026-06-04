@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace RepPay.API.Controllers
 {
@@ -21,6 +22,7 @@ namespace RepPay.API.Controllers
             _context = context;
         }
 
+        [Authorize]
         [HttpGet]
         public IActionResult GetTodosUsuarios()
         {

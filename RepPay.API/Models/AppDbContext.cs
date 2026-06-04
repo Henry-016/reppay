@@ -25,6 +25,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<CodigoRecuperacao> CodigosRecuperacao { get; set; }
 
+    public virtual DbSet<Pertence> Pertences { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder
@@ -52,6 +54,8 @@ public partial class AppDbContext : DbContext
                 .HasPrecision(10, 2)
                 .HasColumnName("valor");
             entity.Property(e => e.Vencimento).HasColumnName("vencimento");
+
+            entity.Property(e => e.Status).HasColumnName("status").HasConversion<string>(); ;
 
             entity.HasOne(d => d.IdGrupoNavigation).WithMany(p => p.Despesas)
                 .HasForeignKey(d => d.IdGrupo)
@@ -99,9 +103,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.DataPagamento).HasColumnName("data_pagamento");
             entity.Property(e => e.IdDespesa).HasColumnName("id_despesa");
             entity.Property(e => e.IdUsuario).HasColumnName("id_usuario");
-            entity.Property(e => e.Valor)
-                .HasPrecision(10, 2)
-                .HasColumnName("valor");
+            entity.Property(e => e.Valor).HasPrecision(10, 2).HasColumnName("valor");
+
+            entity.Property(e => e.Status).HasColumnName("status").HasConversion<string>(); ;
 
             entity.HasOne(d => d.IdDespesaNavigation).WithMany(p => p.Parcelas)
                 .HasForeignKey(d => d.IdDespesa)
@@ -132,23 +136,25 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(255)
                 .HasColumnName("senha");
 
-            entity.HasMany(d => d.IdGrupos).WithMany(p => p.IdUsuarios)
-                .UsingEntity<Dictionary<string, object>>(
-                    "Pertence",
-                    r => r.HasOne<Grupo>().WithMany()
-                        .HasForeignKey("IdGrupo")
-                        .HasConstraintName("fk_pertence_grupo"),
-                    l => l.HasOne<Usuario>().WithMany()
-                        .HasForeignKey("IdUsuario")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_pertence_usuario"),
-                    j =>
-                    {
-                        j.HasKey("IdUsuario", "IdGrupo").HasName("pertence_pkey");
-                        j.ToTable("pertence");
-                        j.IndexerProperty<int>("IdUsuario").HasColumnName("id_usuario");
-                        j.IndexerProperty<int>("IdGrupo").HasColumnName("id_grupo");
-                    });
+ 
+        });
+
+        modelBuilder.Entity<Pertence>(entity =>
+        {
+            entity.HasKey(e => new { e.IdUsuario, e.IdGrupo }).HasName("pertence_pkey");
+            entity.ToTable("pertence");
+
+            entity.Property(e => e.IdUsuario).HasColumnName("id_usuario");
+            entity.Property(e => e.IdGrupo).HasColumnName("id_grupo");
+
+            entity.HasOne(d => d.IdGrupoNavigation).WithMany()
+                .HasForeignKey(d => d.IdGrupo)
+                .HasConstraintName("fk_pertence_grupo");
+
+            entity.HasOne(d => d.IdUsuarioNavigation).WithMany()
+                .HasForeignKey(d => d.IdUsuario)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("fk_pertence_usuario");
         });
 
         OnModelCreatingPartial(modelBuilder);
