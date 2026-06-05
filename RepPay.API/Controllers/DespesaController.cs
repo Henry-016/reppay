@@ -291,5 +291,40 @@ namespace RepPay.API.Controllers
                     : "Pagamento rejeitado. A dívida voltou para o morador."
             });
         }
+
+        [HttpGet("ObterHistóricoDespesasPagas")]
+        public IActionResult GetMeuHistoricoPago()
+        {
+            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (usuarioIdClaim == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
+
+            int idLogado = int.Parse(usuarioIdClaim);
+
+            var historicoPago = _context.Parcelas
+                .Include(p => p.IdDespesaNavigation)
+                .Where(p => p.IdUsuario == idLogado && p.Status == StatusParcela.PAGO)
+                .Select(p => new HistoricoPagoResponseDTO
+                {
+                    IdParcela = p.IdParcela,
+                    NomeDespesa = p.IdDespesaNavigation.Nome,
+                    Icone = p.IdDespesaNavigation.Icone,
+                    ValorPago = p.Valor,
+                    DataPagamento = p.DataPagamento,
+                    Vencimento = p.IdDespesaNavigation.Vencimento
+                })
+                .OrderByDescending(p => p.DataPagamento)
+                .ToList();
+
+            if (!historicoPago.Any())
+            {
+                return Ok(new { mensagem = "Você ainda não possui pagamentos registrados no histórico.", historicoPago = historicoPago });
+            }
+
+            return Ok(historicoPago);
+        }
     }
 }

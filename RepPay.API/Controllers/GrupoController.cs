@@ -138,7 +138,7 @@ namespace RepPay.API.Controllers
             return Ok(meusGrupos);
         }
 
-        [HttpGet("{idGrupo}")]
+        [HttpGet("ObterGrupoPorID/{idGrupo}")]
         public IActionResult GetGrupoPorId(int idGrupo)
         {
             var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -171,6 +171,48 @@ namespace RepPay.API.Controllers
             };
 
             return Ok(response);
+        }
+
+        [HttpGet("GetUsuariosGrupo/{idGrupo}")]
+        public IActionResult GetMembrosDoGrupo(int idGrupo)
+        {
+            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (usuarioIdClaim == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
+
+            int idLogado = int.Parse(usuarioIdClaim);
+
+            var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
+
+            if (grupo == null)
+            {
+                return NotFound(new { mensagem = "Grupo não encontrado." });
+            }
+
+            bool usuarioPertence = _context.Pertences.Any(p => p.IdGrupo == idGrupo && p.IdUsuario == idLogado);
+
+            if (!usuarioPertence)
+            {
+                return StatusCode(403, new { mensagem = "Acesso negado. Você não pertence a este grupo." });
+            }
+
+            var membros = _context.Pertences
+                .Include(p => p.IdUsuarioNavigation)
+                .Where(p => p.IdGrupo == idGrupo)
+                .Select(p => new MembroResponseDTO
+                {
+                    IdUsuario = p.IdUsuario,
+                    Nome = p.IdUsuarioNavigation.Nome,
+                    isAdmin = p.IdUsuario == grupo.IdAdmin
+                })
+                .OrderByDescending(m => m.isAdmin) 
+                .ThenBy(m => m.Nome)
+                .ToList();
+
+            return Ok(membros);
         }
     }
 }
