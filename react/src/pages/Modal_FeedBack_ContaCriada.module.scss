@@ -1,4 +1,4 @@
-#tela_mfcc {
+.tela_mfcc {
     position: fixed; 
     top: 0; 
     left: 0; 
@@ -10,10 +10,10 @@
     align-items: center; 
     z-index: 50;
 
-    #modal {
+    .modal {
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: space-evenly;
         align-items: center;
         width: 25.5rem;
         height: 31.5rem;
@@ -22,7 +22,7 @@
         padding: 0.5rem 2rem;
         border: 0.063rem solid rgb(132, 147, 150, 20%);
 
-        #imagem {
+        .imagem {
             background-image: url('./../assets/Success_Icon_Container.png');
             background-size: contain;
             background-position: center;
@@ -38,14 +38,14 @@
 
         }
 
-        #suaJornada {
+        .suaJornada {
             font-size: 1rem;
             color: var(--cor-texto-simples);
 
             
         }
 
-        #divAmbienteSeguro {
+        .divAmbienteSeguro {
             display: flex;
             justify-content: space-evenly;
             align-items: center;
@@ -56,7 +56,7 @@
             border-radius: 0.5rem;
             margin-top: 1rem;
 
-            #escudo {
+            .escudo {
                 background-image: url('./../assets/escudo.png');
                 width: 2.5rem;
                 height: 2.5rem;
@@ -64,7 +64,7 @@
 
             }
 
-            #ambienteSeguroTexto {
+            .ambienteSeguroTexto {
                 display: flex;
                 flex-direction: column;
                 align-items: flex-start;
@@ -84,13 +84,13 @@
 
         }
 
-        #continuar {
+        .continuar {
             background-color: var(--cor-azul-claro);
             border-radius: 0.5rem;
             height: 3rem;
             width: 100%;
             margin: 1.563rem 0rem;
-            color: #00626E;
+            color: .00626E;
             font-size: 0.875rem;;
             font-weight: bold;
             border: none;

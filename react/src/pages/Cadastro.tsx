@@ -18,63 +18,73 @@ function Cadastro() {
 
   return (
     <>
-      <section id="tela_cadastro">
-            <div id="inputs">
-                <h1 id="reppay">RepPay</h1>
-                <form onSubmit={cadastrar} id='formulario'>
-                    <div id='caixaInputsFundo'>
-                        <div id='caixaInputs'>
+        <section className={styles.tela_cadastro}>
+            <div className={styles.inputs}>
+                <h1 className={styles.reppay}>RepPay</h1>
+                <form onSubmit={cadastrar} className={styles.formulario}>
+                    <div className={styles.caixaInputsFundo}>
+                        <div className={styles.caixaInputs}>
                             <h2>Crie sua conta</h2>
-                            <div className='inputContainer'>
-                                <p className='textoInput'>Nome Completo</p>
+                            
+                            <div className={styles.inputContainer}>
+                                <p className={styles.textoInput}>Nome Completo</p>
                                 <input type="text"
                                     value={nome}
                                     onChange={(e) => setNome(e.target.value)}
                                     placeholder='Ex: Maria Silva'
-                                    className='input'/>
+                                    className={styles.input} />
                             </div>
-                            <div className='inputContainer'>
-                                <p className='textoInput'>Email</p>
+                            
+                            <div className={styles.inputContainer}>
+                                <p className={styles.textoInput}>Email</p>
                                 <input type="text"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder='voce@exemplo.com'
-                                    className='input'/>
+                                    className={styles.input} />
                             </div>
-                            <div className='inputContainer'>
-                                <p className='textoInput'>Criar Senha</p>
-                                <input type="text"
+                            
+                            <div className={styles.inputContainer}>
+                                <p className={styles.textoInput}>Criar Senha</p>
+                                <input type="password"
                                     value={senha}
                                     onChange={(e) => setSenha(e.target.value)}
                                     placeholder='••••••••'
-                                    className='input'/>
+                                    className={styles.input} />
                             </div>
-                            <div className='inputContainer'>
-                                <p className='textoInput'>Confirmar Senha</p>
-                                <input type="text"
+                            
+                            <div className={styles.inputContainer}>
+                                <p className={styles.textoInput}>Confirmar Senha</p>
+                                <input type="password"
                                     value={confirmarsenha}
                                     onChange={(e) => setConfirmarSenha(e.target.value)}
                                     placeholder='••••••••'
-                                    className='input'/>
+                                    className={styles.input} />
                             </div>
-                            <button id='cadastrar'>Cadastrar</button>
-                            <p id="paragrafoEntrar">Já tem uma conta?{' '}<button onClick={() => navigate('/login')} id='entrar'>Entrar</button></p>
+                            <button type="submit" className={styles.cadastrar}>Cadastrar</button>
+                            
+                            <p className={styles.paragrafoEntrar}>
+                                Já tem uma conta?{' '}
+                                <button type="button" onClick={() => navigate('/login')} className={styles.entrar}>
+                                    Entrar
+                                </button>
+                            </p>
                         </div>
                     </div>
                 </form>
             </div>
-            <div id="imagem">
-                <div id="textoImagemContainer">
-                    <h2>
-                        Divisão Automática e Justa
-                    </h2>
+        
+            <div className={styles.imagem}>
+                <div className={styles.textoImagemContainer}>
+                    <h2>Divisão Automática e Justa</h2>
                     <p>
                         Esqueça as planilhas e a calculadora. O sistema faz o rateio exato das contas entre os moradores instantaneamente a cada nova despesa.
                     </p>
                 </div>
             </div>
-            <Modal_FeedBack_ContaCriada isOpen={modal} onClose={() => navigate('/login')}/>
-      </section>
+                
+            <Modal_FeedBack_ContaCriada isOpen={modal} onClose={() => navigate('/login')} />
+        </section>
     </>
   )
 }

@@ -1,4 +1,4 @@
-import './Modal_FeedBack_ContaCriada.scss'
+import styles from './Modal_FeedBack_ContaCriada.module.scss'
 
 interface ModalProps {
     isOpen: boolean;
@@ -11,19 +11,19 @@ function Modal_FeedBack_ContaCriada( {isOpen, onClose}: ModalProps ) {
 
     return (
         <>
-        <section id='tela_mfcc'>
-            <div id='modal'>
-                <div id='imagem'></div>
+        <section className={styles.tela_mfcc}>
+            <div className={styles.modal}>
+                <div className={styles.imagem}></div>
                 <h2>Conta Criada com Sucesso!</h2>
-                <p id='suaJornada'>Sua jornada rumo a uma república mais organizada começa agora.</p>
-                <div id='divAmbienteSeguro'>
-                    <div id='escudo'></div>
-                    <div id='ambienteSeguroTexto'>
+                <p className={styles.suaJornada}>Sua jornada rumo a uma república mais organizada começa agora.</p>
+                <div className={styles.divAmbienteSeguro}>
+                    <div className={styles.escudo}></div>
+                    <div className={styles.ambienteSeguroTexto}>
                         <h3>Ambiente Seguro</h3>
                         <p>Criptografia de ponta a ponta ativa</p>
                     </div>
                 </div>
-                <button id='continuar' onClick={onClose}>CONTINUAR</button>
+                <button className={styles.continuar} onClick={onClose}>CONTINUAR</button>
             </div>
 
         </section>

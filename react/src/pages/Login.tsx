@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import './Login.scss'
+import styles from './Login.module.scss'
 import { useNavigate } from 'react-router-dom';
 
 function Login() {
@@ -13,41 +13,41 @@ function Login() {
 
   return (
     <>
-      <section id="tela_login">
-            <div id="inputs">
-                <h1 id="reppay">RepPay</h1>
-                <form onSubmit={cadastrar} id='formulario'>
-                    <div id='caixaInputsFundo'>
-                        <div id='caixaInputs'>
+        <section className={styles.tela_login}>
+            <div className={styles.inputs}>
+                <h1 className={styles.reppay}>RepPay</h1>
+                <form onSubmit={cadastrar} className={styles.formulario}>
+                    <div className={styles.caixaInputsFundo}>
+                        <div className={styles.caixaInputs}>
                             <h2>Boas-vindas</h2>
-                            <p id='facaLogin'>Faça login para acessar sua conta.</p>
-                            <div className='inputContainer'>
-                                <p className='textoInput'>Email</p>
+                            <p className={styles.facaLogin}>Faça login para acessar sua conta.</p>
+                            <div className={styles.inputContainer}>
+                                <p className={styles.textoInput}>Email</p>
                                 <input type="text"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder='voce@exemplo.com'
-                                    className='input' id='emailInput'/>
+                                    className={`${styles.input} ${styles.emailInput}`}/>
                             </div>
-                            <div className='inputContainer'>
-                                <div id='senhaContainer'>
-                                    <p className='textoInput'> Senha</p>
-                                    <button id='esqueceu' type='button'>esqueceu?</button>
+                            <div className={styles.inputContainer}>
+                                <div className={styles.senhaContainer}>
+                                    <p className={styles.textoInput}> Senha</p>
+                                    <button className={styles.esqueceu} type='button'>esqueceu?</button>
                                 </div>
-                                <input type="text"
+                                <input type="password"
                                     value={senha}
                                     onChange={(e) => setSenha(e.target.value)}
                                     placeholder='••••••••'
-                                    className='input' id='senhaInput'/>
+                                    className={`${styles.input} ${styles.senhaInput}`}/>
                             </div>
-                            <button id='entrar' type='submit'>Entrar</button>
-                            <p id="paragrafoCadastrar">Não tem uma conta?{' '}<button id='cadastro' type='button' onClick={() => navigate('/cadastro')}>Cadastre-se</button></p>
+                            <button className={styles.entrar} type='submit'>Entrar</button>
+                            <p className={styles.paragrafoCadastrar}>Não tem uma conta?{' '}<button className={styles.cadastro} type='button' onClick={() => navigate('/cadastro')}>Cadastre-se</button></p>
                         </div>
                     </div>
                 </form>
             </div>
-            <div id="imagem">
-                <div id="textoImagemContainer">
+            <div className={styles.imagem}>
+                <div className={styles.textoImagemContainer}>
                     <h2>
                         Fim das Cobranças Chatas
                     </h2>
@@ -56,7 +56,7 @@ function Login() {
                     </p>
                 </div>
             </div>
-      </section>
+        </section>
     </>
   )
 }
