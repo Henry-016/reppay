@@ -1,0 +1,179 @@
+#tela_login {
+    display: flex;
+    flex-direction: row;
+    background-color: var(--cor-fundo-escuro);
+
+    #inputs {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        flex: 1;
+
+        #reppay {
+            color: var(--cor-azul-claro);
+            font-size: 3.125rem;
+            margin-bottom: 3.188rem;
+
+        }
+
+        #caixaInputsFundo {
+            background-color: #171F33;
+            border: 0.063 solid rgb(59, 73, 76, 30%);
+            width: 40vw;
+            border-radius: 0.75rem;
+            padding: 0.2rem 0rem;
+
+        }
+
+        #caixaInputs {
+            margin: 0.75rem 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+
+            h2 {
+                color: var(--cor-titulo);
+                font-size: 1.5rem;
+
+            }
+
+            #facaLogin {
+                font-size: 1rem;
+                color: var(--cor-texto-simples)
+
+            }
+
+            .inputContainer {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                margin-top: 1rem;
+
+                #emailInput {
+                    background-image: url('./../assets/email.svg');
+                    background-size: 20px 20px;
+                    background-repeat: no-repeat;
+                    background-position: 12px center;
+                    padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+
+                }
+
+                #senhaInput {
+                    background-image: url('./../assets/cadeado.svg');
+                    background-size: 20px 20px;
+                    background-repeat: no-repeat;
+                    background-position: 12px center;
+                    padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+
+                }
+
+                #senhaContainer {
+                    display: flex;
+                    justify-content: space-between;
+                    width: 100%;
+
+                    #esqueceu {
+                        color: var(--cor-azul-claro);
+                        background: none;
+                        border: none;
+                        cursor: pointer;
+                        margin-left: 0.3rem;
+
+                    }
+
+                }
+
+            }
+
+            .textoInput {
+                color: var(--cor-texto-simples);
+                font-size: 0.875rem;
+
+            }
+
+            .input {
+                border-radius: 0.5rem;
+                height: 2.563rem;
+                width: 100%;
+                padding: 0.5rem;
+                border: 0.063rem solid #3B494C;
+                background-color: #222A3D;
+                color: #ffffff;
+
+            }
+
+            #entrar {
+                background-color: var(--cor-azul-claro);
+                border-radius: 0.5rem;
+                height: 3rem;
+                width: 100%;
+                margin: 1.563rem 0rem;
+                color: #00626E;
+                font-size: 0.875rem;
+                font-weight: bold;
+                border: none;
+                cursor: pointer;
+
+            }
+
+            #paragrafoCadastrar {
+                width: 100%;
+                font-size: 0.875rem;
+                color: var(--cor-texto-simples);
+
+                #cadastro {
+                    color: var(--cor-azul-claro);
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+
+                }
+
+            }
+
+        }
+
+    }
+
+    #imagem {
+        flex: 1;
+        width: 100vw;
+        height: 100vh;
+        background-image: url('./../assets/casa_cadastro.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 2.5rem;
+
+        #textoImagemContainer {
+            height: 9.625rem;
+            background-color: rgb(30, 41, 59, 70%);
+            border: 0.063rem solid rgb(59, 73, 76, 30%);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+
+            h2 {
+                font-size: 1.5rem;
+                color: var(--cor-azul-claro);
+
+            }
+
+            p {
+                font-size: 1rem;
+                color: var(--cor-texto-simples);
+                text-align: start;
+            }
+
+        }
+
+    }
+
+}
