@@ -1,90 +1,95 @@
+-- ==============================================================================
+-- REPPAY - SCRIPT DE CRIAÇÃO DO BANCO DE DADOS 
+-- ==============================================================================
 
-/*
-
-Caso precisa rodar mais de uma vez só descomentar;
-
+-- 1. LIMPEZA TOTAL (Evita conflitos de recriação)
 DROP TABLE IF EXISTS parcela CASCADE;
 DROP TABLE IF EXISTS pertence CASCADE;
 DROP TABLE IF EXISTS despesa CASCADE;
 DROP TABLE IF EXISTS grupo CASCADE;
+DROP TABLE IF EXISTS codigo_recuperacao CASCADE;
 DROP TABLE IF EXISTS usuario CASCADE;
-DROP TYPE IF EXISTS status_parcela CASCADE;
-DROP TYPE IF EXISTS status_despesa CASCADE;
-*/
-
-CREATE TYPE status_parcela AS ENUM ('PENDENTE', 'PAGO', 'ATRASADO');
-create type status_despesa as ENUM ('ATIVA','QUITADA','CANCELADA');
 
 
-create table usuario (
-    id_usuario Serial primary key,
-    nome VARCHAR (100) not NULL,
-    senha VARCHAR (255) not NULL,
-    email VARCHAR (254) UNIQUE not NULL
+-- ==============================================================================
+-- 2. CRIAÇÃO DAS TABELAS
+-- ==============================================================================
+
+CREATE TABLE usuario (
+    id_usuario SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    senha VARCHAR(255) NOT NULL,
+    email VARCHAR(254) UNIQUE NOT NULL,
+    ativo boolean not null default true
 );
 
-create table codigo_recuperacao(
-    id_codigo serial primary key,
-    codigo VARCHAR(255) not null,
-    data_expiracao timestamptz not null,
-    codigo_usado boolean not null default false,
+CREATE TABLE codigo_recuperacao (
+    id_codigo SERIAL PRIMARY KEY,
+    codigo VARCHAR(255) NOT NULL,
+    data_expiracao TIMESTAMPTZ NOT NULL,
+    codigo_usado BOOLEAN NOT NULL DEFAULT FALSE,
     tentativas INT NOT NULL DEFAULT 0,
-    id_usuario int not null references usuario(id_usuario) ON DELETE CASCADE
+    id_usuario INT NOT NULL REFERENCES usuario(id_usuario) ON DELETE CASCADE
 );
 CREATE INDEX idx_codigo_recuperacao_usuario ON codigo_recuperacao(id_usuario);
 
-create TABLE grupo(
-    id_grupo Serial primary key,
-    codigo_acesso VARCHAR (20) UNIQUE not null,
-    nome VARCHAR (100) not null,
+CREATE TABLE grupo (
+    id_grupo SERIAL PRIMARY KEY,
+    codigo_acesso VARCHAR(20) UNIQUE NOT NULL,
+    nome VARCHAR(100) NOT NULL,
     imagem_banner VARCHAR(500),
-    id_admin int not null,
-    CONSTRAINT fk_admin_grupo Foreign key (id_admin) REFERENCES usuario(id_usuario) ON DELETE NO ACTION
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    id_admin INT NOT NULL REFERENCES usuario(id_usuario) ON DELETE NO ACTION
 );
-create TABLE despesa(
-    id_despesa Serial primary key,
-    data_cadastro date NOT NULL DEFAULT CURRENT_DATE,
-    vencimento date not null,
-    nome VARCHAR (255) not null,
-    valor DECIMAL(10,2) not null check (valor > 0),
+
+CREATE TABLE despesa (
+    id_despesa SERIAL PRIMARY KEY,
+    data_cadastro DATE NOT NULL DEFAULT CURRENT_DATE,
+    vencimento DATE NOT NULL, 
+    nome VARCHAR(255) NOT NULL,
+    valor DECIMAL(10,2) NOT NULL CHECK (valor > 0),
     icone VARCHAR(500),
-    status status_despesa not null  default 'ATIVA',
-    id_grupo INT NOT NULL,
-    CONSTRAINT fk_despesa_grupo Foreign key (id_grupo) REFERENCES grupo(id_grupo)
+    status VARCHAR(20) NOT NULL DEFAULT 'ATIVA',
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    id_grupo INT NOT NULL REFERENCES grupo(id_grupo) ON DELETE CASCADE,
+    CONSTRAINT chk_status_despesa CHECK (status IN ('ATIVA', 'QUITADA'))
 );
 
-create table pertence(
-    primary key (id_usuario, id_grupo),
-    id_grupo INT not null,
-    id_usuario int not null,
-    
-    CONSTRAINT fk_pertence_usuario FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE RESTRICT,
-    CONSTRAINT fk_pertence_grupo FOREIGN KEY (id_grupo) REFERENCES grupo(id_grupo) ON DELETE CASCADE
+-- Tabela Associativa de Moradores
+CREATE TABLE pertence (
+    id_usuario INT NOT NULL REFERENCES usuario(id_usuario) ON DELETE RESTRICT,
+    id_grupo INT NOT NULL REFERENCES grupo(id_grupo) ON DELETE CASCADE,
+    PRIMARY KEY (id_usuario, id_grupo)
 );
 
-
+-- Tabela de Parcelas (Rateio Individual com status EM_ANALISE)
 CREATE TABLE parcela (
-    
     id_parcela SERIAL PRIMARY KEY,
-    
-    valor DECIMAL(10,2) NOT NULL check (valor > 0),
-    
-    status status_parcela not null DEFAULT 'PENDENTE',
-
-    data_pagamento date,
-    
-    id_usuario INT NOT NULL,
-    id_despesa INT NOT NULL,
-    
-    
-    CONSTRAINT fk_parcela_usuario FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
-    CONSTRAINT fk_parcela_despesa FOREIGN KEY (id_despesa) REFERENCES despesa(id_despesa) ON DELETE CASCADE,
-
+    valor DECIMAL(10,2) NOT NULL CHECK (valor > 0),
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDENTE',
+    data_pagamento DATE,
+    id_usuario INT NOT NULL REFERENCES usuario(id_usuario),
+    id_despesa INT NOT NULL REFERENCES despesa(id_despesa) ON DELETE CASCADE,
     UNIQUE(id_usuario, id_despesa),
-    CHECK (
-    (status = 'PAGO' AND data_pagamento IS NOT NULL)
-    OR
-    (status IN ('PENDENTE','ATRASADO') AND data_pagamento IS NULL))
+    CONSTRAINT chk_status_parcela CHECK (status IN ('PENDENTE', 'PAGO', 'ATRASADO', 'EM_ANALISE')),
+    CONSTRAINT parcela_check CHECK (
+    (status IN ('PAGO', 'EM_ANALISE') AND data_pagamento IS NOT NULL) OR
+    (status IN ('PENDENTE', 'ATRASADO') AND data_pagamento IS NULL)
+    )
 );
 
-CREATE INDEX idx_parcela_despesa ON parcela(id_despesa);
+-- índices
+
+CREATE INDEX idx_parcela_despesa 
+ON parcela(id_despesa);
+
+CREATE INDEX idx_despesa_grupo
+ON despesa(id_grupo);
+
+CREATE INDEX idx_parcela_usuario
+ON parcela(id_usuario);
+
+CREATE INDEX idx_pertence_grupo
+ON pertence(id_grupo);
+
+CREATE INDEX idx_grupo_admin ON grupo(id_admin);
