@@ -19,7 +19,7 @@ namespace RepPay.API.Controllers
             _context = context;
         }
 
-        [HttpPost]
+        [HttpPost("LançarDespesa")]
         public IActionResult CadastrarDespesa([FromBody] DespesaRequestDTO request)
         {
             var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -64,7 +64,7 @@ namespace RepPay.API.Controllers
             return Created("", new { mensagem = "Despesa lançada e rateio gerado com sucesso!" });
         }
 
-        [HttpGet("MinhasDividas")]
+        [HttpGet("ObterMinhasDividas, Morador")]
         public IActionResult GetMinhasDividas()
         {
             var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -105,7 +105,7 @@ namespace RepPay.API.Controllers
             });
         }
 
-        [HttpGet("Inadimplentes/{idGrupo}")]
+        [HttpGet("ObterTodasAsDividas, Admin/{idGrupo}")]
         public IActionResult GetInadimplentes(int idGrupo)
         {
             var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -158,6 +158,137 @@ namespace RepPay.API.Controllers
             {
                 TotalAReceber = totalAReceber,
                 ListaInadimplentes = inadimplentes
+            });
+        }
+
+        [HttpPut("SinalizarPagamento/{idParcela}")]
+        public IActionResult PagarParcela(int idParcela)
+        {
+            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (usuarioIdClaim == null)
+            {
+                return Unauthorized(new { mensagem = "Utilizador não autenticado." });
+            }
+
+            int idLogado = int.Parse(usuarioIdClaim);
+
+            var parcela = _context.Parcelas.FirstOrDefault(p => p.IdParcela == idParcela);
+
+            if (parcela == null)
+            {
+                return NotFound(new { mensagem = "Parcela não encontrada." });
+            }
+
+            if (parcela.IdUsuario != idLogado)
+            {
+                return StatusCode(403, new { mensagem = "Não tem permissão para alterar uma dívida que não lhe pertence!" });
+            }
+
+            if (parcela.Status == StatusParcela.PAGO)
+            {
+                return BadRequest(new { mensagem = "Esta parcela já se encontra paga." });
+            }
+
+            parcela.Status = StatusParcela.EM_ANALISE;
+
+            _context.SaveChanges();
+
+            return Ok(new { mensagem = "Pagamento sinalizado! Aguardando validação do administrador." });
+        }
+
+        [HttpPut("DesfazerSinalizaçãoPagamento/{idParcela}")]
+        public IActionResult DesfazerPagamento(int idParcela)
+        {
+            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (usuarioIdClaim == null)
+            {
+                return Unauthorized(new { mensagem = "Utilizador não autenticado." });
+            }
+
+            int idLogado = int.Parse(usuarioIdClaim);
+            var parcela = _context.Parcelas.FirstOrDefault(p => p.IdParcela == idParcela);
+
+            if (parcela == null)
+            {
+                return NotFound(new { mensagem = "Parcela não encontrada." });
+            }
+
+            if (parcela.IdUsuario != idLogado)
+            {
+                return StatusCode(403, new { mensagem = "Não tem permissão para alterar uma dívida que não lhe pertence!" });
+            }
+
+            if (parcela.Status != StatusParcela.EM_ANALISE)
+            {
+                return BadRequest(new { mensagem = "Só é possível desfazer pagamentos que ainda estão em análise." });
+            }
+
+            parcela.Status = StatusParcela.PENDENTE;
+
+            _context.SaveChanges();
+
+            return Ok(new { mensagem = "Sinalização de pagamento desfeita com sucesso." });
+        }
+
+        [HttpPut("ValidarPagamento/{idParcela}")]
+        public IActionResult ValidarPagamento(int idParcela, [FromBody] ValidarPagamentoRequestDTO request)
+        {
+            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (usuarioIdClaim == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
+
+            int idLogado = int.Parse(usuarioIdClaim);
+
+            var parcela = _context.Parcelas
+            .Include(p => p.IdDespesaNavigation)
+            .ThenInclude(d => d.IdGrupoNavigation)
+            .FirstOrDefault(p => p.IdParcela == idParcela);
+
+            if (parcela == null)
+            {
+                return NotFound(new { mensagem = "Parcela não encontrada." });
+            }
+
+            if (parcela.IdDespesaNavigation.IdGrupoNavigation.IdAdmin != idLogado)
+            {
+                return StatusCode(403, new { mensagem = "Acesso negado. Apenas o administrador do grupo pode validar pagamentos." });
+            }
+
+            if (parcela.Status != StatusParcela.EM_ANALISE)
+            {
+                return BadRequest(new { mensagem = "Esta parcela não está aguardando validação." });
+            }
+
+            if (request.Aprovado)
+            {
+                parcela.Status = StatusParcela.PAGO;
+                parcela.DataPagamento = DateOnly.FromDateTime(DateTime.UtcNow);
+            }
+            else
+            {
+
+                if (DateOnly.FromDateTime(DateTime.UtcNow) > parcela.IdDespesaNavigation.Vencimento)
+                {
+                    parcela.Status = StatusParcela.ATRASADO;
+                }
+                else
+                {
+                    parcela.Status = StatusParcela.PENDENTE;
+                }
+            }
+
+            _context.SaveChanges();
+
+            return Ok(new
+            {
+                mensagem = request.Aprovado
+                    ? "Pagamento aprovado com sucesso! A parcela foi quitada."
+                    : "Pagamento rejeitado. A dívida voltou para o morador."
             });
         }
     }

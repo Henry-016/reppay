@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using RepPay.API.DTOs;
 using RepPay.API.Models;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace RepPay.API.Controllers
 {
@@ -18,7 +19,7 @@ namespace RepPay.API.Controllers
             _context = context;
         }
 
-        [HttpPost]
+        [HttpPost("CriarGrupo")]
         public IActionResult CriarGrupo([FromBody] GrupoRequestDTO request)
         {
             var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -67,7 +68,7 @@ namespace RepPay.API.Controllers
             return codigo;
         }
 
-        [HttpPost("Entrar")]
+        [HttpPost("EntrarEmGrupo")]
         public IActionResult EntrarNoGrupo([FromBody] EntrarGrupoRequestDTO request)
         {
             var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -103,6 +104,73 @@ namespace RepPay.API.Controllers
             _context.SaveChanges();
 
             return Ok(new { mensagem = $"Bem-vindo(a) à {grupo.Nome}!" });
+        }
+
+        [HttpGet("ObterMeusGrupos")]
+        public IActionResult GetMeusGrupos()
+        {
+            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (usuarioIdClaim == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
+
+            int idLogado = int.Parse(usuarioIdClaim);
+
+            var meusGrupos = _context.Pertences
+            .Include(p => p.IdGrupoNavigation)
+            .Where(p => p.IdUsuario == idLogado)
+            .Select(p => new MeuGrupoResponseDTO
+            {
+                IdGrupo = p.IdGrupoNavigation.IdGrupo,
+                Nome = p.IdGrupoNavigation.Nome,
+                CodigoAcesso = p.IdGrupoNavigation.CodigoAcesso,
+                ImagemBanner = p.IdGrupoNavigation.ImagemBanner,
+                IsAdmin = p.IdGrupoNavigation.IdAdmin == idLogado
+            }).ToList();
+
+            if (!meusGrupos.Any())
+            {
+                return Ok(new List<MeuGrupoResponseDTO>());
+            }
+
+            return Ok(meusGrupos);
+        }
+
+        [HttpGet("{idGrupo}")]
+        public IActionResult GetGrupoPorId(int idGrupo)
+        {
+            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (usuarioIdClaim == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
+
+            int idLogado = int.Parse(usuarioIdClaim);
+
+            var relacaoPertence = _context.Pertences
+            .Include(p => p.IdGrupoNavigation)
+            .FirstOrDefault(p => p.IdUsuario == idLogado && p.IdGrupo == idGrupo);
+
+            if (relacaoPertence == null)
+            {
+                return StatusCode(403, new { mensagem = "Acesso negado. Você não pertence a este grupo ou ele não existe." });
+            }
+
+            var grupo = relacaoPertence.IdGrupoNavigation;
+
+            var response = new MeuGrupoResponseDTO
+            {
+                IdGrupo = grupo.IdGrupo,
+                Nome = grupo.Nome,
+                CodigoAcesso = grupo.CodigoAcesso,
+                ImagemBanner = grupo.ImagemBanner,
+                IsAdmin = grupo.IdAdmin == idLogado
+            };
+
+            return Ok(response);
         }
     }
 }

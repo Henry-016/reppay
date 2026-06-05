@@ -4,6 +4,7 @@ namespace RepPay.API.Models
     {
         PENDENTE,
         PAGO,
-        ATRASADO
+        ATRASADO,
+        EM_ANALISE
     }
 }

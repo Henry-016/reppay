@@ -29,10 +29,6 @@ public partial class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder
-            .HasPostgresEnum("status_despesa", new[] { "ATIVA", "QUITADA", "CANCELADA" })
-            .HasPostgresEnum("status_parcela", new[] { "PENDENTE", "PAGO", "ATRASADO" });
-
         modelBuilder.Entity<Despesa>(entity =>
         {
             entity.HasKey(e => e.IdDespesa).HasName("despesa_pkey");
@@ -55,7 +51,7 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("valor");
             entity.Property(e => e.Vencimento).HasColumnName("vencimento");
 
-            entity.Property(e => e.Status).HasColumnName("status").HasConversion<string>(); ;
+            entity.Property(e => e.Status).HasColumnName("status").HasConversion<string>();
 
             entity.HasOne(d => d.IdGrupoNavigation).WithMany(p => p.Despesas)
                 .HasForeignKey(d => d.IdGrupo)

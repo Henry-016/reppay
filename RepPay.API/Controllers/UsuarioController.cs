@@ -23,7 +23,7 @@ namespace RepPay.API.Controllers
         }
 
         [Authorize]
-        [HttpGet]
+        [HttpGet("ObterTodosUsuários")]
         public IActionResult GetTodosUsuarios()
         {
             var usuarios = _context.Usuarios.Select(u => new UsuarioResponseDTO
@@ -37,7 +37,7 @@ namespace RepPay.API.Controllers
             return Ok(usuarios);
         }
 
-        [HttpPost]
+        [HttpPost("CadastrarUsuario")]
         public IActionResult CriarUsuario([FromBody] UsuarioRequestDTO novoUsuarioDTO)
         {
             if (_context.Usuarios.Any(u => u.Email.ToLower() == novoUsuarioDTO.Email.ToLower()))
@@ -59,7 +59,7 @@ namespace RepPay.API.Controllers
             return Created("", new { mensagem = "Usuário cadastrado com total segurança!" });
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("ObterUsuárioPorID/{id}")]
         public IActionResult GetUsuarioPorId(int id)
         {
             var usuario = _context.Usuarios
@@ -80,7 +80,7 @@ namespace RepPay.API.Controllers
             return Ok(usuario);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("ForaMVP, Observar/{id}")]
         public IActionResult AtualizarUsuario(int id, [FromBody] UsuarioRequestDTO usuarioAtualizado)
         {
             var usuario = _context.Usuarios.FirstOrDefault(u => u.IdUsuario == id);
@@ -100,7 +100,7 @@ namespace RepPay.API.Controllers
             return Ok(new { mensagem = "Dados do usuário atualizados com sucesso!" });
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("ForaMVP, Observar/{id}")]
         public IActionResult DeletarUsuario(int id)
         {
             var usuario = _context.Usuarios.FirstOrDefault(u => u.IdUsuario == id);
