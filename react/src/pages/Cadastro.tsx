@@ -11,10 +11,40 @@ function Cadastro() {
   const [modal, setModal] = useState(false)
   const navigate = useNavigate()
 
-  const cadastrar = (e: React.SubmitEvent) => {
-    e.preventDefault()
-    setModal(true);
-  };
+    const cadastrar = async (e: React.SubmitEvent) => {
+        e.preventDefault()
+
+        if (senha !== confirmarsenha) {
+            alert('As senhas não coincidem!')
+            return
+        }
+
+        const dadosDoUsuario = {
+            nome: nome,
+            email: email,
+            senha: senha
+        }
+
+        try {
+            const resposta = await fetch('http://localhost:5149/api/Usuario', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dadosDoUsuario)
+            })
+
+            if (resposta.ok) {
+                setModal(true)
+            } else {
+                alert('Falha ao realizar o cadastro. Verifique as informações.')
+            }
+
+        } catch (erro) {
+            alert('Erro ao conectar com o servidor. Verifique se o backend está rodando.')
+        }
+    }  
+
 
   return (
     <>
