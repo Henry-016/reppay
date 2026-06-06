@@ -4,6 +4,9 @@ using RepPay.API.DTOs;
 using RepPay.API.Models;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace RepPay.API.Controllers
 {
@@ -19,62 +22,86 @@ namespace RepPay.API.Controllers
             _context = context;
         }
 
-        [HttpPost("LançarDespesa")]
-        public IActionResult CadastrarDespesa([FromBody] DespesaRequestDTO request)
+        private int? ObterIdUsuarioLogado()
         {
             var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int idLogado = int.Parse(usuarioIdClaim);
+            if (string.IsNullOrEmpty(usuarioIdClaim))
+            {
+                return null;
+            }
+            return int.Parse(usuarioIdClaim);
+        }
+
+        [HttpPost("LancarDespesa")]
+        public IActionResult CadastrarDespesa([FromBody] DespesaRequestDTO request)
+        {
+            int? idLogado = ObterIdUsuarioLogado();
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
 
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == request.IdGrupo);
 
             if (grupo == null || grupo.IdAdmin != idLogado)
             {
-                return Forbid();
+                return StatusCode(403, new { mensagem = "Acesso negado. Apenas o administrador pode lançar despesas." });
+            }
+
+            if (request.MoradoresIds == null || request.MoradoresIds.Count == 0)
+            {
+                return BadRequest(new { mensagem = "É necessário selecionar pelo menos um morador para dividir esta conta." });
+            }
+
+            var moradoresValidos = _context.Pertences
+                .Where(p => p.IdGrupo == request.IdGrupo && request.MoradoresIds.Contains(p.IdUsuario))
+                .Select(p => p.IdUsuario)
+                .ToList();
+
+            if (moradoresValidos.Count != request.MoradoresIds.Count)
+            {
+                return BadRequest(new { mensagem = "Um ou mais moradores informados não existem ou não pertencem a esta república." });
             }
 
             var novaDespesa = new Despesa
             {
                 Nome = request.Nome,
                 Valor = request.Valor,
-                Vencimento = DateOnly.Parse(request.Vencimento),
+                Vencimento = request.Vencimento,
                 Icone = request.Icone,
                 IdGrupo = request.IdGrupo,
-                Status = StatusDespesa.ATIVA
+                Status = StatusDespesa.ATIVA,
+                Parcelas = new List<Parcela>()
             };
-
-            _context.Despesas.Add(novaDespesa);
-            _context.SaveChanges();
 
             decimal valorPorPessoa = request.Valor / request.MoradoresIds.Count;
 
             foreach (var idMorador in request.MoradoresIds)
             {
-                var parcela = new Parcela
+                novaDespesa.Parcelas.Add(new Parcela
                 {
-                    IdDespesa = novaDespesa.IdDespesa,
                     IdUsuario = idMorador,
                     Valor = valorPorPessoa,
                     Status = StatusParcela.PENDENTE
-                };
-
-                _context.Parcelas.Add(parcela);
+                });
             }
 
+            _context.Despesas.Add(novaDespesa);
             _context.SaveChanges();
+
             return Created("", new { mensagem = "Despesa lançada e rateio gerado com sucesso!" });
         }
 
-        [HttpGet("ObterMinhasDividas, Morador")]
+        [HttpGet("MinhasDividas")]
         public IActionResult GetMinhasDividas()
         {
-            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
-            if (usuarioIdClaim == null)
+            int? idLogado = ObterIdUsuarioLogado();
+
+            if (idLogado == null)
             {
                 return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
-
-            int idLogado = int.Parse(usuarioIdClaim);
 
             var dividas = _context.Parcelas
                 .Include(p => p.IdDespesaNavigation)
@@ -105,24 +132,19 @@ namespace RepPay.API.Controllers
             });
         }
 
-        [HttpGet("ObterTodasAsDividas, Admin/{idGrupo}")]
+        [HttpGet("Inadimplentes/{idGrupo}")]
         public IActionResult GetInadimplentes(int idGrupo)
         {
-            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? idLogado = ObterIdUsuarioLogado();
 
-            if (usuarioIdClaim == null)
+            if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Utilizador não autenticado." });
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
-
-            int idLogado = int.Parse(usuarioIdClaim);
 
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
 
-            if (grupo == null)
-            {
-                return NotFound(new { mensagem = "Grupo não encontrado." });
-            }
+            if (grupo == null) return NotFound(new { mensagem = "Grupo não encontrado." });
 
             if (grupo.IdAdmin != idLogado)
             {
@@ -130,8 +152,8 @@ namespace RepPay.API.Controllers
             }
 
             var inadimplentes = _context.Parcelas
-                .Include(p => p.IdUsuarioNavigation) 
-                .Include(p => p.IdDespesaNavigation) 
+                .Include(p => p.IdUsuarioNavigation)
+                .Include(p => p.IdDespesaNavigation)
                 .Where(p => p.IdDespesaNavigation.IdGrupo == idGrupo
                          && (p.Status == StatusParcela.PENDENTE || p.Status == StatusParcela.ATRASADO))
                 .Select(p => new InadimplenteResponseDTO
@@ -164,21 +186,16 @@ namespace RepPay.API.Controllers
         [HttpPut("SinalizarPagamento/{idParcela}")]
         public IActionResult PagarParcela(int idParcela)
         {
-            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? idLogado = ObterIdUsuarioLogado();
 
-            if (usuarioIdClaim == null)
+            if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Utilizador não autenticado." });
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
-
-            int idLogado = int.Parse(usuarioIdClaim);
 
             var parcela = _context.Parcelas.FirstOrDefault(p => p.IdParcela == idParcela);
 
-            if (parcela == null)
-            {
-                return NotFound(new { mensagem = "Parcela não encontrada." });
-            }
+            if (parcela == null) return NotFound(new { mensagem = "Parcela não encontrada." });
 
             if (parcela.IdUsuario != idLogado)
             {
@@ -191,29 +208,24 @@ namespace RepPay.API.Controllers
             }
 
             parcela.Status = StatusParcela.EM_ANALISE;
-
             _context.SaveChanges();
 
             return Ok(new { mensagem = "Pagamento sinalizado! Aguardando validação do administrador." });
         }
 
-        [HttpPut("DesfazerSinalizaçãoPagamento/{idParcela}")]
+        [HttpPut("DesfazerSinalizacaoPagamento/{idParcela}")]
         public IActionResult DesfazerPagamento(int idParcela)
         {
-            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? idLogado = ObterIdUsuarioLogado();
 
-            if (usuarioIdClaim == null)
+            if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Utilizador não autenticado." });
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
 
-            int idLogado = int.Parse(usuarioIdClaim);
             var parcela = _context.Parcelas.FirstOrDefault(p => p.IdParcela == idParcela);
 
-            if (parcela == null)
-            {
-                return NotFound(new { mensagem = "Parcela não encontrada." });
-            }
+            if (parcela == null) return NotFound(new { mensagem = "Parcela não encontrada." });
 
             if (parcela.IdUsuario != idLogado)
             {
@@ -226,7 +238,6 @@ namespace RepPay.API.Controllers
             }
 
             parcela.Status = StatusParcela.PENDENTE;
-
             _context.SaveChanges();
 
             return Ok(new { mensagem = "Sinalização de pagamento desfeita com sucesso." });
@@ -235,14 +246,12 @@ namespace RepPay.API.Controllers
         [HttpPut("ValidarPagamento/{idParcela}")]
         public IActionResult ValidarPagamento(int idParcela, [FromBody] ValidarPagamentoRequestDTO request)
         {
-            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? idLogado = ObterIdUsuarioLogado();
 
-            if (usuarioIdClaim == null)
+            if (idLogado == null)
             {
                 return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
-
-            int idLogado = int.Parse(usuarioIdClaim);
 
             var parcela = _context.Parcelas
             .Include(p => p.IdDespesaNavigation)
@@ -271,7 +280,6 @@ namespace RepPay.API.Controllers
             }
             else
             {
-
                 if (DateOnly.FromDateTime(DateTime.UtcNow) > parcela.IdDespesaNavigation.Vencimento)
                 {
                     parcela.Status = StatusParcela.ATRASADO;
@@ -292,17 +300,15 @@ namespace RepPay.API.Controllers
             });
         }
 
-        [HttpGet("ObterHistóricoDespesasPagas")]
+        [HttpGet("HistoricoPago")]
         public IActionResult GetMeuHistoricoPago()
         {
-            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? idLogado = ObterIdUsuarioLogado();
 
-            if (usuarioIdClaim == null)
+            if (idLogado == null)
             {
                 return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
-
-            int idLogado = int.Parse(usuarioIdClaim);
 
             var historicoPago = _context.Parcelas
                 .Include(p => p.IdDespesaNavigation)

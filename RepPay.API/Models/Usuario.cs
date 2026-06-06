@@ -16,6 +16,4 @@ public partial class Usuario
     public virtual ICollection<Grupo> Grupos { get; set; } = new List<Grupo>();
 
     public virtual ICollection<Parcela> Parcelas { get; set; } = new List<Parcela>();
-
-    public virtual ICollection<Grupo> IdGrupos { get; set; } = new List<Grupo>();
 }

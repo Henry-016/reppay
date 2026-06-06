@@ -101,7 +101,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdUsuario).HasColumnName("id_usuario");
             entity.Property(e => e.Valor).HasPrecision(10, 2).HasColumnName("valor");
 
-            entity.Property(e => e.Status).HasColumnName("status").HasConversion<string>(); ;
+            entity.Property(e => e.Status).HasColumnName("status").HasConversion<string>();
 
             entity.HasOne(d => d.IdDespesaNavigation).WithMany(p => p.Parcelas)
                 .HasForeignKey(d => d.IdDespesa)
@@ -133,6 +133,24 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("senha");
 
  
+        });
+
+        modelBuilder.Entity<CodigoRecuperacao>(entity =>
+        {
+            entity.HasKey(e => e.IdCodigo).HasName("codigo_recuperacao_pkey");
+            entity.ToTable("codigo_recuperacao");
+
+            entity.Property(e => e.IdCodigo).HasColumnName("id_codigo");
+            entity.Property(e => e.Codigo).HasColumnName("codigo");
+            entity.Property(e => e.DataExpiracao).HasColumnName("data_expiracao");
+            entity.Property(e => e.CodigoUsado).HasColumnName("codigo_usado");
+            entity.Property(e => e.Tentativas).HasColumnName("tentativas");
+            entity.Property(e => e.IdUsuario).HasColumnName("id_usuario");
+
+            entity.HasOne(d => d.IdUsuarioNavigation).WithMany()
+                  .HasForeignKey(d => d.IdUsuario)
+                  .OnDelete(DeleteBehavior.Cascade)
+                  .HasConstraintName("fk_codigo_usuario");
         });
 
         modelBuilder.Entity<Pertence>(entity =>

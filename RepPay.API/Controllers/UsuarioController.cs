@@ -1,18 +1,19 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RepPay.API.Models;
 using RepPay.API.DTOs;
-using System.Reflection.Metadata;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Authorization;
+using System;
+using System.Linq;
 
 namespace RepPay.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class UsuarioController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -22,22 +23,18 @@ namespace RepPay.API.Controllers
             _context = context;
         }
 
-        [Authorize]
-        [HttpGet("ObterTodosUsuários")]
-        public IActionResult GetTodosUsuarios()
+        private int? ObterIdUsuarioLogado()
         {
-            var usuarios = _context.Usuarios.Select(u => new UsuarioResponseDTO
+            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(usuarioIdClaim))
             {
-                IdUsuario = u.IdUsuario,
-                Nome = u.Nome,
-                Email = u.Email
-            })
-                .ToList();
-
-            return Ok(usuarios);
+                return null;
+            }
+            return int.Parse(usuarioIdClaim);
         }
 
-        [HttpPost("CadastrarUsuario")]
+        [AllowAnonymous]
+        [HttpPost]
         public IActionResult CriarUsuario([FromBody] UsuarioRequestDTO novoUsuarioDTO)
         {
             if (_context.Usuarios.Any(u => u.Email.ToLower() == novoUsuarioDTO.Email.ToLower()))
@@ -49,7 +46,6 @@ namespace RepPay.API.Controllers
             {
                 Nome = novoUsuarioDTO.Nome,
                 Email = novoUsuarioDTO.Email,
-
                 Senha = BCrypt.Net.BCrypt.HashPassword(novoUsuarioDTO.Senha)
             };
 
@@ -59,11 +55,47 @@ namespace RepPay.API.Controllers
             return Created("", new { mensagem = "Usuário cadastrado com total segurança!" });
         }
 
-        [HttpGet("ObterUsuárioPorID/{id}")]
-        public IActionResult GetUsuarioPorId(int id)
+        [AllowAnonymous]
+        [HttpPost("Login")]
+        public IActionResult Login([FromBody] LoginRequestDTO request)
         {
+            var usuario = _context.Usuarios.FirstOrDefault(u => u.Email.ToLower() == request.Email.ToLower());
+
+            if (usuario == null)
+            {
+                return Unauthorized(new { mensagem = "E-mail ou senha incorretos." });
+            }
+
+            bool senhaValida = BCrypt.Net.BCrypt.Verify(request.Senha, usuario.Senha);
+
+            if (!senhaValida)
+            {
+                return Unauthorized(new { mensagem = "E-mail ou senha incorretos." });
+            }
+
+            var token = GerarTokenJWT(usuario);
+
+            return Ok(new
+            {
+                mensagem = "Login realizado com sucesso!",
+                token = token,
+                idUsuario = usuario.IdUsuario,
+                nome = usuario.Nome
+            });
+        }
+
+
+        [HttpGet("MeuPerfil")]
+        public IActionResult GetMeuPerfil()
+        {
+            int? idLogado = ObterIdUsuarioLogado();
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
+
             var usuario = _context.Usuarios
-                .Where(u => u.IdUsuario == id)
+                .Where(u => u.IdUsuario == idLogado)
                 .Select(u => new UsuarioResponseDTO
                 {
                     IdUsuario = u.IdUsuario,
@@ -74,36 +106,49 @@ namespace RepPay.API.Controllers
 
             if (usuario == null)
             {
-                return NotFound(new { mensagem = "Usuário não encontrado no sistema." });
+                return NotFound(new { mensagem = "Usuário não encontrado." });
             }
 
             return Ok(usuario);
         }
 
-        [HttpPut("ForaMVP, Observar/{id}")]
-        public IActionResult AtualizarUsuario(int id, [FromBody] UsuarioRequestDTO usuarioAtualizado)
+        [HttpPut("Atualizar")]
+        public IActionResult AtualizarUsuario([FromBody] UsuarioRequestDTO usuarioAtualizado)
         {
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.IdUsuario == id);
+            int? idLogado = ObterIdUsuarioLogado();
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
+
+            var usuario = _context.Usuarios.FirstOrDefault(u => u.IdUsuario == idLogado);
 
             if (usuario == null)
             {
-                return NotFound(new { mensagem = "Usuário não encontrado para atualização!" });
+                return NotFound(new { mensagem = "Usuário não encontrado." });
             }
 
             usuario.Nome = usuarioAtualizado.Nome;
             usuario.Email = usuarioAtualizado.Email;
-
-            usuario.Senha = usuarioAtualizado.Senha;
+            usuario.Senha = BCrypt.Net.BCrypt.HashPassword(usuarioAtualizado.Senha);
 
             _context.SaveChanges();
 
             return Ok(new { mensagem = "Dados do usuário atualizados com sucesso!" });
         }
 
-        [HttpDelete("ForaMVP, Observar/{id}")]
-        public IActionResult DeletarUsuario(int id)
+        [HttpDelete("Deletar")]
+        public IActionResult DeletarUsuario()
         {
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.IdUsuario == id);
+            int? idLogado = ObterIdUsuarioLogado();
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
+
+            var usuario = _context.Usuarios.FirstOrDefault(u => u.IdUsuario == idLogado);
 
             if (usuario == null)
             {
@@ -116,6 +161,7 @@ namespace RepPay.API.Controllers
             return Ok(new { mensagem = "Usuário deletado do sistema com sucesso!" });
         }
 
+        [AllowAnonymous]
         [HttpPost("EsqueciSenha")]
         public IActionResult EsqueciSenha([FromBody] EsqueciSenhaRequestDTO request)
         {
@@ -123,7 +169,7 @@ namespace RepPay.API.Controllers
 
             if (usuario == null)
             {
-                return Ok(new { mensagem = "Se o e-mail existir em nossa base, um código será enviado!"});
+                return Ok(new { mensagem = "Se o e-mail existir em nossa base, um código será enviado!" });
             }
 
             Random random = new Random();
@@ -148,6 +194,7 @@ namespace RepPay.API.Controllers
             return Ok(new { mensagem = "Se o e-mail existir em nossa base, um código será enviado!" });
         }
 
+        [AllowAnonymous]
         [HttpPost("ValidarCodigo")]
         public IActionResult ValidarCodigo([FromBody] ValidarCodigoRequestDTO request)
         {
@@ -164,13 +211,19 @@ namespace RepPay.API.Controllers
                 .FirstOrDefault();
 
             if (recuperacao == null)
+            {
                 return BadRequest(new { mensagem = "Nenhum código ativo encontrado." });
+            }
 
             if (recuperacao.Tentativas >= 3)
+            {
                 return BadRequest(new { mensagem = "Muitas tentativas falhas. Solicite um novo código." });
+            }
 
             if (recuperacao.DataExpiracao < DateTime.UtcNow)
+            {
                 return BadRequest(new { mensagem = "Este código expirou." });
+            }
 
             if (recuperacao.Codigo != request.Codigo)
             {
@@ -182,11 +235,11 @@ namespace RepPay.API.Controllers
             return Ok(new { mensagem = "Código validado com sucesso!" });
         }
 
+        [AllowAnonymous]
         [HttpPost("ResetarSenha")]
         public IActionResult ResetarSenha([FromBody] ResetarSenhaRequestDTO request)
         {
             const int limiteDeTentativas = 3;
-
             var usuario = _context.Usuarios.FirstOrDefault(u => u.Email.ToLower() == request.Email.ToLower());
 
             if (usuario == null)
@@ -213,42 +266,15 @@ namespace RepPay.API.Controllers
 
             usuario.Senha = BCrypt.Net.BCrypt.HashPassword(request.NovaSenha);
             recuperacao.CodigoUsado = true;
-
             _context.SaveChanges();
 
             return Ok(new { mensagem = "Sua senha foi redefinida com sucesso!" });
         }
 
-        [HttpPost("Login")]
-        public IActionResult Login([FromBody] LoginRequestDTO request)
-        {
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.Email.ToLower() == request.Email.ToLower());
-
-            if (usuario == null)
-            {
-                return Unauthorized(new { mensagem = "E-mail ou senha incorretos." });
-            }
-
-            bool senhaValida = BCrypt.Net.BCrypt.Verify(request.Senha, usuario.Senha);
-
-            if (!senhaValida)
-            {
-                return Unauthorized(new { mensagem = "E-mail ou senha incorretos." });
-            }
-
-            var token = GerarTokenJWT(usuario);
-
-            return Ok(new { mensagem = "Login realizado com sucesso!",
-                token = token,
-                idUsuario = usuario.IdUsuario,
-                nome = usuario.Nome
-            });
-        }
-
+        // Devo mover esta chave para o appsettings.json no futuro!!!
         private string GerarTokenJWT(Models.Usuario usuario)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-
             var key = Encoding.ASCII.GetBytes("MinhaSuperChaveSecretaDoRepPay2026!!");
 
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -259,9 +285,7 @@ namespace RepPay.API.Controllers
                     new Claim(ClaimTypes.Email, usuario.Email),
                     new Claim(ClaimTypes.Name, usuario.Nome)
                 }),
-
                 Expires = DateTime.UtcNow.AddHours(8),
-
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 

@@ -19,36 +19,14 @@ namespace RepPay.API.Controllers
             _context = context;
         }
 
-        [HttpPost("CriarGrupo")]
-        public IActionResult CriarGrupo([FromBody] GrupoRequestDTO request)
+        private int? ObterIdUsuarioLogado()
         {
             var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (usuarioIdClaim == null)
+            if (string.IsNullOrEmpty(usuarioIdClaim))
             {
-                return Unauthorized(new { mensagem = "Usuário não autenticado!" });
+                return null;
             }
-
-            int IdAdmin = int.Parse(usuarioIdClaim);
-
-            string codigoAcesso = GerarCodigoAcesso();
-
-            var novoGrupo = new Grupo
-            {
-                Nome = request.Nome,
-                ImagemBanner = request.ImagemBanner,
-                CodigoAcesso = codigoAcesso,
-                IdAdmin = IdAdmin
-            };
-
-            _context.Grupos.Add(novoGrupo);
-            _context.SaveChanges();
-
-            return Created("", new
-            {
-                mensagem = "República criada com sucesso!",
-                codigoAcesso = codigoAcesso
-            });
+            return int.Parse(usuarioIdClaim);
         }
 
         private string GerarCodigoAcesso()
@@ -68,17 +46,45 @@ namespace RepPay.API.Controllers
             return codigo;
         }
 
-        [HttpPost("EntrarEmGrupo")]
-        public IActionResult EntrarNoGrupo([FromBody] EntrarGrupoRequestDTO request)
+        [HttpPost]
+        public IActionResult CriarGrupo([FromBody] GrupoRequestDTO request)
         {
-            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? idAdmin = ObterIdUsuarioLogado();
 
-            if (usuarioIdClaim == null)
+            if (idAdmin == null)
             {
                 return Unauthorized(new { mensagem = "Usuário não autenticado!" });
             }
 
-            int idUsuario = int.Parse(usuarioIdClaim);
+            string codigoAcesso = GerarCodigoAcesso();
+
+            var novoGrupo = new Grupo
+            {
+                Nome = request.Nome,
+                ImagemBanner = request.ImagemBanner,
+                CodigoAcesso = codigoAcesso,
+                IdAdmin = idAdmin.Value
+            };
+
+            _context.Grupos.Add(novoGrupo);
+            _context.SaveChanges();
+
+            return Created("", new
+            {
+                mensagem = "República criada com sucesso!",
+                codigoAcesso = codigoAcesso
+            });
+        }
+
+        [HttpPost("Entrar")]
+        public IActionResult EntrarNoGrupo([FromBody] EntrarGrupoRequestDTO request)
+        {
+            int? idUsuario = ObterIdUsuarioLogado();
+
+            if (idUsuario == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado!" });
+            }
 
             var grupo = _context.Grupos.FirstOrDefault(g => g.CodigoAcesso.ToLower() == request.CodigoAcesso.ToLower());
 
@@ -97,7 +103,7 @@ namespace RepPay.API.Controllers
             var novoVinculo = new Pertence
             {
                 IdGrupo = grupo.IdGrupo,
-                IdUsuario = idUsuario
+                IdUsuario = idUsuario.Value
             };
 
             _context.Pertences.Add(novoVinculo);
@@ -106,53 +112,44 @@ namespace RepPay.API.Controllers
             return Ok(new { mensagem = $"Bem-vindo(a) à {grupo.Nome}!" });
         }
 
-        [HttpGet("ObterMeusGrupos")]
+        [HttpGet("Meus")]
         public IActionResult GetMeusGrupos()
         {
-            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? idLogado = ObterIdUsuarioLogado();
 
-            if (usuarioIdClaim == null)
+            if (idLogado == null)
             {
                 return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
 
-            int idLogado = int.Parse(usuarioIdClaim);
-
             var meusGrupos = _context.Pertences
-            .Include(p => p.IdGrupoNavigation)
-            .Where(p => p.IdUsuario == idLogado)
-            .Select(p => new MeuGrupoResponseDTO
-            {
-                IdGrupo = p.IdGrupoNavigation.IdGrupo,
-                Nome = p.IdGrupoNavigation.Nome,
-                CodigoAcesso = p.IdGrupoNavigation.CodigoAcesso,
-                ImagemBanner = p.IdGrupoNavigation.ImagemBanner,
-                IsAdmin = p.IdGrupoNavigation.IdAdmin == idLogado
-            }).ToList();
-
-            if (!meusGrupos.Any())
-            {
-                return Ok(new List<MeuGrupoResponseDTO>());
-            }
+                .Include(p => p.IdGrupoNavigation)
+                .Where(p => p.IdUsuario == idLogado)
+                .Select(p => new MeuGrupoResponseDTO
+                {
+                    IdGrupo = p.IdGrupoNavigation.IdGrupo,
+                    Nome = p.IdGrupoNavigation.Nome,
+                    CodigoAcesso = p.IdGrupoNavigation.CodigoAcesso,
+                    ImagemBanner = p.IdGrupoNavigation.ImagemBanner,
+                    IsAdmin = p.IdGrupoNavigation.IdAdmin == idLogado
+                }).ToList();
 
             return Ok(meusGrupos);
         }
 
-        [HttpGet("ObterGrupoPorID/{idGrupo}")]
+        [HttpGet("{idGrupo}")]
         public IActionResult GetGrupoPorId(int idGrupo)
         {
-            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? idLogado = ObterIdUsuarioLogado();
 
-            if (usuarioIdClaim == null)
+            if (idLogado == null)
             {
                 return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
 
-            int idLogado = int.Parse(usuarioIdClaim);
-
             var relacaoPertence = _context.Pertences
-            .Include(p => p.IdGrupoNavigation)
-            .FirstOrDefault(p => p.IdUsuario == idLogado && p.IdGrupo == idGrupo);
+                .Include(p => p.IdGrupoNavigation)
+                .FirstOrDefault(p => p.IdUsuario == idLogado && p.IdGrupo == idGrupo);
 
             if (relacaoPertence == null)
             {
@@ -173,17 +170,15 @@ namespace RepPay.API.Controllers
             return Ok(response);
         }
 
-        [HttpGet("GetUsuariosGrupo/{idGrupo}")]
+        [HttpGet("{idGrupo}/Membros")]
         public IActionResult GetMembrosDoGrupo(int idGrupo)
         {
-            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? idLogado = ObterIdUsuarioLogado();
 
-            if (usuarioIdClaim == null)
+            if (idLogado == null)
             {
                 return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
-
-            int idLogado = int.Parse(usuarioIdClaim);
 
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
 
@@ -206,9 +201,9 @@ namespace RepPay.API.Controllers
                 {
                     IdUsuario = p.IdUsuario,
                     Nome = p.IdUsuarioNavigation.Nome,
-                    isAdmin = p.IdUsuario == grupo.IdAdmin
+                    IsAdmin = p.IdUsuario == grupo.IdAdmin
                 })
-                .OrderByDescending(m => m.isAdmin) 
+                .OrderByDescending(m => m.IsAdmin)
                 .ThenBy(m => m.Nome)
                 .ToList();
 

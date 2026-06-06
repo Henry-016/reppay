@@ -4,6 +4,6 @@ namespace RepPay.API.DTOs
 	{
 		public int IdUsuario { get; set; }
 		public string Nome { get; set; }
-		public bool isAdmin { get; set; }
+		public bool IsAdmin { get; set; }
 	}
 }

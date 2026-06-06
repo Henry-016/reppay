@@ -18,6 +18,4 @@ public partial class Grupo
     public virtual ICollection<Despesa> Despesas { get; set; } = new List<Despesa>();
 
     public virtual Usuario IdAdminNavigation { get; set; } = null!;
-
-    public virtual ICollection<Usuario> IdUsuarios { get; set; } = new List<Usuario>();
 }
