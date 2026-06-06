@@ -209,5 +209,196 @@ namespace RepPay.API.Controllers
 
             return Ok(membros);
         }
+
+        [HttpDelete("{idGrupo}/Sair")]
+        public IActionResult SairDoGrupo(int idGrupo)
+        {
+            int? idLogado = ObterIdUsuarioLogado();
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
+
+            var vinculo = _context.Pertences.FirstOrDefault(p => p.IdGrupo == idGrupo && p.IdUsuario == idLogado);
+
+            if (vinculo == null)
+            {
+                return NotFound(new { mensagem = "Você não pertence a esta república." });
+            }
+
+            var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
+
+            if (grupo != null && grupo.IdAdmin == idLogado)
+            {
+                return BadRequest(new { mensagem = "Você é o administrador do grupo. Transfira a liderança para outro morador antes de sair." });
+            }
+
+            bool temDividas = _context.Parcelas
+                .Include(p => p.IdDespesaNavigation)
+                .Any(p => p.IdUsuario == idLogado
+                       && p.IdDespesaNavigation.IdGrupo == idGrupo
+                       && (p.Status == StatusParcela.PENDENTE ||
+                           p.Status == StatusParcela.ATRASADO ||
+                           p.Status == StatusParcela.EM_ANALISE));
+
+            if (temDividas)
+            {
+                return BadRequest(new
+                {
+                    mensagem = "Você possui dívidas pendentes ou em análise nesta república. Quite todas as contas antes de sair!"
+                });
+            }
+
+            _context.Pertences.Remove(vinculo);
+            _context.SaveChanges();
+
+            return Ok(new { mensagem = "Você saiu da república com sucesso. Sentiremos sua falta!" });
+        }
+
+        [HttpDelete("{idGrupo}/Expulsar/{idMorador}")]
+        public IActionResult ExpulsarMorador(int idGrupo, int idMorador)
+        {
+            int? idLogado = ObterIdUsuarioLogado();
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
+
+            var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
+
+            if (grupo == null)
+            {
+                return NotFound(new { mensagem = "Grupo não encontrado." });
+            }
+
+            if (grupo.IdAdmin != idLogado)
+            {
+                return StatusCode(403, new { mensagem = "Acesso negado. Apenas o administrador pode expulsar moradores." });
+            }
+
+            if (idLogado == idMorador)
+            {
+                return BadRequest(new { mensagem = "Você não pode expulsar a si mesmo. Caso queira sair, utilize a opção de saída voluntária ou exclua o grupo." });
+            }
+
+            var vinculo = _context.Pertences.FirstOrDefault(p => p.IdGrupo == idGrupo && p.IdUsuario == idMorador);
+
+            if (vinculo == null)
+            {
+                return NotFound(new { mensagem = "Este usuário não é um morador da sua república." });
+            }
+
+            bool moradorTemDividas = _context.Parcelas
+                .Include(p => p.IdDespesaNavigation)
+                .Any(p => p.IdUsuario == idMorador
+                       && p.IdDespesaNavigation.IdGrupo == idGrupo
+                       && (p.Status == StatusParcela.PENDENTE ||
+                           p.Status == StatusParcela.ATRASADO ||
+                           p.Status == StatusParcela.EM_ANALISE));
+
+            if (moradorTemDividas)
+            {
+                return BadRequest(new { mensagem = "Não é possível expulsar este morador pois ele possui dívidas ativas. Quite as pendências financeiras dele antes de removê-lo."});
+            }
+
+            _context.Pertences.Remove(vinculo);
+            _context.SaveChanges();
+
+            return Ok(new { mensagem = "Morador removido da república com sucesso." });
+        }
+
+        [HttpPut("{idGrupo}/TransferirAdmin/{idNovoAdmin}")]
+        public IActionResult TransferirAdmin(int idGrupo, int idNovoAdmin)
+        {
+            int? idLogado = ObterIdUsuarioLogado();
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
+
+            var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
+
+            if (grupo == null)
+            {
+                return NotFound(new { mensagem = "Grupo não encontrado." });
+            }
+
+            if (grupo.IdAdmin != idLogado)
+            {
+                return StatusCode(403, new { mensagem = "Acesso negado. Apenas o administrador atual pode transferir a liderança da casa." });
+            }
+
+            if (idLogado == idNovoAdmin)
+            {
+                return BadRequest(new { mensagem = "Você já é o administrador desta república." });
+            }
+
+            var moradorDestino = _context.Pertences
+                .Include(p => p.IdUsuarioNavigation)
+                .FirstOrDefault(p => p.IdGrupo == idGrupo && p.IdUsuario == idNovoAdmin);
+
+            if (moradorDestino == null)
+            {
+                return NotFound(new { mensagem = "O usuário escolhido não é um morador desta república." });
+            }
+
+            if (!moradorDestino.IdUsuarioNavigation.Ativo)
+            {
+                return BadRequest(new { mensagem = "Não é possível transferir a liderança para uma conta desativada." });
+            }
+
+            grupo.IdAdmin = idNovoAdmin;
+
+            _context.SaveChanges();
+
+            return Ok(new
+            {
+                mensagem = $"Liderança transferida com sucesso para {moradorDestino.IdUsuarioNavigation.Nome}! Você agora é um morador comum."
+            });
+        }
+
+        [HttpPut("QuitarDividaAdministrativamente/{idParcela}")]
+        public IActionResult QuitarDividaAdmin(int idParcela)
+        {
+            int? idLogado = ObterIdUsuarioLogado();
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
+
+            var parcela = _context.Parcelas
+                .Include(p => p.IdDespesaNavigation)
+                .ThenInclude(d => d.IdGrupoNavigation)
+                .FirstOrDefault(p => p.IdParcela == idParcela);
+
+            if (parcela == null)
+            {
+                return NotFound(new { mensagem = "Parcela não encontrada." });
+            }
+
+            if (parcela.IdDespesaNavigation.IdGrupoNavigation.IdAdmin != idLogado)
+            {
+                return StatusCode(403, new { mensagem = "Acesso negado. Apenas o administrador da república pode quitar dívidas administrativamente." });
+            }
+
+            if (parcela.Status == StatusParcela.PAGO)
+            {
+                return BadRequest(new { mensagem = "Esta parcela já está paga e não precisa de intervenção." });
+            }
+
+            parcela.Status = StatusParcela.PAGO;
+            parcela.DataPagamento = DateOnly.FromDateTime(DateTime.UtcNow);
+
+            _context.SaveChanges();
+
+            return Ok(new
+            {
+                mensagem = "Dívida quitada administrativamente com sucesso! O histórico do morador foi limpo para esta conta."
+            });
+        }
     }
 }

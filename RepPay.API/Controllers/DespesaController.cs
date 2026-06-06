@@ -208,6 +208,9 @@ namespace RepPay.API.Controllers
             }
 
             parcela.Status = StatusParcela.EM_ANALISE;
+
+            parcela.DataPagamento = DateOnly.FromDateTime(DateTime.UtcNow);
+
             _context.SaveChanges();
 
             return Ok(new { mensagem = "Pagamento sinalizado! Aguardando validação do administrador." });
@@ -237,7 +240,9 @@ namespace RepPay.API.Controllers
                 return BadRequest(new { mensagem = "Só é possível desfazer pagamentos que ainda estão em análise." });
             }
 
+            parcela.DataPagamento = null;
             parcela.Status = StatusParcela.PENDENTE;
+
             _context.SaveChanges();
 
             return Ok(new { mensagem = "Sinalização de pagamento desfeita com sucesso." });
@@ -276,10 +281,11 @@ namespace RepPay.API.Controllers
             if (request.Aprovado)
             {
                 parcela.Status = StatusParcela.PAGO;
-                parcela.DataPagamento = DateOnly.FromDateTime(DateTime.UtcNow);
             }
             else
             {
+                parcela.DataPagamento = null;
+
                 if (DateOnly.FromDateTime(DateTime.UtcNow) > parcela.IdDespesaNavigation.Vencimento)
                 {
                     parcela.Status = StatusParcela.ATRASADO;

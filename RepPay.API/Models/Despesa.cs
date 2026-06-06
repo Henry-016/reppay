@@ -19,7 +19,7 @@ public partial class Despesa
 
     public int IdGrupo { get; set; }
 
-    public bool Ativo { get; set; }
+    public bool Ativo { get; set; } = true;
 
     public StatusDespesa Status { get; set; }
 
