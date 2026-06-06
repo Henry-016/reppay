@@ -93,3 +93,6 @@ CREATE INDEX idx_pertence_grupo
 ON pertence(id_grupo);
 
 CREATE INDEX idx_grupo_admin ON grupo(id_admin);
+
+CREATE INDEX idx_parcela_despesa_status
+ON parcela(id_despesa, status);
