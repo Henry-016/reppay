@@ -15,6 +15,8 @@ public partial class Grupo
 
     public int IdAdmin { get; set; }
 
+    public bool Ativo { get; set; }
+
     public virtual ICollection<Despesa> Despesas { get; set; } = new List<Despesa>();
 
     public virtual Usuario IdAdminNavigation { get; set; } = null!;

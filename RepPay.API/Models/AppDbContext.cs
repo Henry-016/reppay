@@ -33,6 +33,8 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.IdDespesa).HasName("despesa_pkey");
 
+
+
             entity.ToTable("despesa");
 
             entity.Property(e => e.IdDespesa).HasColumnName("id_despesa");
@@ -43,6 +45,7 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(500)
                 .HasColumnName("icone");
             entity.Property(e => e.IdGrupo).HasColumnName("id_grupo");
+            entity.Property(e => e.Ativo).HasColumnName("ativo").HasDefaultValue(true);
             entity.Property(e => e.Nome)
                 .HasMaxLength(255)
                 .HasColumnName("nome");
@@ -71,6 +74,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.CodigoAcesso)
                 .HasMaxLength(20)
                 .HasColumnName("codigo_acesso");
+            entity.Property(e => e.Ativo).HasColumnName("ativo").HasDefaultValue(true);
             entity.Property(e => e.IdAdmin).HasColumnName("id_admin");
             entity.Property(e => e.ImagemBanner)
                 .HasMaxLength(500)
@@ -122,6 +126,7 @@ public partial class AppDbContext : DbContext
             entity.HasIndex(e => e.Email, "usuario_email_key").IsUnique();
 
             entity.Property(e => e.IdUsuario).HasColumnName("id_usuario");
+            entity.Property(e => e.Ativo).HasColumnName("ativo").HasDefaultValue(true);
             entity.Property(e => e.Email)
                 .HasMaxLength(254)
                 .HasColumnName("email");

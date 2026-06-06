@@ -28,14 +28,13 @@ namespace RepPay.API.Services
 
                         var dataCorte = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-1));
 
+                        int despesasArquivadas = await context.Despesas
+                            .Where(d => d.DataCadastro <= dataCorte && d.Ativo == true)
+                            .ExecuteUpdateAsync(s => s.SetProperty(d => d.Ativo, false), stoppingToken);
 
-                        int despesasDeletadas = await context.Despesas
-                            .Where(d => d.DataCadastro <= dataCorte)
-                            .ExecuteDeleteAsync(stoppingToken);
-
-                        if (despesasDeletadas > 0)
+                        if (despesasArquivadas > 0)
                         {
-                            _logger.LogInformation($"RF12 Executado: {despesasDeletadas} despesas com mais de 1 ano foram excluídas.");
+                            _logger.LogInformation($"RF12 Executado: {despesasArquivadas} despesas com mais de 1 ano foram arquivadas.");
                         }
                     }
                 }

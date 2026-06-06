@@ -13,6 +13,8 @@ public partial class Usuario
 
     public string Email { get; set; } = null!;
 
+    public bool Ativo { get; set; }
+
     public virtual ICollection<Grupo> Grupos { get; set; } = new List<Grupo>();
 
     public virtual ICollection<Parcela> Parcelas { get; set; } = new List<Parcela>();

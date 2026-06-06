@@ -19,6 +19,8 @@ public partial class Despesa
 
     public int IdGrupo { get; set; }
 
+    public bool Ativo { get; set; }
+
     public StatusDespesa Status { get; set; }
 
     public virtual Grupo IdGrupoNavigation { get; set; } = null!;
