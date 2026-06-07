@@ -1,15 +1,47 @@
 import styles from './HomeGeral.module.scss'
 import HeaderGeral from './HeaderGeral'
 import plus from './../../assets/plus.svg'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Modal_EscolhaCriarEntrar from './../modais/Modal_EscolhaCriarEntrar'
+import CardGrupo from './../../components/CardGrupo'
+
+interface GrupoUsuario {
+    idGrupo: number;
+    nome: string;
+    codigoAcesso: string;
+    imagemBanner: string | null;
+    isAdmin: boolean;
+}
 
 function HomeGeral() {
 
     const [modal, setModal] = useState(false)
+    const [grupos, setGrupos] = useState<GrupoUsuario[]>([])
 
-    const idDoUsuario = localStorage.getItem('idUsuario');
     const nome = localStorage.getItem('nomeUsuario');
+
+    useEffect(() => {
+        const buscarGrupos = async () => {
+            const token = localStorage.getItem('token');
+            try {
+                const resposta = await fetch('http://localhost:5149/api/Grupo/Meus', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (resposta.ok) {
+                    const dados = await resposta.json();
+                    setGrupos(dados);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        buscarGrupos();
+    }, []);
 
     return (
         <>
@@ -27,7 +59,18 @@ function HomeGeral() {
                             <h2>Nova República</h2>
                             <p>Crie um novo ambiente ou junte-se a uma república existente usando o código.</p>
                         </div>
-
+                        {grupos.map((grupo) => (
+                            <CardGrupo
+                                key={grupo.idGrupo}
+                                imagem={grupo.imagemBanner}
+                                tipo={grupo.isAdmin ? 'ADMINISTRADOR' : 'MORADOR'}
+                                titulo={grupo.nome}
+                                texto={'Acesso total ao painel financeiro, gestão de moradores e relatórios detalhados de despesas mensais.'}
+                                onClick={() => {
+                                    console.log(`Painel do grupo: ${grupo.idGrupo}`);
+                                }}
+                            />
+                        ))}
                     </div>
                 </div>
 
