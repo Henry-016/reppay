@@ -20,6 +20,11 @@
         justify-content: center;
         align-items: center;
 
+        .mensagemErro {
+            color: red;
+
+        }
+
         .imagemContainer {
             display: flex;
             min-width: 100%;
@@ -44,12 +49,6 @@
         p {
             font-size: 0.875rem;
             color: var(--cor-texto-simples);
-
-        }
-
-        .cam {
-            width: 7rem;
-            height: 7rem;
 
         }
 

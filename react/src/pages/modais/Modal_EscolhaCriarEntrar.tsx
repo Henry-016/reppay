@@ -1,5 +1,6 @@
 import styles from './Modal_EscolhaCriarEntrar.module.scss'
 import ModalCriar from './ModalCriar'
+import ModalEntrar from './ModalEntrar'
 import x from './../../assets/x.svg'
 import overlay from './../../assets/Overlay.svg'
 import ComponenteEscolha from './../../components/ComponenteEscolha'
@@ -37,6 +38,7 @@ function Modal_EscolhaCriarEntrar( {isOpen, onClose}: ModalProps ) {
                 </div>
             </div>
             <ModalCriar isOpen={criar} onClose={() => setCriar(false)} />
+            <ModalEntrar isOpen={entrar} onClose={() => setEntrar(false)} />
         </section>
         
         </>
