@@ -3,20 +3,66 @@ import styles from './Login.module.scss'
 import { useNavigate } from 'react-router-dom';
 
 function Login() {
-  const [email, setEmail] = useState('')
-  const [senha, setSenha] = useState('')
-  const navigate = useNavigate()
+    const [email, setEmail] = useState('')
+    const [senha, setSenha] = useState('')
+    const [erro, setErro] = useState('')
+    const [carregando, setCarregando] = useState(false)
+    const navigate = useNavigate()
 
-  const cadastrar = (e: React.SubmitEvent) => {
-    e.preventDefault();
-  };
+    const fazerLogin = async (e: React.SubmitEvent) => {
+        e.preventDefault()
+        if (!email || !senha) {
+            setErro('Por favor, preencha o e-mail e a senha.');
+            return;
+        }
+
+        if (!email.includes('@') || !email.includes('.')) {
+            setErro('Por favor, insira um e-mail válido.');
+            return;
+        }
+
+        setErro('');
+        setCarregando(true);
+
+        try {
+            const resposta = await fetch('http://localhost:5149/api/Usuario/Login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    Email: email,
+                    Senha: senha
+                })
+            });
+
+            const dados = await resposta.json();
+
+            if (resposta.ok) {
+                localStorage.setItem('token', dados.token);
+                localStorage.setItem('idUsuario', dados.idUsuario.toString());
+                localStorage.setItem('nomeUsuario', dados.nome);
+                console.log('opa')
+                navigate('/home'); 
+            } else {
+                setErro(dados.mensagem || 'Erro ao realizar login. Verifique os seus dados.');
+            }
+
+        } catch (error) {
+            console.error('Erro na requisição:', error);
+            setErro('Não foi possível ligar ao servidor. Tente novamente mais tarde.');
+        } finally {
+            setCarregando(false);
+        }
+    }
 
   return (
     <>
         <section className={styles.tela_login}>
             <div className={styles.inputs}>
                 <h1 className={styles.reppay}>RepPay</h1>
-                <form onSubmit={cadastrar} className={styles.formulario}>
+                {erro && <div className={styles.caixaErro}>{erro}</div>}
+                <form onSubmit={fazerLogin}>
                     <div className={styles.caixaInputsFundo}>
                         <div className={styles.caixaInputs}>
                             <h2>Boas-vindas</h2>
@@ -27,7 +73,8 @@ function Login() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder='voce@exemplo.com'
-                                    className={`${styles.input} ${styles.emailInput}`}/>
+                                    className={`${styles.input} ${styles.emailInput}
+                                    `} onFocus={() => setErro('')}/>
                             </div>
                             <div className={styles.inputContainer}>
                                 <div className={styles.senhaContainer}>
@@ -38,9 +85,9 @@ function Login() {
                                     value={senha}
                                     onChange={(e) => setSenha(e.target.value)}
                                     placeholder='••••••••'
-                                    className={`${styles.input} ${styles.senhaInput}`}/>
+                                    className={`${styles.input} ${styles.senhaInput}`} onFocus={() => setErro('')}/>
                             </div>
-                            <button className={styles.entrar} type='submit'>Entrar</button>
+                            <button className={styles.entrar} type='submit' >Entrar</button>
                             <p className={styles.paragrafoCadastrar}>Não tem uma conta?{' '}<button className={styles.cadastro} type='button' onClick={() => navigate('/cadastro')}>Cadastre-se</button></p>
                         </div>
                     </div>

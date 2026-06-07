@@ -1,4 +1,4 @@
-.tela_cadastro {
+.tela_login {
     display: flex;
     flex-direction: row;
     background-color: var(--cor-fundo-escuro);
@@ -14,6 +14,12 @@
             color: var(--cor-azul-claro);
             font-size: 3.125rem;
             margin-bottom: 3.188rem;
+
+        }
+
+        .caixaErro {
+            font-size: 1rem;
+            color: red;
 
         }
 
@@ -34,7 +40,13 @@
 
             h2 {
                 color: var(--cor-titulo);
-                font-size: 2rem;
+                font-size: 1.5rem;
+
+            }
+
+            .facaLogin {
+                font-size: 1rem;
+                color: var(--cor-texto-simples)
 
             }
 
@@ -44,6 +56,40 @@
                 flex-direction: column;
                 align-items: flex-start;
                 margin-top: 1rem;
+
+                .emailInput {
+                    background-image: url('./../assets/email.svg');
+                    background-size: 20px 20px;
+                    background-repeat: no-repeat;
+                    background-position: 12px center;
+                    padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+
+                }
+
+                .senhaInput {
+                    background-image: url('./../assets/cadeado.svg');
+                    background-size: 20px 20px;
+                    background-repeat: no-repeat;
+                    background-position: 12px center;
+                    padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+
+                }
+
+                .senhaContainer {
+                    display: flex;
+                    justify-content: space-between;
+                    width: 100%;
+
+                    .esqueceu {
+                        color: var(--cor-azul-claro);
+                        background: none;
+                        border: none;
+                        cursor: pointer;
+                        margin-left: 0.3rem;
+
+                    }
+
+                }
 
             }
 
@@ -64,7 +110,7 @@
 
             }
 
-            .cadastrar {
+            .entrar {
                 background-color: var(--cor-azul-claro);
                 border-radius: 0.5rem;
                 height: 3rem;
@@ -78,12 +124,12 @@
 
             }
 
-            .paragrafoEntrar {
+            .paragrafoCadastrar {
                 width: 100%;
                 font-size: 0.875rem;
                 color: var(--cor-texto-simples);
 
-                .entrar {
+                .cadastro {
                     color: var(--cor-azul-claro);
                     background: none;
                     border: none;
