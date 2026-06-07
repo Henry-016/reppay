@@ -17,6 +17,7 @@ DROP TABLE IF EXISTS usuario CASCADE;
 
 CREATE TABLE usuario (
     id_usuario SERIAL PRIMARY KEY,
+    foto_perfil text,
     nome VARCHAR(100) NOT NULL,
     senha VARCHAR(255) NOT NULL,
     email VARCHAR(254) UNIQUE NOT NULL,
@@ -37,7 +38,7 @@ CREATE TABLE grupo (
     id_grupo SERIAL PRIMARY KEY,
     codigo_acesso VARCHAR(20) UNIQUE NOT NULL,
     nome VARCHAR(100) NOT NULL,
-    imagem_banner VARCHAR(500),
+    imagem_banner text,
     ativo BOOLEAN NOT NULL DEFAULT TRUE,
     id_admin INT NOT NULL REFERENCES usuario(id_usuario) ON DELETE NO ACTION
 );
