@@ -66,6 +66,11 @@ namespace RepPay.API.Controllers
                 return Unauthorized(new { mensagem = "E-mail ou senha incorretos." });
             }
 
+            if (!usuario.Ativo)
+            {
+                return Unauthorized(new { mensagem = "Esta conta foi desativada e não possui mais acesso ao sistema." });
+            }
+
             bool senhaValida = BCrypt.Net.BCrypt.Verify(request.Senha, usuario.Senha);
 
             if (!senhaValida)
@@ -155,10 +160,28 @@ namespace RepPay.API.Controllers
                 return NotFound(new { mensagem = "Usuário não encontrado!" });
             }
 
-            _context.Usuarios.Remove(usuario);
+            bool isAdminDeGrupoAtivo = _context.Grupos.Any(g => g.IdAdmin == idLogado && g.Ativo);
+
+            if (isAdminDeGrupoAtivo)
+            {
+                return BadRequest(new { mensagem = "Não é possível excluir sua conta no momento. Você é o administrador de uma república ativa. Transfira a liderança."});
+            }
+
+            bool temDividasPendentes = _context.Parcelas.Any(p => p.IdUsuario == idLogado &&
+            (p.Status == StatusParcela.PENDENTE ||
+             p.Status == StatusParcela.ATRASADO ||
+             p.Status == StatusParcela.EM_ANALISE));
+
+            if (temDividasPendentes)
+            {
+                return BadRequest(new { mensagem = "Você possui contas pendentes ou em análise. Quite todas as suas dívidas antes de excluir a conta."});
+            }
+
+            usuario.Ativo = false;
+
             _context.SaveChanges();
 
-            return Ok(new { mensagem = "Usuário deletado do sistema com sucesso!" });
+            return Ok(new { mensagem = "Sua conta foi excluída com sucesso!" });
         }
 
         [AllowAnonymous]
