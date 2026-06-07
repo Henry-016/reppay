@@ -65,17 +65,18 @@ function ModalCriar( {isOpen, onClose}: ModalProps ) {
         } finally {
             setCarregando(false)
         }
-    };
+    }
 
     const fecharELimpar = () => {
         setNome('')
         setLink('')
         setErro('')
         setCodigoGerado(null)
+        onClose()
 
-    };
+    }
 
-    if (!isOpen) return null;
+    if (!isOpen) return null
 
     return (
         <>
@@ -84,16 +85,17 @@ function ModalCriar( {isOpen, onClose}: ModalProps ) {
                     <div className={styles.imagemContainer}>
                         <img onClick={fecharELimpar} src={x} className={styles.x}/>
                     </div>
+                    {erro && <div className={styles.mensagemErro}>{erro}</div>}
                     <h2>Criar Nova República</h2>
                     <p>Organize as contas da sua casa em segundos</p>
                     <form onSubmit={criarGrupo}>
                         <div className={styles.inputContainer}>
                             <p>Link do Banner</p>
-                            <input type="text" value={link} onChange={(e) => setLink(e.target.value)} placeholder='Ex: https://site.com/sua-foto.jpg"'/>
+                            <input type="text" value={link} onChange={(e) => setLink(e.target.value)} placeholder='Ex: https://site.com/sua-foto.jpg"' onFocus={() => setErro('')}/>
                         </div>
                         <div className={styles.inputContainer}>
                             <p>Nome da República</p>
-                            <input type="text" value={nome} onChange={(e) => setNome(e.target.value)} placeholder='Ex: República Central'/>
+                            <input type="text" value={nome} onChange={(e) => setNome(e.target.value)} placeholder='Ex: República Central' onFocus={() => setErro('')}/>
                         </div>
                         <button>CRIAR GRUPO</button>
                     </form>
