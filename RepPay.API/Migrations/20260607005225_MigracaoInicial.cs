@@ -7,14 +7,26 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace RepPay.API.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class MigracaoInicial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterDatabase()
-                .Annotation("Npgsql:Enum:status_despesa", "ATIVA,QUITADA,CANCELADA")
-                .Annotation("Npgsql:Enum:status_parcela", "PENDENTE,PAGO,ATRASADO");
+            migrationBuilder.CreateTable(
+                name: "usuario",
+                columns: table => new
+                {
+                    id_usuario = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    nome = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    senha = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    email = table.Column<string>(type: "character varying(254)", maxLength: 254, nullable: false),
+                    ativo = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("usuario_pkey", x => x.id_usuario);
+                });
 
             migrationBuilder.CreateTable(
                 name: "codigo_recuperacao",
@@ -30,22 +42,13 @@ namespace RepPay.API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_codigo_recuperacao", x => x.id_codigo);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "usuario",
-                columns: table => new
-                {
-                    id_usuario = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    nome = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    senha = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    email = table.Column<string>(type: "character varying(254)", maxLength: 254, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("usuario_pkey", x => x.id_usuario);
+                    table.PrimaryKey("codigo_recuperacao_pkey", x => x.id_codigo);
+                    table.ForeignKey(
+                        name: "fk_codigo_usuario",
+                        column: x => x.id_usuario,
+                        principalTable: "usuario",
+                        principalColumn: "id_usuario",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -57,7 +60,8 @@ namespace RepPay.API.Migrations
                     codigo_acesso = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     nome = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     imagem_banner = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    id_admin = table.Column<int>(type: "integer", nullable: false)
+                    id_admin = table.Column<int>(type: "integer", nullable: false),
+                    ativo = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true)
                 },
                 constraints: table =>
                 {
@@ -81,7 +85,8 @@ namespace RepPay.API.Migrations
                     valor = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: false),
                     icone = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     id_grupo = table.Column<int>(type: "integer", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false)
+                    ativo = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                    status = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -127,7 +132,7 @@ namespace RepPay.API.Migrations
                     data_pagamento = table.Column<DateOnly>(type: "date", nullable: true),
                     id_usuario = table.Column<int>(type: "integer", nullable: false),
                     id_despesa = table.Column<int>(type: "integer", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false)
+                    status = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -144,6 +149,11 @@ namespace RepPay.API.Migrations
                         principalTable: "usuario",
                         principalColumn: "id_usuario");
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_codigo_recuperacao_id_usuario",
+                table: "codigo_recuperacao",
+                column: "id_usuario");
 
             migrationBuilder.CreateIndex(
                 name: "IX_despesa_id_grupo",

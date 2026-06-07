@@ -12,38 +12,18 @@ using RepPay.API.Models;
 namespace RepPay.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260606003132_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260607005225_MigracaoInicial")]
+    partial class MigracaoInicial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.0")
+                .HasAnnotation("ProductVersion", "9.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "status_despesa", new[] { "ATIVA", "QUITADA", "CANCELADA" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "status_parcela", new[] { "PENDENTE", "PAGO", "ATRASADO" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("Pertence", b =>
-                {
-                    b.Property<int>("IdUsuario")
-                        .HasColumnType("integer")
-                        .HasColumnName("id_usuario");
-
-                    b.Property<int>("IdGrupo")
-                        .HasColumnType("integer")
-                        .HasColumnName("id_grupo");
-
-                    b.HasKey("IdUsuario", "IdGrupo")
-                        .HasName("pertence_pkey");
-
-                    b.HasIndex("IdGrupo");
-
-                    b.ToTable("pertence", (string)null);
-                });
 
             modelBuilder.Entity("RepPay.API.Models.CodigoRecuperacao", b =>
                 {
@@ -75,9 +55,12 @@ namespace RepPay.API.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("tentativas");
 
-                    b.HasKey("IdCodigo");
+                    b.HasKey("IdCodigo")
+                        .HasName("codigo_recuperacao_pkey");
 
-                    b.ToTable("codigo_recuperacao");
+                    b.HasIndex("IdUsuario");
+
+                    b.ToTable("codigo_recuperacao", (string)null);
                 });
 
             modelBuilder.Entity("RepPay.API.Models.Despesa", b =>
@@ -88,6 +71,12 @@ namespace RepPay.API.Migrations
                         .HasColumnName("id_despesa");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdDespesa"));
+
+                    b.Property<bool>("Ativo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("ativo");
 
                     b.Property<DateOnly>("DataCadastro")
                         .ValueGeneratedOnAdd()
@@ -110,8 +99,10 @@ namespace RepPay.API.Migrations
                         .HasColumnType("character varying(255)")
                         .HasColumnName("nome");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("status");
 
                     b.Property<decimal>("Valor")
                         .HasPrecision(10, 2)
@@ -138,6 +129,12 @@ namespace RepPay.API.Migrations
                         .HasColumnName("id_grupo");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdGrupo"));
+
+                    b.Property<bool>("Ativo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("ativo");
 
                     b.Property<string>("CodigoAcesso")
                         .IsRequired()
@@ -192,8 +189,10 @@ namespace RepPay.API.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("id_usuario");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("status");
 
                     b.Property<decimal>("Valor")
                         .HasPrecision(10, 2)
@@ -211,6 +210,24 @@ namespace RepPay.API.Migrations
                     b.ToTable("parcela", (string)null);
                 });
 
+            modelBuilder.Entity("RepPay.API.Models.Pertence", b =>
+                {
+                    b.Property<int>("IdUsuario")
+                        .HasColumnType("integer")
+                        .HasColumnName("id_usuario");
+
+                    b.Property<int>("IdGrupo")
+                        .HasColumnType("integer")
+                        .HasColumnName("id_grupo");
+
+                    b.HasKey("IdUsuario", "IdGrupo")
+                        .HasName("pertence_pkey");
+
+                    b.HasIndex("IdGrupo");
+
+                    b.ToTable("pertence", (string)null);
+                });
+
             modelBuilder.Entity("RepPay.API.Models.Usuario", b =>
                 {
                     b.Property<int>("IdUsuario")
@@ -219,6 +236,12 @@ namespace RepPay.API.Migrations
                         .HasColumnName("id_usuario");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdUsuario"));
+
+                    b.Property<bool>("Ativo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("ativo");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -247,21 +270,16 @@ namespace RepPay.API.Migrations
                     b.ToTable("usuario", (string)null);
                 });
 
-            modelBuilder.Entity("Pertence", b =>
+            modelBuilder.Entity("RepPay.API.Models.CodigoRecuperacao", b =>
                 {
-                    b.HasOne("RepPay.API.Models.Grupo", null)
-                        .WithMany()
-                        .HasForeignKey("IdGrupo")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_pertence_grupo");
-
-                    b.HasOne("RepPay.API.Models.Usuario", null)
+                    b.HasOne("RepPay.API.Models.Usuario", "IdUsuarioNavigation")
                         .WithMany()
                         .HasForeignKey("IdUsuario")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_pertence_usuario");
+                        .HasConstraintName("fk_codigo_usuario");
+
+                    b.Navigation("IdUsuarioNavigation");
                 });
 
             modelBuilder.Entity("RepPay.API.Models.Despesa", b =>
@@ -302,6 +320,27 @@ namespace RepPay.API.Migrations
                         .HasConstraintName("fk_parcela_usuario");
 
                     b.Navigation("IdDespesaNavigation");
+
+                    b.Navigation("IdUsuarioNavigation");
+                });
+
+            modelBuilder.Entity("RepPay.API.Models.Pertence", b =>
+                {
+                    b.HasOne("RepPay.API.Models.Grupo", "IdGrupoNavigation")
+                        .WithMany()
+                        .HasForeignKey("IdGrupo")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_pertence_grupo");
+
+                    b.HasOne("RepPay.API.Models.Usuario", "IdUsuarioNavigation")
+                        .WithMany()
+                        .HasForeignKey("IdUsuario")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_pertence_usuario");
+
+                    b.Navigation("IdGrupoNavigation");
 
                     b.Navigation("IdUsuarioNavigation");
                 });
