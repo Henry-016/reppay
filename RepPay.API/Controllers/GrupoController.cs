@@ -400,5 +400,50 @@ namespace RepPay.API.Controllers
                 mensagem = "Dívida quitada administrativamente com sucesso! O histórico do morador foi limpo para esta conta."
             });
         }
-    }
+
+        [HttpDelete("Deletar/{idGrupo}")]
+        public IActionResult DeletarGrupo(int idGrupo)
+        {
+            int? idLogado = ObterIdUsuarioLogado();
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
+
+            var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
+
+            if (grupo == null)
+            {
+                return NotFound(new { mensagem = "Grupo não encontrado." });
+            }
+
+            if (grupo.IdAdmin != idLogado)
+            {
+                return StatusCode(403, new { mensagem = "Apenas o administrador pode encerrar a república." });
+            }
+                
+            int quantidadeMoradores = _context.Pertences.Count(p => p.IdGrupo == idGrupo);
+
+            if (quantidadeMoradores > 1)
+            {
+                return BadRequest(new
+                {
+                    mensagem = "Não é possível encerrar a república enquanto houver outros moradores nela. Peça para que saiam voluntariamente ou remova-os primeiro."
+                });
+            }
+
+            grupo.Ativo = false;
+
+            try
+            {
+                _context.SaveChanges();
+                return Ok(new { mensagem = "República encerrada com sucesso! Todas as despesas atreladas foram arquivadas." });
+            }
+            catch (Exception)
+            {
+                return BadRequest(new { mensagem = "Não é possível encerrar a república no momento. Existem despesas com parcelas pendentes ou em análise. Quite todas as contas primeiro." });
+            }
+        }
+    } 
 }
