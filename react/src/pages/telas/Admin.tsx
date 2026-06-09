@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import dashboard_ativado from './../../assets/dashboard_ativado.svg'
 import moradores_desativado from './../../assets/moradores_desativado.svg'
 import sair from './../../assets/sair.svg'
+import add from './../../assets/add.svg'
 
 interface DadosGrupo {
     idGrupo: number;
@@ -111,22 +112,26 @@ function Admin() {
                     <HeaderGrupo nome={nome || 'Usuário'} tipo={grupo?.isAdmin ? 'ADMINISTRADOR' : 'MORADOR'} nome_grupo={grupo?.nome || 'Republica'} />
                     <div className={styles.conteudo}>
                         <div className={styles.despesasRepublica}>
-                            <div>
+                            <div className={styles.informacaoPrincipal}>
                                 <div className={styles.dividaTotal}>
                                     <p>DÍVIDA TOTAL DA REPÚBLICA</p>
                                     <h2>R$ {totalReceber}</h2>
                                 </div>
                                 <div className={styles.despesasRepublicaBottom}>
-                                    <div className={styles.dividaTotal}>
+                                    <div className={styles.dividaIndividual}>
                                         <p>Sua parte individual</p>
                                         <h2>R$ {minhaDivida}</h2>
                                     </div>
                                     <div className={styles.vencimento}>
                                         <p>Próximo Vencimento</p>
-                                        <h2>{}</h2>
+                                        <h2>15 Out, 2026</h2>
                                     </div>
                                 </div>
                             </div>
+                            <button className={styles.add}>
+                                <img src={add} />
+                                <h2>Lançar Nova Despesa</h2>
+                            </button>
 
                         </div>
 
