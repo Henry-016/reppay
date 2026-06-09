@@ -1,6 +1,6 @@
 import styles from './ModalCriar.module.scss'
 import x from './../../assets/x.svg'
-import { useState, SubmitEvent } from 'react'
+import { useState} from 'react'
 import ModalCriarEntrarSucesso from './ModalCriarEntrarSucesso'
 
 interface ModalProps {
@@ -24,7 +24,7 @@ function ModalCriar( {isOpen, onClose}: ModalProps ) {
 
     const idUsuarioLogado = localStorage.getItem('idUsuario')
 
-    const criarGrupo = async (e: SubmitEvent) => {
+    const criarGrupo = async (e: React.SubmitEvent) => {
         e.preventDefault()
         if (!nome) {
             setErro('O nome da república é obrigatório.');
@@ -91,7 +91,7 @@ function ModalCriar( {isOpen, onClose}: ModalProps ) {
                     <form onSubmit={criarGrupo}>
                         <div className={styles.inputContainer}>
                             <p>Link do Banner</p>
-                            <input type="text" value={link} onChange={(e) => setLink(e.target.value)} placeholder='Ex: https://site.com/sua-foto.jpg"' onFocus={() => setErro('')}/>
+                            <input type="text" value={link} onChange={(e) => setLink(e.target.value)} placeholder='Ex: https://site.com/sua-foto.jpg' onFocus={() => setErro('')}/>
                         </div>
                         <div className={styles.inputContainer}>
                             <p>Nome da República</p>

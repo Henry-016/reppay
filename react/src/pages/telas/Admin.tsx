@@ -7,6 +7,7 @@ import dashboard_ativado from './../../assets/dashboard_ativado.svg'
 import moradores_desativado from './../../assets/moradores_desativado.svg'
 import sair from './../../assets/sair.svg'
 import add from './../../assets/add.svg'
+import ModalCriarDespesa from './../modais/ModalCriarDespesa'
 
 interface DadosGrupo {
     idGrupo: number;
@@ -25,6 +26,7 @@ function Admin() {
     const [grupo, setGrupo] = useState<DadosGrupo | null>(null)
     const [totalReceber, setTotalReceber] = useState<number>(0)
     const [minhaDivida, setMinhaDivida] = useState<number>(0)
+    const [modal, setModal] = useState(false)
 
     const nome = localStorage.getItem('nomeUsuario');
 
@@ -128,7 +130,7 @@ function Admin() {
                                     </div>
                                 </div>
                             </div>
-                            <button className={styles.add}>
+                            <button onClick={() => setModal(true)} className={styles.add}>
                                 <img src={add} />
                                 <h2>Lançar Nova Despesa</h2>
                             </button>
@@ -137,6 +139,7 @@ function Admin() {
 
                     </div>
                 </div>
+                <ModalCriarDespesa isOpen={modal} onClose={() => setModal(false)} />
 
             </section>
         </>

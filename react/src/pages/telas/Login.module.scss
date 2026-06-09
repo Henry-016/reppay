@@ -63,18 +63,18 @@
 
                 .emailInput {
                     background-image: url('./../../assets/email.svg');
-                    background-size: 20px 20px;
+                    background-size: 1.25rem 1.25rem;
                     background-repeat: no-repeat;
-                    background-position: 12px center;
+                    background-position: 0.75rem center;
                     padding: 0.75rem 0.75rem 0.75rem 2.5rem;
 
                 }
 
                 .senhaInput {
                     background-image: url('./../../assets/cadeado.svg');
-                    background-size: 20px 20px;
+                    background-size: 1.25rem 1.25rem;
                     background-repeat: no-repeat;
-                    background-position: 12px center;
+                    background-position: 0.75rem center;
                     padding: 0.75rem 0.75rem 0.75rem 2.5rem;
 
                 }
@@ -90,6 +90,7 @@
                         border: none;
                         cursor: pointer;
                         margin-left: 0.3rem;
+                        font-size: 0.875rem;
 
                     }
 

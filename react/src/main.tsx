@@ -13,7 +13,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/cadastro" element={<Cadastro />} />
         <Route path="/login" element={<Login />} />
         <Route path='/home' element={<HomeGeral />} />
-        <Route path="/admin/:idGrupo" element={<Admin />} />
+        <Route path="/home/admin/:idGrupo" element={<Admin />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
