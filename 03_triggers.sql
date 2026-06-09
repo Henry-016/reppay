@@ -193,3 +193,22 @@ BEFORE UPDATE OF status ON despesa
 FOR EACH ROW
 WHEN (pg_trigger_depth() = 0)
 EXECUTE FUNCTION fn_bloquear_update_status_despesa();
+
+CREATE OR REPLACE FUNCTION fn_revogar_sessao_usuario_inativo() 
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.ativo = FALSE AND OLD.ativo = TRUE THEN
+        UPDATE refresh_token 
+        SET revogado = TRUE 
+        WHERE id_usuario = NEW.id_usuario 
+          AND revogado = FALSE;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_revogar_sessao_inativo 
+AFTER UPDATE OF ativo ON usuario 
+FOR EACH ROW 
+EXECUTE FUNCTION fn_revogar_sessao_usuario_inativo();

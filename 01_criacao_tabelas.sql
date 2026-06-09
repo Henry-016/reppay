@@ -79,6 +79,24 @@ CREATE TABLE parcela (
     )
 );
 
+CREATE TABLE refresh_token (
+    id_refresh SERIAL PRIMARY KEY,
+
+    token_hash text UNIQUE NOT NULL,
+
+    data_criacao TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    data_expiracao TIMESTAMPTZ NOT NULL,
+
+    revogado BOOLEAN NOT NULL DEFAULT FALSE,
+
+    id_usuario INT NOT NULL
+        REFERENCES usuario(id_usuario)
+        ON DELETE CASCADE
+);
+
+
+
 -- índices
 
 CREATE INDEX idx_parcela_despesa 
@@ -97,3 +115,6 @@ CREATE INDEX idx_grupo_admin ON grupo(id_admin);
 
 CREATE INDEX idx_parcela_despesa_status
 ON parcela(id_despesa, status);
+
+CREATE INDEX idx_refresh_token_usuario_revogado
+ON refresh_token(id_usuario, revogado);
