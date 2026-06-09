@@ -8,8 +8,6 @@ interface ModalProps {
 
 }
 
-
-
 function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
 
     const [nome, setNome] = useState('')
@@ -18,11 +16,12 @@ function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
     const [link, setLink] = useState('')
 
     const [erro, setErro] = useState('')
-    const [carregando, setCarregando] = useState(false)
+    const [carregando, setCarregando] = useState<boolean>(false)
 
     const [codigoGerado, setCodigoGerado] = useState<string | null>(null)
 
     const idUsuarioLogado = localStorage.getItem('idUsuario')
+    const [selecionados, setSelecionados] = useState<number[]>([]);
 
     const criarGrupo = async (e: React.SubmitEvent) => {
         e.preventDefault()
