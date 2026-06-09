@@ -1,0 +1,48 @@
+.tela_header_grupo {
+    width: 100%;
+    border-bottom: 0.125rem solid #ffffff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 4.5rem;
+    padding: 0rem 1.688rem;
+
+    .titulo {
+        color: var(--cor-azul-claro);
+        font-size: 1.5rem;
+
+    }
+
+    .usuario {
+        display: flex;
+        align-items: center;
+
+        .textoPerfil {
+            margin-right: 0.625rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+
+            .nome {
+                font-size: 0.875rem;
+                color: var(--cor-titulo);
+
+            }
+
+            .tipo {
+                font-size: 0.75rem;
+                color: var(--cor-texto-simples);
+
+            }
+
+        }
+
+        .user_icon {
+        width: 2.5rem;
+        height: 2.5rem;
+
+        }
+
+    }
+
+}

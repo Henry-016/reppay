@@ -1,0 +1,42 @@
+.tela_admin {
+    background-color: var(--cor-fundo-escuro);
+    min-width: 100vw;
+    min-height: 100vh;
+    display: flex;
+
+    .sideBar {
+        width: 20vw;
+        background-color: #171F33;
+        border: 0.063rem solid #3B494C;
+        padding-top: 2.813rem;
+        padding-bottom: 1.75rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+
+        .sideBarUp {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+
+            button {
+                height: 2.625rem;
+                border-radius: 0.5rem;
+                border: none;
+                cursor: pointer;
+                background-color: #3E495D;
+
+            }
+
+        }
+
+    }
+
+    .principal {
+        width: 80vw;
+
+    }
+
+}

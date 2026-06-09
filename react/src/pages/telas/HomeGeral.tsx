@@ -4,6 +4,7 @@ import plus from './../../assets/plus.svg'
 import { useState, useEffect } from 'react'
 import Modal_EscolhaCriarEntrar from './../modais/Modal_EscolhaCriarEntrar'
 import CardGrupo from './../../components/CardGrupo'
+import { useNavigate } from 'react-router-dom';
 
 interface GrupoUsuario {
     idGrupo: number;
@@ -18,11 +19,13 @@ function HomeGeral() {
     const [modal, setModal] = useState(false)
     const [grupos, setGrupos] = useState<GrupoUsuario[]>([])
 
-    const nome = localStorage.getItem('nomeUsuario');
+    const nome = localStorage.getItem('nomeUsuario')
+
+    const navigate = useNavigate()
 
     useEffect(() => {
         const buscarGrupos = async () => {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('token')
             try {
                 const resposta = await fetch('http://localhost:5149/api/Grupo/Meus', {
                     method: 'GET',
@@ -33,10 +36,10 @@ function HomeGeral() {
 
                 if (resposta.ok) {
                     const dados = await resposta.json();
-                    setGrupos(dados);
+                    setGrupos(dados)
                 }
             } catch (error) {
-                console.error(error);
+                console.error(error)
             }
         };
 
@@ -46,7 +49,7 @@ function HomeGeral() {
     return (
         <>
             <section className={styles.tela_home_geral}>
-                <HeaderGeral nome={nome}/>
+                <HeaderGeral nome={nome || 'Usuário'}/>
                 <div className={styles.conteudo}>
                     <div className={styles.titulos}>
                         <h2>Bem-vindo de volta, {nome}!</h2>
@@ -62,12 +65,16 @@ function HomeGeral() {
                         {grupos.map((grupo) => (
                             <CardGrupo
                                 key={grupo.idGrupo}
-                                imagem={grupo.imagemBanner}
+                                imagem={grupo.imagemBanner || 'Usuário'}
                                 tipo={grupo.isAdmin ? 'ADMINISTRADOR' : 'MORADOR'}
                                 titulo={grupo.nome}
                                 texto={'Acesso total ao painel financeiro, gestão de moradores e relatórios detalhados de despesas mensais.'}
                                 onClick={() => {
-                                    console.log(`Painel do grupo: ${grupo.idGrupo}`);
+                                    if (grupo.isAdmin) {
+                                        navigate(`/admin/${grupo.idGrupo}`);
+                                    } else {
+                                        navigate(`/morador/${grupo.idGrupo}`);
+                                    }
                                 }}
                             />
                         ))}
