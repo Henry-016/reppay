@@ -1,4 +1,4 @@
-import { useState, SubmitEvent } from 'react'
+import { useState} from 'react'
 import styles from './Cadastro.module.scss'
 import Modal_FeedBack_ContaCriada from './../modais/Modal_FeedBack_ContaCriada'
 import { useNavigate } from 'react-router-dom'
@@ -11,7 +11,7 @@ function Cadastro() {
   const [modal, setModal] = useState(false)
   const navigate = useNavigate()
 
-    const cadastrar = async (e: SubmitEvent) => {
+    const cadastrar = async (e: React.SubmitEvent) => {
         e.preventDefault()
 
         if (senha !== confirmarsenha) {

@@ -71,7 +71,7 @@ function HomeGeral() {
                                 texto={'Acesso total ao painel financeiro, gestão de moradores e relatórios detalhados de despesas mensais.'}
                                 onClick={() => {
                                     if (grupo.isAdmin) {
-                                        navigate(`/admin/${grupo.idGrupo}`);
+                                        navigate(`/home/admin/${grupo.idGrupo}`);
                                     } else {
                                         navigate(`/morador/${grupo.idGrupo}`);
                                     }

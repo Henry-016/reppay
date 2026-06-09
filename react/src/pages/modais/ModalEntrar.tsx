@@ -1,6 +1,6 @@
 import styles from './ModalEntrar.module.scss'
 import x from './../../assets/x.svg'
-import { useState, SubmitEvent } from 'react'
+import { useState } from 'react'
 import ModalCriarEntrarSucesso from './ModalCriarEntrarSucesso'
 import imagem from './../../assets/users_codigo.svg'
 
@@ -18,7 +18,7 @@ function ModalEntrar( {isOpen, onClose}: ModalProps ) {
     const [erro, setErro] = useState('')
     const [carregando, setCarregando] = useState(false)
 
-    const entrarGrupo = async (e: SubmitEvent) => {
+    const entrarGrupo = async (e: React.SubmitEvent) => {
         e.preventDefault();
 
         if (!codigo) {
