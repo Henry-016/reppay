@@ -338,5 +338,82 @@ namespace RepPay.API.Controllers
 
             return Ok(historicoPago);
         }
+
+        [HttpPut("Editar/{idDespesa}")]
+        public IActionResult EditarDespesa(int idDespesa, [FromBody] DespesaRequestDTO request)
+        {
+            int? idLogado = ObterIdUsuarioLogado();
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
+
+            var despesa = _context.Despesas
+                .Include(d => d.IdGrupoNavigation)
+                .FirstOrDefault(d => d.IdDespesa == idDespesa);
+
+            if (despesa == null)
+            {
+                return NotFound(new { mensagem = "Despesa não encontrada." });
+            }
+
+            if (despesa.IdGrupoNavigation.IdAdmin != idLogado)
+            {
+                return StatusCode(403, new { mensagem = "Apenas o administrador pode editar despesas." });
+            }
+
+            despesa.Nome = request.Nome;
+            despesa.Valor = request.Valor;
+            despesa.Vencimento = request.Vencimento;
+            despesa.Icone = request.Icone;
+
+            try
+            {
+                _context.SaveChanges();
+                return Ok(new { mensagem = "Despesa atualizada com sucesso!" });
+            }
+            catch (Exception)
+            {
+                return BadRequest(new { mensagem = "Não é permitido alterar o valor ou o vencimento de uma despesa que já possui parcelas pagas ou em análise." });
+            }
+        }
+
+        [HttpDelete("Deletar/{idDespesa}")]
+        public IActionResult DeletarDespesa(int idDespesa)
+        {
+            int? idLogado = ObterIdUsuarioLogado();
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
+
+            var despesa = _context.Despesas
+                .Include(d => d.IdGrupoNavigation)
+                .FirstOrDefault(d => d.IdDespesa == idDespesa);
+
+            if (despesa == null)
+            {
+                return NotFound(new { mensagem = "Despesa não encontrada." });
+            }
+
+            if (despesa.IdGrupoNavigation.IdAdmin != idLogado)
+            {
+                return StatusCode(403, new { mensagem = "Apenas o administrador pode apagar despesas." });
+            }
+                
+            despesa.Ativo = false;
+
+            try
+            {
+                _context.SaveChanges();
+                return Ok(new { mensagem = "Despesa arquivada com sucesso!" });
+            }
+            catch (Exception)
+            {
+                return BadRequest(new { mensagem = "Não é possível deletar uma despesa que ainda possui parcelas pagas!" });
+            }
+        }
     }
 }

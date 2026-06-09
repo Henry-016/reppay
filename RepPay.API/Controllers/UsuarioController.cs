@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace RepPay.API.Controllers
 {
@@ -314,6 +315,66 @@ namespace RepPay.API.Controllers
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+        }
+
+        [HttpGet("Home/ProximaConta")]
+        public IActionResult ObterProximaContaGeral()
+        {
+            int? idLogado = ObterIdUsuarioLogado();
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
+
+            var proximaConta = _context.Parcelas
+                .Include(p => p.IdDespesaNavigation)
+                .ThenInclude(d => d.IdGrupoNavigation)
+                .Where(p => p.IdUsuario == idLogado
+                         && p.IdDespesaNavigation.Ativo == true
+                         && (p.Status == StatusParcela.PENDENTE || p.Status == StatusParcela.ATRASADO))
+                .OrderBy(p => p.IdDespesaNavigation.Vencimento)
+                .Select(p => new
+                {
+                    nomeDespesa = p.IdDespesaNavigation.Nome,
+                    nomeGrupo = p.IdDespesaNavigation.IdGrupoNavigation.Nome,
+                    vencimento = p.IdDespesaNavigation.Vencimento,
+                    valorParcela = p.Valor
+                })
+                .FirstOrDefault();
+
+            return Ok(proximaConta);
+        }
+
+        [HttpGet("{idGrupo}/ProximaConta")]
+        public IActionResult ObterProximaContaGrupo(int idGrupo)
+        {
+            int? idLogado = ObterIdUsuarioLogado();
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
+
+            if (!_context.Pertences.Any(p => p.IdGrupo == idGrupo && p.IdUsuario == idLogado))
+            {
+                return StatusCode(403, new { mensagem = "Você não pertence a esta república." });
+            }
+
+            var proximaConta = _context.Despesas
+                .Where(d => d.IdGrupo == idGrupo
+                         && d.Ativo == true
+                         && d.Status == StatusDespesa.ATIVA)
+                .OrderBy(d => d.Vencimento)
+                .Select(d => new
+                {
+                    nomeDespesa = d.Nome,
+                    vencimento = d.Vencimento,
+                    valorTotal = d.Valor
+                })
+                .FirstOrDefault();
+
+            return Ok(proximaConta);
         }
     }
 }
