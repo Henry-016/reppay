@@ -1,0 +1,36 @@
+.usuario {
+    .padrao {
+        width: 8.354rem;
+        height: 2.625rem;
+        border-radius: 1.313rem;
+        border: 0.063rem solid #3B494C;
+        background-color: #171F33;
+        border: none;
+        cursor: pointer;
+
+        .avatar {
+            border-radius: 0.75rem;
+            width: 1.5rem;
+            height: 1.5rem;
+            
+        }
+
+        h2 {
+            font-size: 0.875rem;
+
+        }
+
+    }
+
+    .selecionado {
+        border: 0.063rem solid var(--cor-azul-claro);
+
+        .check {
+            width: 0.75;
+
+        }
+
+
+    }
+
+}

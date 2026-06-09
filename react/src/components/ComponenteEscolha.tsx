@@ -1,6 +1,6 @@
 import styles from './ComponenteEscolha.module.scss'
 
-interface ComponenteProps {
+interface ComponentProps {
     imagem: string;
     titulo: string;
     texto: string;
@@ -9,7 +9,7 @@ interface ComponenteProps {
 
 }
 
-function ComponenteEscolha( {imagem, titulo, texto, button, onClick}: ComponenteProps ) {
+function ComponenteEscolha( {imagem, titulo, texto, button, onClick}: ComponentProps ) {
 
     return (
         <>

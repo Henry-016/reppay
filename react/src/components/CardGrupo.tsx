@@ -1,6 +1,6 @@
 import styles from './CardGrupo.module.scss'
 
-interface ComponenteProps {
+interface ComponentProps {
     imagem: string;
     tipo: string;
     titulo: string;
@@ -9,7 +9,7 @@ interface ComponenteProps {
 
 }
 
-function CardGrupo( {imagem, tipo, titulo, texto, onClick}: ComponenteProps ) {
+function CardGrupo( {imagem, tipo, titulo, texto, onClick}: ComponentProps ) {
 
     return (
         <>
