@@ -5,6 +5,7 @@ import './index.scss'
 import Cadastro from './pages/telas/Cadastro.js'
 import Login from './pages/telas/Login.js'
 import HomeGeral from './pages/telas/HomeGeral'
+import Admin from './pages/telas/Admin.js'
 
 createRoot(document.getElementById('root')!).render(
   <BrowserRouter>
@@ -12,6 +13,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/cadastro" element={<Cadastro />} />
         <Route path="/login" element={<Login />} />
         <Route path='/home' element={<HomeGeral />} />
+        <Route path="/admin/:idGrupo" element={<Admin />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
