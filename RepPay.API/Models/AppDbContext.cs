@@ -27,6 +27,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Pertence> Pertences { get; set; }
 
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Despesa>(entity =>
@@ -174,6 +176,36 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.IdUsuario)
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("fk_pertence_usuario");
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.ToTable("refresh_token");
+
+            entity.HasKey(e => e.IdRefresh);
+
+            entity.Property(e => e.IdRefresh).HasColumnName("id_refresh");
+
+            entity.Property(e => e.TokenHash)
+              .HasColumnName("token_hash")
+              .IsRequired();
+
+            entity.Property(e => e.DataCriacao)
+                  .HasColumnName("data_criacao")
+                  .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.Property(e => e.DataExpiracao).HasColumnName("data_expiracao");
+
+            entity.Property(e => e.Revogado)
+                  .HasColumnName("revogado")
+                  .HasDefaultValue(false);
+
+            entity.Property(e => e.IdUsuario).HasColumnName("id_usuario");
+
+            entity.HasOne(d => d.IdUsuarioNavigation)
+                  .WithMany()
+                  .HasForeignKey(d => d.IdUsuario)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
 
         OnModelCreatingPartial(modelBuilder);

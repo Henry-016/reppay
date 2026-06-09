@@ -5,6 +5,8 @@ namespace RepPay.API.Models;
 
 public partial class Usuario
 {
+    public string? FotoPerfil { get; set; }
+
     public int IdUsuario { get; set; }
 
     public string Nome { get; set; } = null!;

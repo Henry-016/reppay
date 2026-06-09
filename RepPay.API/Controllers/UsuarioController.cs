@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
 
 namespace RepPay.API.Controllers
 {
@@ -32,6 +33,28 @@ namespace RepPay.API.Controllers
                 return null;
             }
             return int.Parse(usuarioIdClaim);
+        }
+
+        // Devo mover esta chave para o appsettings.json no futuro!!!
+        private string GerarTokenJWT(Models.Usuario usuario)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes("MinhaSuperChaveSecretaDoRepPay2026!!");
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, usuario.IdUsuario.ToString()),
+                    new Claim(ClaimTypes.Email, usuario.Email),
+                    new Claim(ClaimTypes.Name, usuario.Nome)
+                }),
+                Expires = DateTime.UtcNow.AddMinutes(15),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
 
         [AllowAnonymous]
@@ -81,15 +104,95 @@ namespace RepPay.API.Controllers
 
             var token = GerarTokenJWT(usuario);
 
+            var tokenAleatorio = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+
+            var novoRefreshToken = new RefreshToken
+            {
+                TokenHash = tokenAleatorio,
+                IdUsuario = usuario.IdUsuario,
+                DataExpiracao = DateTime.UtcNow.AddDays(7),
+                Revogado = false
+            };
+
+            _context.RefreshTokens.Add(novoRefreshToken);
+            _context.SaveChanges();
+
             return Ok(new
             {
                 mensagem = "Login realizado com sucesso!",
                 token = token,
+                refreshToken = tokenAleatorio,
                 idUsuario = usuario.IdUsuario,
                 nome = usuario.Nome
             });
         }
 
+        [AllowAnonymous]
+        [HttpPost("RefreshToken")]
+        public IActionResult RenovacaoToken([FromBody] RefreshTokenRequestDTO request)
+        {
+            var tokenBanco = _context.RefreshTokens
+                .Include(t => t.IdUsuarioNavigation)
+                .FirstOrDefault(t => t.TokenHash == request.RefreshToken);
+
+            if (tokenBanco == null)
+            {
+                return Unauthorized(new { mensagem = "Refresh Token inválido ou inexistente." });
+            }
+
+            if (tokenBanco.Revogado)
+            {
+                return Unauthorized(new { mensagem = "Este token já foi revogado por segurança." });
+
+            }
+
+            if (tokenBanco.DataExpiracao < DateTime.UtcNow)
+            {
+                return Unauthorized(new { mensagem = "Sua sessão expirou. Por favor, faça login novamente." });
+            }
+
+            if (!tokenBanco.IdUsuarioNavigation.Ativo)
+            {
+                return Unauthorized(new { mensagem = "A conta vinculada a esta sessão está inativa." });
+            }
+
+            tokenBanco.Revogado = true;
+
+            var novoJwt = GerarTokenJWT(tokenBanco.IdUsuarioNavigation);
+            var novoTokenAleatorio = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+
+            var novoRefreshToken = new RefreshToken
+            {
+                TokenHash = novoTokenAleatorio,
+                IdUsuario = tokenBanco.IdUsuario,
+                DataCriacao = DateTime.UtcNow,
+                DataExpiracao = DateTime.UtcNow.AddDays(7),
+                Revogado = false
+            };
+
+            _context.RefreshTokens.Add(novoRefreshToken);
+            _context.SaveChanges();
+
+            return Ok(new
+            {
+                token = novoJwt,
+                refreshToken = novoTokenAleatorio
+            });
+        }
+
+        [HttpPost("LogOut")]
+        public IActionResult LogOut([FromBody] RefreshTokenRequestDTO request)
+        {
+            var tokenBanco = _context.RefreshTokens.FirstOrDefault(t => t.TokenHash == request.RefreshToken);
+
+            if (tokenBanco != null)
+            {
+                tokenBanco.Revogado = true;
+                _context.SaveChanges();
+            }
+
+            return Ok(new { mensagem = "Logout efetuado com sucesso. Sessão encerrada no servidor." });
+        }
 
         [HttpGet("MeuPerfil")]
         public IActionResult GetMeuPerfil()
@@ -295,28 +398,6 @@ namespace RepPay.API.Controllers
             return Ok(new { mensagem = "Sua senha foi redefinida com sucesso!" });
         }
 
-        // Devo mover esta chave para o appsettings.json no futuro!!!
-        private string GerarTokenJWT(Models.Usuario usuario)
-        {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes("MinhaSuperChaveSecretaDoRepPay2026!!");
-
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.NameIdentifier, usuario.IdUsuario.ToString()),
-                    new Claim(ClaimTypes.Email, usuario.Email),
-                    new Claim(ClaimTypes.Name, usuario.Nome)
-                }),
-                Expires = DateTime.UtcNow.AddHours(8),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
-        }
-
         [HttpGet("Home/ProximaConta")]
         public IActionResult ObterProximaContaGeral()
         {
@@ -334,12 +415,12 @@ namespace RepPay.API.Controllers
                          && p.IdDespesaNavigation.Ativo == true
                          && (p.Status == StatusParcela.PENDENTE || p.Status == StatusParcela.ATRASADO))
                 .OrderBy(p => p.IdDespesaNavigation.Vencimento)
-                .Select(p => new
+                .Select(p => new ProximaContaResponseDTO
                 {
-                    nomeDespesa = p.IdDespesaNavigation.Nome,
-                    nomeGrupo = p.IdDespesaNavigation.IdGrupoNavigation.Nome,
-                    vencimento = p.IdDespesaNavigation.Vencimento,
-                    valorParcela = p.Valor
+                    NomeDespesa = p.IdDespesaNavigation.Nome,
+                    NomeGrupo = p.IdDespesaNavigation.IdGrupoNavigation.Nome,
+                    Vencimento = p.IdDespesaNavigation.Vencimento,
+                    Valor = p.Valor
                 })
                 .FirstOrDefault();
 
@@ -366,11 +447,12 @@ namespace RepPay.API.Controllers
                          && d.Ativo == true
                          && d.Status == StatusDespesa.ATIVA)
                 .OrderBy(d => d.Vencimento)
-                .Select(d => new
+                .Select(d => new ProximaContaResponseDTO
                 {
-                    nomeDespesa = d.Nome,
-                    vencimento = d.Vencimento,
-                    valorTotal = d.Valor
+                    NomeDespesa = d.Nome,
+                    NomeGrupo = null,
+                    Vencimento = d.Vencimento,
+                    Valor = d.Valor
                 })
                 .FirstOrDefault();
 
