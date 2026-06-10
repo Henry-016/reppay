@@ -28,3 +28,5 @@ function usuarioSelecao({nome, estaSelecionado, onClick}: ComponentProps) {
 
 
 }
+
+export default usuarioSelecao;
