@@ -13,7 +13,7 @@ function CardGrupo( {imagem, tipo, titulo, texto, onClick}: ComponentProps ) {
 
     return (
         <>
-            <section className={styles.tela_componente_card}>
+            <section className={styles.componente_card}>
                 <div className = {styles.imagem} style={{backgroundImage: `url(${imagem})`}}>
                     <div className={`${tipo === 'ADMINISTRADOR' ? styles.admin : styles.morador}`}>
                         <p>{tipo}</p>
