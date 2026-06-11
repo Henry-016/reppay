@@ -44,7 +44,7 @@ function HomeGeral() {
         };
 
         buscarGrupos();
-    }, []);
+    }, [grupos]);
 
     return (
         <>

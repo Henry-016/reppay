@@ -1,7 +1,7 @@
 import styles from './ModalCriar.module.scss'
 import x from './../../assets/x.svg'
 import { useState} from 'react'
-import ModalCriarEntrarSucesso from './ModalCriarEntrarSucesso'
+import ModalSucesso from './ModalSucesso'
 
 interface ModalProps {
     isOpen: boolean
@@ -18,11 +18,8 @@ function ModalCriar( {isOpen, onClose}: ModalProps ) {
     const [modal, setModal] = useState(false)
 
     const [erro, setErro] = useState('')
-    const [carregando, setCarregando] = useState(false)
 
     const [codigoGerado, setCodigoGerado] = useState<string | null>(null)
-
-    const idUsuarioLogado = localStorage.getItem('idUsuario')
 
     const criarGrupo = async (e: React.SubmitEvent) => {
         e.preventDefault()
@@ -32,7 +29,6 @@ function ModalCriar( {isOpen, onClose}: ModalProps ) {
         }
 
         setErro('')
-        setCarregando(true)
 
         const token = localStorage.getItem('token');
 
@@ -62,8 +58,6 @@ function ModalCriar( {isOpen, onClose}: ModalProps ) {
         } catch (error) {
             console.error('Erro na requisição:', error)
             setErro('Não foi possível conectar ao servidor.')
-        } finally {
-            setCarregando(false)
         }
     }
 
@@ -104,7 +98,7 @@ function ModalCriar( {isOpen, onClose}: ModalProps ) {
                     </div>
                 </div>
 
-                <ModalCriarEntrarSucesso isOpen={modal} onClose={onClose} titulo='Grupo Criado!' texto='O grupo foi criado com sucesso e você se tornou o administrador dele.' />
+                <ModalSucesso isOpen={modal} onClose={onClose} titulo='Grupo Criado!' texto='O grupo foi criado com sucesso e você se tornou o administrador dele.' />
 
             </section>
         </>

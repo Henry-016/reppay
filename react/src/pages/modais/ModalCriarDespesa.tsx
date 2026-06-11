@@ -1,11 +1,20 @@
 import styles from './ModalCriarDespesa.module.scss'
 import x from './../../assets/x.svg'
-import { useState} from 'react'
+import { useState, useEffect } from 'react'
+import { useParams } from 'react-router-dom';
+import UsuarioSelecao from './../../components/UsuarioSelecao'
+import ModalSucesso from './ModalSucesso'
 
 interface ModalProps {
     isOpen: boolean
     onClose: () => void
 
+}
+
+interface Morador {
+    idUsuario: number
+    nome: string
+    isAdmin: boolean
 }
 
 function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
@@ -14,65 +23,113 @@ function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
     const [valor, setValor] = useState('')
     const [data, setData] = useState('')
     const [link, setLink] = useState('')
+    const [modalValidado, setModalValidado] = useState<boolean>(false)
+
+    const [moradores, setMoradores] = useState<Morador[]>([])
 
     const [erro, setErro] = useState('')
 
-    const idUsuarioLogado = localStorage.getItem('idUsuario')
     const [selecionados, setSelecionados] = useState<number[]>([]);
 
-    const lançarDespesa = async (e: React.SubmitEvent) => {
-        e.preventDefault()
-        if (!nome) {
-            setErro('O nome da despesa é obrigatório');
-            return
+    const { idGrupo } = useParams<{ idGrupo: string }>()
+
+    useEffect(() => {
+        const buscarMoradores = async () => {
+            const token = localStorage.getItem('token')
+            try {
+                const resposta = await fetch(`http://localhost:5149/api/Grupo/${idGrupo}/Membros`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+
+                if (resposta.ok) {
+                    const dados = await resposta.json()
+                    setMoradores(dados)
+                }
+            }
+
+            catch (error) {
+                console.error(error)
+
+            }
+
         }
 
-        else if (!valor) {
-            setErro('O valor da despesa é obrigatório');
-            return
-        }
+        buscarMoradores()
 
-        else if (!data) {
-            setErro('A data de vencimento é obrigatória')
-            return
+    }, [idGrupo])
 
-        }
-
-        else if (!selecionados) {
-            setErro('Nenhum usuário foi selecionado')
-            return
-
-        }
-
+    const alternarSelecao = (id: number) => {
+        setSelecionados(prev => 
+            prev.includes(id) 
+                ? prev.filter(item => item !== id) 
+                : [...prev, id]
+        );
         setErro('')
+    }
 
-        const token = localStorage.getItem('token');
+    const lancarDespesa = async (e: React.SubmitEvent) => {
+        e.preventDefault()
+        
+        if (!nome) {
+            setErro('Preencha a caixa do nome')
+            return
+
+        }
+
+        const valorFormatado = valor.replace(',', '.');
+    
+        if (isNaN(Number(valorFormatado))) {
+            setErro("Valor invalido!")
+            return
+
+        }
+
+        if (!data) {
+            setErro('Preencha a caixa da data')
+            return
+
+        }
+
+        if (selecionados.length === 0) {
+            setErro('Escolha ao menos uma pessoa para pagar a conta')
+            return
+
+        }
+
+        const dadosDespesa = {
+            Nome: nome,
+            Valor: valorFormatado,
+            Vencimento: data,
+            Icone: link || null,
+            IdGrupo: Number(idGrupo),
+            MoradoresIds: selecionados
+        }
+
+        const token = localStorage.getItem('token')
 
         try {
-            const resposta = await fetch('http://localhost:5149/api/Grupo', {
+            const resposta = await fetch('http://localhost:5149/api/Despesa/LancarDespesa', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` 
+                    'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    Nome: nome,
-                    ImagemBanner: link,
-
-                })
-            });
-
-            const dados = await resposta.json()
+                body: JSON.stringify(dadosDespesa)
+            })
 
             if (resposta.ok) {
-                setCodigoGerado(dados.codigoAcesso)
+                setModalValidado(true)
             } else {
-                setErro(dados.mensagem || 'Erro ao criar a república.')
+                setErro('Falha ao realizar o cadastro. Verifique as informações.')
             }
 
-        } catch (error) {
-            console.error('Erro na requisição:', error)
-            setErro('Não foi possível conectar ao servidor.')
+        } catch (erro) {
+            alert('Erro ao conectar com o servidor. Verifique se o backend está rodando.')
+        }
+
 
     }
 
@@ -83,6 +140,7 @@ function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
         setLink('')
         setErro('')
         onClose()
+        setModalValidado(false)
 
     }
 
@@ -97,7 +155,7 @@ function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
                     </div>
                     {erro && <div className={styles.mensagemErro}>{erro}</div>}
                     <h2>Lançar Nova Despesa</h2>
-                    <form onSubmit={lançarDespesa}>
+                    <form onSubmit={lancarDespesa}> 
                         <div className={styles.inputContainer}>
                             <p>LINK DO ICONE</p>
                             <input type="text" value={link} onChange={(e) => setLink(e.target.value)} placeholder='Ex: https://site.com/sua-foto.jpg' onFocus={() => setErro('')}/>
@@ -109,7 +167,12 @@ function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
                         <div className={styles.inputContainerValorData}>
                             <div className={styles.containerValor}>
                                 <p>VALOR</p>
-                                <input type="text" value={valor} onChange={(e) => setValor(e.target.value)} placeholder='0,00' onFocus={() => setErro('')}/>
+                                <input type="text" value={valor} onChange={(e) => { const valorDigitado = e.target.value; 
+                                    if (valorDigitado === '' || /^[0-9.,]+$/.test(valorDigitado)) {
+                                        setValor(valorDigitado);
+                                    }
+                                    }} 
+                                    placeholder='0,00' onFocus={() => setErro('')}/>
                             </div>
                             <div className={styles.containerData}>
                                 <p>DATA DE VENCIMENTO</p>
@@ -118,13 +181,24 @@ function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
                         </div>
                         <div className={styles.pessoas}>
                             <p>MORADORES ENVOLVIDOS</p>
-                            <div>
+                            <div className={styles.pessoasContainer}>
+                                {moradores.map((morador) => (
+                                    <UsuarioSelecao 
+                                        key={morador.idUsuario}
+                                        nome={morador.nome}
+                                        estaSelecionado={selecionados.includes(morador.idUsuario)}
+                                        onClick={() => alternarSelecao(morador.idUsuario)}
+                                    
+                                    />
 
+                                ))}
                             </div>
                         </div>
-                        <button>LANÇAR DESPESA</button>
+                        <button className={styles.lancar}>LANÇAR DESPESA</button>
                     </form>
                 </div>
+                <ModalSucesso isOpen={modalValidado} onClose={fecharELimpar} titulo='Dívida Registrada!' texto='A dívida foi registrada com sucesso. Todos
+os moradores selecionados serão notificados.' /> 
             </section>
         </>
 

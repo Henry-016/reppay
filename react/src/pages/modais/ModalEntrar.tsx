@@ -1,7 +1,7 @@
 import styles from './ModalEntrar.module.scss'
 import x from './../../assets/x.svg'
 import { useState } from 'react'
-import ModalCriarEntrarSucesso from './ModalCriarEntrarSucesso'
+import ModalSucesso from './ModalSucesso'
 import imagem from './../../assets/users_codigo.svg'
 
 interface ModalProps {
@@ -16,7 +16,6 @@ function ModalEntrar( {isOpen, onClose}: ModalProps ) {
     const [modal, setModal] = useState(false)
 
     const [erro, setErro] = useState('')
-    const [carregando, setCarregando] = useState(false)
 
     const entrarGrupo = async (e: React.SubmitEvent) => {
         e.preventDefault();
@@ -27,7 +26,6 @@ function ModalEntrar( {isOpen, onClose}: ModalProps ) {
         }
 
         setErro('');
-        setCarregando(true);
 
         const token = localStorage.getItem('token');
 
@@ -54,8 +52,6 @@ function ModalEntrar( {isOpen, onClose}: ModalProps ) {
         } catch (error) {
             console.error('Erro na requisição:', error)
             setErro('Não foi possível conectar ao servidor.')
-        } finally {
-            setCarregando(false)
         }
     };
 
@@ -90,7 +86,7 @@ function ModalEntrar( {isOpen, onClose}: ModalProps ) {
                     </div>
                 </div>
 
-                <ModalCriarEntrarSucesso isOpen={modal} onClose={onClose} titulo='Grupo Encontrado!' texto='Parabéns! Você agora faz parte do Grupo XXXXXX' />
+                <ModalSucesso isOpen={modal} onClose={onClose} titulo='Grupo Encontrado!' texto='Parabéns! Você agora faz parte do Grupo XXXXXX' />
 
             </section>
         </>

@@ -1,6 +1,6 @@
-import iconeCheck from './../../assets/check.svg'; 
-import avatarPadrao from './../../assets/user_icon.svg';
-import styles from './usuarioSelecao.module.scss'
+import iconeCheck from './../assets/check.svg'
+import avatarPadrao from './../assets/user_icon.svg';
+import styles from './UsuarioSelecao.module.scss'
 
 interface ComponentProps {
     nome: string;
@@ -9,11 +9,11 @@ interface ComponentProps {
 
 }
 
-function usuarioSelecao({nome, estaSelecionado, onClick}: ComponentProps) {
+function UsuarioSelecao({nome, estaSelecionado, onClick}: ComponentProps) {
     return (
         <>
             <section className={styles.usuario}>
-                <button className={`${styles.padrao} ${estaSelecionado ? styles.selecionado : ''}`}>
+                <button onClick={onClick} type="button" className={`${styles.padrao} ${estaSelecionado ? styles.selecionado : ''}`}>
                     <img src={avatarPadrao} className={styles.avatar}/>
                     <h2>{nome}</h2>
                     {estaSelecionado && (
@@ -29,4 +29,4 @@ function usuarioSelecao({nome, estaSelecionado, onClick}: ComponentProps) {
 
 }
 
-export default usuarioSelecao;
+export default UsuarioSelecao;

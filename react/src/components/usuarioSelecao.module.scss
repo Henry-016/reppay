@@ -1,12 +1,16 @@
 .usuario {
+
     .padrao {
-        width: 8.354rem;
+        width: 7.5rem;
         height: 2.625rem;
         border-radius: 1.313rem;
         border: 0.063rem solid #3B494C;
         background-color: #171F33;
-        border: none;
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-evenly;
+        flex-shrink: 0;
 
         .avatar {
             border-radius: 0.75rem;
@@ -24,6 +28,7 @@
 
     .selecionado {
         border: 0.063rem solid var(--cor-azul-claro);
+        width: 8.354rem;
 
         .check {
             width: 0.75rem;
