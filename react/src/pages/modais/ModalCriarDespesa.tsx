@@ -16,22 +16,35 @@ function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
     const [link, setLink] = useState('')
 
     const [erro, setErro] = useState('')
-    const [carregando, setCarregando] = useState<boolean>(false)
-
-    const [codigoGerado, setCodigoGerado] = useState<string | null>(null)
 
     const idUsuarioLogado = localStorage.getItem('idUsuario')
     const [selecionados, setSelecionados] = useState<number[]>([]);
 
-    const criarGrupo = async (e: React.SubmitEvent) => {
+    const lançarDespesa = async (e: React.SubmitEvent) => {
         e.preventDefault()
         if (!nome) {
-            setErro('O nome da república é obrigatório.');
+            setErro('O nome da despesa é obrigatório');
             return
         }
 
+        else if (!valor) {
+            setErro('O valor da despesa é obrigatório');
+            return
+        }
+
+        else if (!data) {
+            setErro('A data de vencimento é obrigatória')
+            return
+
+        }
+
+        else if (!selecionados) {
+            setErro('Nenhum usuário foi selecionado')
+            return
+
+        }
+
         setErro('')
-        setCarregando(true)
 
         const token = localStorage.getItem('token');
 
@@ -60,9 +73,7 @@ function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
         } catch (error) {
             console.error('Erro na requisição:', error)
             setErro('Não foi possível conectar ao servidor.')
-        } finally {
-            setCarregando(false)
-        }
+
     }
 
     const fecharELimpar = () => {
@@ -71,7 +82,6 @@ function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
         setData('')
         setLink('')
         setErro('')
-        setCodigoGerado(null)
         onClose()
 
     }
@@ -87,7 +97,7 @@ function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
                     </div>
                     {erro && <div className={styles.mensagemErro}>{erro}</div>}
                     <h2>Lançar Nova Despesa</h2>
-                    <form onSubmit={criarGrupo}>
+                    <form onSubmit={lançarDespesa}>
                         <div className={styles.inputContainer}>
                             <p>LINK DO ICONE</p>
                             <input type="text" value={link} onChange={(e) => setLink(e.target.value)} placeholder='Ex: https://site.com/sua-foto.jpg' onFocus={() => setErro('')}/>
