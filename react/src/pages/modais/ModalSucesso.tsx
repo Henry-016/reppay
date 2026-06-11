@@ -1,4 +1,4 @@
-import styles from './ModalCriarEntrarSucesso.module.scss'
+import styles from './ModalSucesso.module.scss'
 
 interface ModalProps {
     isOpen: boolean;
@@ -9,7 +9,7 @@ interface ModalProps {
 
 }
 
-function ModalCriarEntrarSucesso( {isOpen, onClose, titulo, texto}: ModalProps ) {
+function ModalSucesso( {isOpen, onClose, titulo, texto}: ModalProps ) {
     if (!isOpen) return null;
 
     return (
@@ -30,4 +30,4 @@ function ModalCriarEntrarSucesso( {isOpen, onClose, titulo, texto}: ModalProps )
 
 }
 
-export default ModalCriarEntrarSucesso;
+export default ModalSucesso;

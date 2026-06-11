@@ -4,18 +4,35 @@ import Modal_FeedBack_ContaCriada from './../modais/Modal_FeedBack_ContaCriada'
 import { useNavigate } from 'react-router-dom'
 
 function Cadastro() {
-  const [nome, setNome] = useState('')
-  const [email, setEmail] = useState('')
-  const [senha, setSenha] = useState('')
-  const [confirmarsenha, setConfirmarSenha] = useState('')
-  const [modal, setModal] = useState(false)
-  const navigate = useNavigate()
+    const [nome, setNome] = useState('')
+    const [email, setEmail] = useState('')
+    const [senha, setSenha] = useState('')
+    const [confirmarsenha, setConfirmarSenha] = useState('')
+    const [modal, setModal] = useState(false)
+    const [erro, setErro] = useState('')
+    const navigate = useNavigate()
 
     const cadastrar = async (e: React.SubmitEvent) => {
         e.preventDefault()
 
+        if (!nome) {
+            setErro('Por favor, preencha o nome.')
+            return
+
+        }
+
+        if (!email.includes('@') || !email.includes('.')) {
+            setErro('Por favor, insira um e-mail válido.')
+            return
+        }
+
+        if (!senha) {
+            setErro('Por favor, preencha a senha.')
+            return
+        }
+
         if (senha !== confirmarsenha) {
-            alert('As senhas não coincidem!')
+            setErro('As senhas não coincidem!')
             return
         }
 
@@ -51,6 +68,7 @@ function Cadastro() {
         <section className={styles.tela_cadastro}>
             <div className={styles.inputs}>
                 <h1 className={styles.reppay}>RepPay</h1>
+                {erro && <div className={styles.caixaErro}>{erro}</div>}
                 <form onSubmit={cadastrar} className={styles.formulario}>
                     <div className={styles.caixaInputsFundo}>
                         <div className={styles.caixaInputs}>
@@ -62,7 +80,8 @@ function Cadastro() {
                                     value={nome}
                                     onChange={(e) => setNome(e.target.value)}
                                     placeholder='Ex: Maria Silva'
-                                    className={styles.input} />
+                                    className={styles.input} 
+                                    onFocus={() => setErro('')}/>
                             </div>
                             
                             <div className={styles.inputContainer}>
@@ -71,7 +90,8 @@ function Cadastro() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder='voce@exemplo.com'
-                                    className={styles.input} />
+                                    className={styles.input} 
+                                    onFocus={() => setErro('')}/>
                             </div>
                             
                             <div className={styles.inputContainer}>
@@ -80,7 +100,8 @@ function Cadastro() {
                                     value={senha}
                                     onChange={(e) => setSenha(e.target.value)}
                                     placeholder='••••••••'
-                                    className={styles.input} />
+                                    className={styles.input} 
+                                    onFocus={() => setErro('')}/>
                             </div>
                             
                             <div className={styles.inputContainer}>
@@ -89,7 +110,8 @@ function Cadastro() {
                                     value={confirmarsenha}
                                     onChange={(e) => setConfirmarSenha(e.target.value)}
                                     placeholder='••••••••'
-                                    className={styles.input} />
+                                    className={styles.input} 
+                                    onFocus={() => setErro('')}/>
                             </div>
                             <button type="submit" className={styles.cadastrar}>Cadastrar</button>
                             

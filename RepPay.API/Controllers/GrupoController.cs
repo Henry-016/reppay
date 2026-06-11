@@ -53,7 +53,7 @@ namespace RepPay.API.Controllers
 
             if (idAdmin == null)
             {
-                return Unauthorized(new { mensagem = "Usuário não autenticado!" });
+                return Unauthorized(new { mensagem = "Usuï¿½rio nï¿½o autenticado!" });
             }
 
             string codigoAcesso = GerarCodigoAcesso();
@@ -71,7 +71,7 @@ namespace RepPay.API.Controllers
 
             return Created("", new
             {
-                mensagem = "República criada com sucesso!",
+                mensagem = "Repï¿½blica criada com sucesso!",
                 codigoAcesso = codigoAcesso
             });
         }
@@ -83,21 +83,21 @@ namespace RepPay.API.Controllers
 
             if (idUsuario == null)
             {
-                return Unauthorized(new { mensagem = "Usuário não autenticado!" });
+                return Unauthorized(new { mensagem = "Usuï¿½rio nï¿½o autenticado!" });
             }
 
             var grupo = _context.Grupos.FirstOrDefault(g => g.CodigoAcesso.ToLower() == request.CodigoAcesso.ToLower());
 
             if (grupo == null)
             {
-                return NotFound(new { mensagem = "Código de acesso inválido ou república não encontrada." });
+                return NotFound(new { mensagem = "Cï¿½digo de acesso invï¿½lido ou repï¿½blica nï¿½o encontrada." });
             }
 
             bool jaPertence = _context.Pertences.Any(p => p.IdGrupo == grupo.IdGrupo && p.IdUsuario == idUsuario);
 
             if (jaPertence)
             {
-                return BadRequest(new { mensagem = "Você já faz parte desta república!" });
+                return BadRequest(new { mensagem = "Vocï¿½ jï¿½ faz parte desta repï¿½blica!" });
             }
 
             var novoVinculo = new Pertence
@@ -109,7 +109,7 @@ namespace RepPay.API.Controllers
             _context.Pertences.Add(novoVinculo);
             _context.SaveChanges();
 
-            return Ok(new { mensagem = $"Bem-vindo(a) à {grupo.Nome}!" });
+            return Ok(new { mensagem = $"Bem-vindo(a) ï¿½ {grupo.Nome}!" });
         }
 
         [HttpGet("Meus")]
@@ -119,7 +119,7 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+                return Unauthorized(new { mensagem = "Usuï¿½rio nï¿½o autenticado." });
             }
 
             var meusGrupos = _context.Pertences
@@ -144,7 +144,7 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+                return Unauthorized(new { mensagem = "Usuï¿½rio nï¿½o autenticado." });
             }
 
             var relacaoPertence = _context.Pertences
@@ -153,7 +153,7 @@ namespace RepPay.API.Controllers
 
             if (relacaoPertence == null)
             {
-                return StatusCode(403, new { mensagem = "Acesso negado. Você não pertence a este grupo ou ele não existe." });
+                return StatusCode(403, new { mensagem = "Acesso negado. Vocï¿½ nï¿½o pertence a este grupo ou ele nï¿½o existe." });
             }
 
             var grupo = relacaoPertence.IdGrupoNavigation;
@@ -177,21 +177,21 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+                return Unauthorized(new { mensagem = "Usuï¿½rio nï¿½o autenticado." });
             }
 
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
 
             if (grupo == null)
             {
-                return NotFound(new { mensagem = "Grupo não encontrado." });
+                return NotFound(new { mensagem = "Grupo nï¿½o encontrado." });
             }
 
             bool usuarioPertence = _context.Pertences.Any(p => p.IdGrupo == idGrupo && p.IdUsuario == idLogado);
 
             if (!usuarioPertence)
             {
-                return StatusCode(403, new { mensagem = "Acesso negado. Você não pertence a este grupo." });
+                return StatusCode(403, new { mensagem = "Acesso negado. Vocï¿½ nï¿½o pertence a este grupo." });
             }
 
             var membros = _context.Pertences
@@ -217,21 +217,21 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+                return Unauthorized(new { mensagem = "Usuï¿½rio nï¿½o autenticado." });
             }
 
             var vinculo = _context.Pertences.FirstOrDefault(p => p.IdGrupo == idGrupo && p.IdUsuario == idLogado);
 
             if (vinculo == null)
             {
-                return NotFound(new { mensagem = "Você não pertence a esta república." });
+                return NotFound(new { mensagem = "Vocï¿½ nï¿½o pertence a esta repï¿½blica." });
             }
 
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
 
             if (grupo != null && grupo.IdAdmin == idLogado)
             {
-                return BadRequest(new { mensagem = "Você é o administrador do grupo. Transfira a liderança para outro morador antes de sair." });
+                return BadRequest(new { mensagem = "Vocï¿½ ï¿½ o administrador do grupo. Transfira a lideranï¿½a para outro morador antes de sair." });
             }
 
             bool temDividas = _context.Parcelas
@@ -246,14 +246,14 @@ namespace RepPay.API.Controllers
             {
                 return BadRequest(new
                 {
-                    mensagem = "Você possui dívidas pendentes ou em análise nesta república. Quite todas as contas antes de sair!"
+                    mensagem = "Vocï¿½ possui dï¿½vidas pendentes ou em anï¿½lise nesta repï¿½blica. Quite todas as contas antes de sair!"
                 });
             }
 
             _context.Pertences.Remove(vinculo);
             _context.SaveChanges();
 
-            return Ok(new { mensagem = "Você saiu da república com sucesso. Sentiremos sua falta!" });
+            return Ok(new { mensagem = "Vocï¿½ saiu da repï¿½blica com sucesso. Sentiremos sua falta!" });
         }
 
         [HttpDelete("{idGrupo}/Expulsar/{idMorador}")]
@@ -263,14 +263,14 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+                return Unauthorized(new { mensagem = "Usuï¿½rio nï¿½o autenticado." });
             }
 
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
 
             if (grupo == null)
             {
-                return NotFound(new { mensagem = "Grupo não encontrado." });
+                return NotFound(new { mensagem = "Grupo nï¿½o encontrado." });
             }
 
             if (grupo.IdAdmin != idLogado)
@@ -280,14 +280,14 @@ namespace RepPay.API.Controllers
 
             if (idLogado == idMorador)
             {
-                return BadRequest(new { mensagem = "Você não pode expulsar a si mesmo. Caso queira sair, utilize a opção de saída voluntária ou exclua o grupo." });
+                return BadRequest(new { mensagem = "Vocï¿½ nï¿½o pode expulsar a si mesmo. Caso queira sair, utilize a opï¿½ï¿½o de saï¿½da voluntï¿½ria ou exclua o grupo." });
             }
 
             var vinculo = _context.Pertences.FirstOrDefault(p => p.IdGrupo == idGrupo && p.IdUsuario == idMorador);
 
             if (vinculo == null)
             {
-                return NotFound(new { mensagem = "Este usuário não é um morador da sua república." });
+                return NotFound(new { mensagem = "Este usuï¿½rio nï¿½o ï¿½ um morador da sua repï¿½blica." });
             }
 
             bool moradorTemDividas = _context.Parcelas
@@ -300,13 +300,13 @@ namespace RepPay.API.Controllers
 
             if (moradorTemDividas)
             {
-                return BadRequest(new { mensagem = "Não é possível expulsar este morador pois ele possui dívidas ativas. Quite as pendências financeiras dele antes de removê-lo."});
+                return BadRequest(new { mensagem = "Nï¿½o ï¿½ possï¿½vel expulsar este morador pois ele possui dï¿½vidas ativas. Quite as pendï¿½ncias financeiras dele antes de removï¿½-lo."});
             }
 
             _context.Pertences.Remove(vinculo);
             _context.SaveChanges();
 
-            return Ok(new { mensagem = "Morador removido da república com sucesso." });
+            return Ok(new { mensagem = "Morador removido da repï¿½blica com sucesso." });
         }
 
         [HttpPut("{idGrupo}/TransferirAdmin/{idNovoAdmin}")]
@@ -316,24 +316,24 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+                return Unauthorized(new { mensagem = "Usuï¿½rio nï¿½o autenticado." });
             }
 
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
 
             if (grupo == null)
             {
-                return NotFound(new { mensagem = "Grupo não encontrado." });
+                return NotFound(new { mensagem = "Grupo nï¿½o encontrado." });
             }
 
             if (grupo.IdAdmin != idLogado)
             {
-                return StatusCode(403, new { mensagem = "Acesso negado. Apenas o administrador atual pode transferir a liderança da casa." });
+                return StatusCode(403, new { mensagem = "Acesso negado. Apenas o administrador atual pode transferir a lideranï¿½a da casa." });
             }
 
             if (idLogado == idNovoAdmin)
             {
-                return BadRequest(new { mensagem = "Você já é o administrador desta república." });
+                return BadRequest(new { mensagem = "Vocï¿½ jï¿½ ï¿½ o administrador desta repï¿½blica." });
             }
 
             var moradorDestino = _context.Pertences
@@ -342,12 +342,12 @@ namespace RepPay.API.Controllers
 
             if (moradorDestino == null)
             {
-                return NotFound(new { mensagem = "O usuário escolhido não é um morador desta república." });
+                return NotFound(new { mensagem = "O usuï¿½rio escolhido nï¿½o ï¿½ um morador desta repï¿½blica." });
             }
 
             if (!moradorDestino.IdUsuarioNavigation.Ativo)
             {
-                return BadRequest(new { mensagem = "Não é possível transferir a liderança para uma conta desativada." });
+                return BadRequest(new { mensagem = "Nï¿½o ï¿½ possï¿½vel transferir a lideranï¿½a para uma conta desativada." });
             }
 
             grupo.IdAdmin = idNovoAdmin;
@@ -356,7 +356,7 @@ namespace RepPay.API.Controllers
 
             return Ok(new
             {
-                mensagem = $"Liderança transferida com sucesso para {moradorDestino.IdUsuarioNavigation.Nome}! Você agora é um morador comum."
+                mensagem = $"Lideranï¿½a transferida com sucesso para {moradorDestino.IdUsuarioNavigation.Nome}! Vocï¿½ agora ï¿½ um morador comum."
             });
         }
 
@@ -367,7 +367,7 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+                return Unauthorized(new { mensagem = "Usuï¿½rio nï¿½o autenticado." });
             }
 
             var parcela = _context.Parcelas
@@ -377,17 +377,17 @@ namespace RepPay.API.Controllers
 
             if (parcela == null)
             {
-                return NotFound(new { mensagem = "Parcela não encontrada." });
+                return NotFound(new { mensagem = "Parcela nï¿½o encontrada." });
             }
 
             if (parcela.IdDespesaNavigation.IdGrupoNavigation.IdAdmin != idLogado)
             {
-                return StatusCode(403, new { mensagem = "Acesso negado. Apenas o administrador da república pode quitar dívidas administrativamente." });
+                return StatusCode(403, new { mensagem = "Acesso negado. Apenas o administrador da repï¿½blica pode quitar dï¿½vidas administrativamente." });
             }
 
             if (parcela.Status == StatusParcela.PAGO)
             {
-                return BadRequest(new { mensagem = "Esta parcela já está paga e não precisa de intervenção." });
+                return BadRequest(new { mensagem = "Esta parcela jï¿½ estï¿½ paga e nï¿½o precisa de intervenï¿½ï¿½o." });
             }
 
             parcela.Status = StatusParcela.PAGO;
@@ -397,7 +397,7 @@ namespace RepPay.API.Controllers
 
             return Ok(new
             {
-                mensagem = "Dívida quitada administrativamente com sucesso! O histórico do morador foi limpo para esta conta."
+                mensagem = "Dï¿½vida quitada administrativamente com sucesso! O histï¿½rico do morador foi limpo para esta conta."
             });
         }
 
@@ -408,19 +408,19 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+                return Unauthorized(new { mensagem = "Usuï¿½rio nï¿½o autenticado." });
             }
 
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
 
             if (grupo == null)
             {
-                return NotFound(new { mensagem = "Grupo não encontrado." });
+                return NotFound(new { mensagem = "Grupo nï¿½o encontrado." });
             }
 
             if (grupo.IdAdmin != idLogado)
             {
-                return StatusCode(403, new { mensagem = "Apenas o administrador pode encerrar a república." });
+                return StatusCode(403, new { mensagem = "Apenas o administrador pode encerrar a repï¿½blica." });
             }
                 
             int quantidadeMoradores = _context.Pertences.Count(p => p.IdGrupo == idGrupo);
@@ -429,7 +429,7 @@ namespace RepPay.API.Controllers
             {
                 return BadRequest(new
                 {
-                    mensagem = "Não é possível encerrar a república enquanto houver outros moradores nela. Peça para que saiam voluntariamente ou remova-os primeiro."
+                    mensagem = "Nï¿½o ï¿½ possï¿½vel encerrar a repï¿½blica enquanto houver outros moradores nela. Peï¿½a para que saiam voluntariamente ou remova-os primeiro."
                 });
             }
 
@@ -438,11 +438,11 @@ namespace RepPay.API.Controllers
             try
             {
                 _context.SaveChanges();
-                return Ok(new { mensagem = "República encerrada com sucesso! Todas as despesas atreladas foram arquivadas." });
+                return Ok(new { mensagem = "Repï¿½blica encerrada com sucesso! Todas as despesas atreladas foram arquivadas." });
             }
             catch (Exception)
             {
-                return BadRequest(new { mensagem = "Não é possível encerrar a república no momento. Existem despesas com parcelas pendentes ou em análise. Quite todas as contas primeiro." });
+                return BadRequest(new { mensagem = "Nï¿½o ï¿½ possï¿½vel encerrar a repï¿½blica no momento. Existem despesas com parcelas pendentes ou em anï¿½lise. Quite todas as contas primeiro." });
             }
         }
     } 

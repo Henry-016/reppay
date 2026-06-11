@@ -1,7 +1,7 @@
 import styles from './ModalCriar.module.scss'
 import x from './../../assets/x.svg'
 import { useState} from 'react'
-import ModalCriarEntrarSucesso from './ModalCriarEntrarSucesso'
+import ModalSucesso from './ModalSucesso'
 
 interface ModalProps {
     isOpen: boolean
@@ -104,7 +104,7 @@ function ModalCriar( {isOpen, onClose}: ModalProps ) {
                     </div>
                 </div>
 
-                <ModalCriarEntrarSucesso isOpen={modal} onClose={onClose} titulo='Grupo Criado!' texto='O grupo foi criado com sucesso e você se tornou o administrador dele.' />
+                <ModalSucesso isOpen={modal} onClose={onClose} titulo='Grupo Criado!' texto='O grupo foi criado com sucesso e você se tornou o administrador dele.' />
 
             </section>
         </>
