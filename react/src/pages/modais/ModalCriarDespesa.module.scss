@@ -172,6 +172,11 @@
                     background-color: #131B2E;
                     color: #ffffff;
                     font-size: 1rem;
+                    
+                    &::-webkit-calendar-picker-indicator {
+                        filter: invert(1);
+                        cursor: pointer;
+                    }
 
                 }
 
