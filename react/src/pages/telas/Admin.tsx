@@ -17,6 +17,16 @@ interface DadosGrupo {
     isAdmin: boolean;
 }
 
+interface ProximaConta {
+    nomeDespesa: string
+    nomeGrupo: string | null
+    vencimento: string
+    valor: number
+
+}
+
+
+
 function Admin() {
     
     const navigate = useNavigate()
@@ -27,6 +37,7 @@ function Admin() {
     const [totalReceber, setTotalReceber] = useState<number>(0)
     const [minhaDivida, setMinhaDivida] = useState<number>(0)
     const [modal, setModal] = useState(false)
+    const [proximaConta, setProximaConta] = useState<ProximaConta>(null)
 
     const nome = localStorage.getItem('nomeUsuario');
 
@@ -42,7 +53,7 @@ function Admin() {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
-                });
+                })
 
                 if (resposta.ok) {
                     const dados = await resposta.json()
@@ -77,6 +88,18 @@ function Admin() {
                     setMinhaDivida(dadosDividas.totalDevido || 0)
                 }
 
+                const respostaVencimento = await fetch(`http://localhost:5149/api/Usuario/${idGrupo}/proximaConta`, 
+                {method: 'GET', headers: { 'Authorization': `Bearer ${token}`}})
+
+                if (respostaVencimento.ok) {
+                    const dadosVencimento = await respostaVencimento.json()
+                    setProximaConta(dadosVencimento)
+                    console.log(proximaConta)
+
+                }
+
+                
+
             } catch (error) {
                 console.error("Erro na requisição:", error)
             }
@@ -85,7 +108,7 @@ function Admin() {
         if (idGrupo) {
             buscarDetalhesDoGrupo();
         }
-    }, [idGrupo, navigate]);
+    }, [idGrupo, navigate, totalReceber]);
 
     return (
         <>
@@ -126,7 +149,7 @@ function Admin() {
                                     </div>
                                     <div className={styles.vencimento}>
                                         <p>Próximo Vencimento</p>
-                                        <h2>15 Out, 2026</h2>
+                                        <h2>{proximaConta?.vencimento}</h2>
                                     </div>
                                 </div>
                             </div>
