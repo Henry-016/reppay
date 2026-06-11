@@ -18,11 +18,8 @@ function ModalCriar( {isOpen, onClose}: ModalProps ) {
     const [modal, setModal] = useState(false)
 
     const [erro, setErro] = useState('')
-    const [carregando, setCarregando] = useState(false)
 
     const [codigoGerado, setCodigoGerado] = useState<string | null>(null)
-
-    const idUsuarioLogado = localStorage.getItem('idUsuario')
 
     const criarGrupo = async (e: React.SubmitEvent) => {
         e.preventDefault()
@@ -32,7 +29,6 @@ function ModalCriar( {isOpen, onClose}: ModalProps ) {
         }
 
         setErro('')
-        setCarregando(true)
 
         const token = localStorage.getItem('token');
 
@@ -62,8 +58,6 @@ function ModalCriar( {isOpen, onClose}: ModalProps ) {
         } catch (error) {
             console.error('Erro na requisição:', error)
             setErro('Não foi possível conectar ao servidor.')
-        } finally {
-            setCarregando(false)
         }
     }
 
