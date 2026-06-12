@@ -53,7 +53,7 @@ namespace RepPay.API.Controllers
 
             if (idAdmin == null)
             {
-                return Unauthorized(new { mensagem = "Usu�rio n�o autenticado!" });
+                return Unauthorized(new { mensagem = "Usuário não autenticado!" });
             }
 
             string codigoAcesso = GerarCodigoAcesso();
@@ -71,7 +71,7 @@ namespace RepPay.API.Controllers
 
             return Created("", new
             {
-                mensagem = "Rep�blica criada com sucesso!",
+                mensagem = "República criada com sucesso!",
                 codigoAcesso = codigoAcesso
             });
         }
@@ -83,21 +83,21 @@ namespace RepPay.API.Controllers
 
             if (idUsuario == null)
             {
-                return Unauthorized(new { mensagem = "Usu�rio n�o autenticado!" });
+                return Unauthorized(new { mensagem = "Usuário não autenticado!" });
             }
 
-            var grupo = _context.Grupos.FirstOrDefault(g => g.CodigoAcesso.ToLower() == request.CodigoAcesso.ToLower());
+            var grupo = _context.Grupos.FirstOrDefault(g => g.CodigoAcesso.ToLower() == request.CodigoAcesso.ToLower() && g.Ativo == true);
 
             if (grupo == null)
             {
-                return NotFound(new { mensagem = "C�digo de acesso inv�lido ou rep�blica n�o encontrada." });
+                return NotFound(new { mensagem = "Código de acesso inválido ou república não encontrada." });
             }
 
             bool jaPertence = _context.Pertences.Any(p => p.IdGrupo == grupo.IdGrupo && p.IdUsuario == idUsuario);
 
             if (jaPertence)
             {
-                return BadRequest(new { mensagem = "Voc� j� faz parte desta rep�blica!" });
+                return BadRequest(new { mensagem = "Você já faz parte desta república!" });
             }
 
             var novoVinculo = new Pertence
@@ -109,7 +109,7 @@ namespace RepPay.API.Controllers
             _context.Pertences.Add(novoVinculo);
             _context.SaveChanges();
 
-            return Ok(new { mensagem = $"Bem-vindo(a) � {grupo.Nome}!" });
+            return Ok(new { mensagem = $"Bem-vindo(a) à {grupo.Nome}!" });
         }
 
         [HttpGet("Meus")]
@@ -119,12 +119,12 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usu�rio n�o autenticado." });
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
 
             var meusGrupos = _context.Pertences
                 .Include(p => p.IdGrupoNavigation)
-                .Where(p => p.IdUsuario == idLogado)
+                .Where(p => p.IdUsuario == idLogado && p.IdGrupoNavigation.Ativo == true)
                 .Select(p => new MeuGrupoResponseDTO
                 {
                     IdGrupo = p.IdGrupoNavigation.IdGrupo,
@@ -144,16 +144,16 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usu�rio n�o autenticado." });
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
 
             var relacaoPertence = _context.Pertences
                 .Include(p => p.IdGrupoNavigation)
-                .FirstOrDefault(p => p.IdUsuario == idLogado && p.IdGrupo == idGrupo);
+                .FirstOrDefault(p => p.IdUsuario == idLogado && p.IdGrupo == idGrupo && p.IdGrupoNavigation.Ativo == true);
 
             if (relacaoPertence == null)
             {
-                return StatusCode(403, new { mensagem = "Acesso negado. Voc� n�o pertence a este grupo ou ele n�o existe." });
+                return StatusCode(403, new { mensagem = "Acesso negado. Você não pertence a este grupo ou ele não existe." });
             }
 
             var grupo = relacaoPertence.IdGrupoNavigation;
@@ -177,21 +177,21 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usu�rio n�o autenticado." });
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
 
-            var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
+            var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo && g.Ativo == true);
 
             if (grupo == null)
             {
-                return NotFound(new { mensagem = "Grupo n�o encontrado." });
+                return NotFound(new { mensagem = "Grupo não encontrado." });
             }
 
             bool usuarioPertence = _context.Pertences.Any(p => p.IdGrupo == idGrupo && p.IdUsuario == idLogado);
 
             if (!usuarioPertence)
             {
-                return StatusCode(403, new { mensagem = "Acesso negado. Voc� n�o pertence a este grupo." });
+                return StatusCode(403, new { mensagem = "Acesso negado. Você não pertence a este grupo." });
             }
 
             var membros = _context.Pertences
@@ -217,21 +217,21 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usu�rio n�o autenticado." });
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
 
             var vinculo = _context.Pertences.FirstOrDefault(p => p.IdGrupo == idGrupo && p.IdUsuario == idLogado);
 
             if (vinculo == null)
             {
-                return NotFound(new { mensagem = "Voc� n�o pertence a esta rep�blica." });
+                return NotFound(new { mensagem = "Você não pertence a esta república." });
             }
 
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
 
             if (grupo != null && grupo.IdAdmin == idLogado)
             {
-                return BadRequest(new { mensagem = "Voc� � o administrador do grupo. Transfira a lideran�a para outro morador antes de sair." });
+                return BadRequest(new { mensagem = "Você é o administrador do grupo. Transfira a liderança para outro morador antes de sair." });
             }
 
             bool temDividas = _context.Parcelas
@@ -246,14 +246,14 @@ namespace RepPay.API.Controllers
             {
                 return BadRequest(new
                 {
-                    mensagem = "Voc� possui d�vidas pendentes ou em an�lise nesta rep�blica. Quite todas as contas antes de sair!"
+                    mensagem = "Você possui dívidas pendentes ou em análise nesta república. Quite todas as contas antes de sair!"
                 });
             }
 
             _context.Pertences.Remove(vinculo);
             _context.SaveChanges();
 
-            return Ok(new { mensagem = "Voc� saiu da rep�blica com sucesso. Sentiremos sua falta!" });
+            return Ok(new { mensagem = "Você saiu da república com sucesso. Sentiremos sua falta!" });
         }
 
         [HttpDelete("{idGrupo}/Expulsar/{idMorador}")]
@@ -263,14 +263,14 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usu�rio n�o autenticado." });
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
 
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
 
             if (grupo == null)
             {
-                return NotFound(new { mensagem = "Grupo n�o encontrado." });
+                return NotFound(new { mensagem = "Grupo não encontrado." });
             }
 
             if (grupo.IdAdmin != idLogado)
@@ -280,14 +280,14 @@ namespace RepPay.API.Controllers
 
             if (idLogado == idMorador)
             {
-                return BadRequest(new { mensagem = "Voc� n�o pode expulsar a si mesmo. Caso queira sair, utilize a op��o de sa�da volunt�ria ou exclua o grupo." });
+                return BadRequest(new { mensagem = "Você não pode expulsar a si mesmo. Caso queira sair, utilize a opção de saída voluntária ou exclua o grupo." });
             }
 
             var vinculo = _context.Pertences.FirstOrDefault(p => p.IdGrupo == idGrupo && p.IdUsuario == idMorador);
 
             if (vinculo == null)
             {
-                return NotFound(new { mensagem = "Este usu�rio n�o � um morador da sua rep�blica." });
+                return NotFound(new { mensagem = "Este usuário não é um morador da sua república." });
             }
 
             bool moradorTemDividas = _context.Parcelas
@@ -300,13 +300,13 @@ namespace RepPay.API.Controllers
 
             if (moradorTemDividas)
             {
-                return BadRequest(new { mensagem = "N�o � poss�vel expulsar este morador pois ele possui d�vidas ativas. Quite as pend�ncias financeiras dele antes de remov�-lo."});
+                return BadRequest(new { mensagem = "Não é possível expulsar este morador pois ele possui dívidas ativas. Quite as pendências financeiras dele antes de removê-lo." });
             }
 
             _context.Pertences.Remove(vinculo);
             _context.SaveChanges();
 
-            return Ok(new { mensagem = "Morador removido da rep�blica com sucesso." });
+            return Ok(new { mensagem = "Morador removido da república com sucesso." });
         }
 
         [HttpPut("{idGrupo}/TransferirAdmin/{idNovoAdmin}")]
@@ -316,24 +316,24 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usu�rio n�o autenticado." });
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
 
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
 
             if (grupo == null)
             {
-                return NotFound(new { mensagem = "Grupo n�o encontrado." });
+                return NotFound(new { mensagem = "Grupo não encontrado." });
             }
 
             if (grupo.IdAdmin != idLogado)
             {
-                return StatusCode(403, new { mensagem = "Acesso negado. Apenas o administrador atual pode transferir a lideran�a da casa." });
+                return StatusCode(403, new { mensagem = "Acesso negado. Apenas o administrador atual pode transferir a liderança da casa." });
             }
 
             if (idLogado == idNovoAdmin)
             {
-                return BadRequest(new { mensagem = "Voc� j� � o administrador desta rep�blica." });
+                return BadRequest(new { mensagem = "Você já é o administrador desta república." });
             }
 
             var moradorDestino = _context.Pertences
@@ -342,12 +342,12 @@ namespace RepPay.API.Controllers
 
             if (moradorDestino == null)
             {
-                return NotFound(new { mensagem = "O usu�rio escolhido n�o � um morador desta rep�blica." });
+                return NotFound(new { mensagem = "O usuário escolhido não é um morador desta república." });
             }
 
             if (!moradorDestino.IdUsuarioNavigation.Ativo)
             {
-                return BadRequest(new { mensagem = "N�o � poss�vel transferir a lideran�a para uma conta desativada." });
+                return BadRequest(new { mensagem = "Não é possível transferir a liderança para uma conta desativada." });
             }
 
             grupo.IdAdmin = idNovoAdmin;
@@ -356,49 +356,40 @@ namespace RepPay.API.Controllers
 
             return Ok(new
             {
-                mensagem = $"Lideran�a transferida com sucesso para {moradorDestino.IdUsuarioNavigation.Nome}! Voc� agora � um morador comum."
+                mensagem = $"Liderança transferida com sucesso para {moradorDestino.IdUsuarioNavigation.Nome}! Você agora é um morador comum."
             });
         }
 
-        [HttpPut("QuitarDividaAdministrativamente/{idParcela}")]
-        public IActionResult QuitarDividaAdmin(int idParcela)
+        [HttpGet("{idGrupo}/ProximaConta")]
+        public IActionResult ObterProximaContaGrupo(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usu�rio n�o autenticado." });
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
 
-            var parcela = _context.Parcelas
-                .Include(p => p.IdDespesaNavigation)
-                .ThenInclude(d => d.IdGrupoNavigation)
-                .FirstOrDefault(p => p.IdParcela == idParcela);
-
-            if (parcela == null)
+            if (!_context.Pertences.Any(p => p.IdGrupo == idGrupo && p.IdUsuario == idLogado))
             {
-                return NotFound(new { mensagem = "Parcela n�o encontrada." });
+                return StatusCode(403, new { mensagem = "Você não pertence a esta república." });
             }
 
-            if (parcela.IdDespesaNavigation.IdGrupoNavigation.IdAdmin != idLogado)
-            {
-                return StatusCode(403, new { mensagem = "Acesso negado. Apenas o administrador da rep�blica pode quitar d�vidas administrativamente." });
-            }
+            var proximaConta = _context.Despesas
+                .Where(d => d.IdGrupo == idGrupo
+                         && d.Ativo == true
+                         && d.Status == StatusDespesa.ATIVA)
+                .OrderBy(d => d.Vencimento)
+                .Select(d => new ProximaContaResponseDTO
+                {
+                    NomeDespesa = d.Nome,
+                    NomeGrupo = null,
+                    Vencimento = d.Vencimento,
+                    Valor = d.Valor
+                })
+                .FirstOrDefault();
 
-            if (parcela.Status == StatusParcela.PAGO)
-            {
-                return BadRequest(new { mensagem = "Esta parcela j� est� paga e n�o precisa de interven��o." });
-            }
-
-            parcela.Status = StatusParcela.PAGO;
-            parcela.DataPagamento = DateOnly.FromDateTime(DateTime.UtcNow);
-
-            _context.SaveChanges();
-
-            return Ok(new
-            {
-                mensagem = "D�vida quitada administrativamente com sucesso! O hist�rico do morador foi limpo para esta conta."
-            });
+            return Ok(proximaConta);
         }
 
         [HttpDelete("Deletar/{idGrupo}")]
@@ -408,19 +399,19 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usu�rio n�o autenticado." });
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
 
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
 
             if (grupo == null)
             {
-                return NotFound(new { mensagem = "Grupo n�o encontrado." });
+                return NotFound(new { mensagem = "Grupo não encontrado." });
             }
 
             if (grupo.IdAdmin != idLogado)
             {
-                return StatusCode(403, new { mensagem = "Apenas o administrador pode encerrar a rep�blica." });
+                return StatusCode(403, new { mensagem = "Apenas o administrador pode encerrar a república." });
             }
                 
             int quantidadeMoradores = _context.Pertences.Count(p => p.IdGrupo == idGrupo);
@@ -429,7 +420,7 @@ namespace RepPay.API.Controllers
             {
                 return BadRequest(new
                 {
-                    mensagem = "N�o � poss�vel encerrar a rep�blica enquanto houver outros moradores nela. Pe�a para que saiam voluntariamente ou remova-os primeiro."
+                    mensagem = "Não é possível encerrar a república enquanto houver outros moradores nela. Peça para que saiam voluntariamente ou remova-os primeiro."
                 });
             }
 
@@ -438,11 +429,11 @@ namespace RepPay.API.Controllers
             try
             {
                 _context.SaveChanges();
-                return Ok(new { mensagem = "Rep�blica encerrada com sucesso! Todas as despesas atreladas foram arquivadas." });
+                return Ok(new { mensagem = "República encerrada com sucesso! Todas as despesas atreladas foram arquivadas." });
             }
             catch (Exception)
             {
-                return BadRequest(new { mensagem = "N�o � poss�vel encerrar a rep�blica no momento. Existem despesas com parcelas pendentes ou em an�lise. Quite todas as contas primeiro." });
+                return BadRequest(new { mensagem = "Não é possível encerrar a república no momento. Existem despesas com parcelas pendentes ou em análise. Quite todas as contas primeiro." });
             }
         }
     } 

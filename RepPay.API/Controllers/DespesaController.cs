@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+Ôªøusing Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RepPay.API.DTOs;
 using RepPay.API.Models;
@@ -39,19 +39,19 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usu·rio n„o autenticado." });
+                return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
             }
 
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == request.IdGrupo);
 
             if (grupo == null || grupo.IdAdmin != idLogado)
             {
-                return StatusCode(403, new { mensagem = "Acesso negado. Apenas o administrador pode lanÁar despesas." });
+                return StatusCode(403, new { mensagem = "Acesso negado. Apenas o administrador pode lan√ßar despesas." });
             }
 
             if (request.MoradoresIds == null || request.MoradoresIds.Count == 0)
             {
-                return BadRequest(new { mensagem = "… necess·rio selecionar pelo menos um morador para dividir esta conta." });
+                return BadRequest(new { mensagem = "√â necess√°rio selecionar pelo menos um morador para dividir esta conta." });
             }
 
             var moradoresValidos = _context.Pertences
@@ -61,7 +61,7 @@ namespace RepPay.API.Controllers
 
             if (moradoresValidos.Count != request.MoradoresIds.Count)
             {
-                return BadRequest(new { mensagem = "Um ou mais moradores informados n„o existem ou n„o pertencem a esta rep˙blica." });
+                return BadRequest(new { mensagem = "Um ou mais moradores informados n√£o existem ou n√£o pertencem a esta rep√∫blica." });
             }
 
             var novaDespesa = new Despesa
@@ -75,7 +75,7 @@ namespace RepPay.API.Controllers
                 Parcelas = new List<Parcela>()
             };
 
-            decimal valorPorPessoa = request.Valor / request.MoradoresIds.Count;
+            decimal valorPorPessoa = Math.Round(request.Valor / request.MoradoresIds.Count, 2);
 
             foreach (var idMorador in request.MoradoresIds)
             {
@@ -90,7 +90,7 @@ namespace RepPay.API.Controllers
             _context.Despesas.Add(novaDespesa);
             _context.SaveChanges();
 
-            return Created("", new { mensagem = "Despesa lanÁada e rateio gerado com sucesso!" });
+            return Created("", new { mensagem = "Despesa lan√ßada e rateio gerado com sucesso!" });
         }
 
         [HttpGet("MinhasDividas")]
@@ -100,12 +100,13 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usu·rio n„o autenticado." });
+                return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
             }
 
             var dividas = _context.Parcelas
                 .Include(p => p.IdDespesaNavigation)
-                .Where(p => p.IdUsuario == idLogado && (p.Status == StatusParcela.PENDENTE || p.Status == StatusParcela.ATRASADO))
+                .Where(p => p.IdUsuario == idLogado && p.IdDespesaNavigation.Ativo == true && p.IdDespesaNavigation.IdGrupoNavigation.Ativo == true 
+                 && (p.Status == StatusParcela.PENDENTE || p.Status == StatusParcela.ATRASADO))
                 .Select(p => new MinhaDividaResponseDTO
                 {
                     IdParcela = p.IdParcela,
@@ -120,7 +121,7 @@ namespace RepPay.API.Controllers
 
             if (!dividas.Any())
             {
-                return Ok(new { mensagem = "VocÍ n„o tem dÌvidas pendentes! Tudo em paz.", dividas = dividas });
+                return Ok(new { mensagem = "Voc√™ n√£o tem d√≠vidas pendentes! Tudo em paz.", dividas = dividas });
             }
 
             decimal valorTotalDevido = dividas.Sum(d => d.Valor);
@@ -139,12 +140,12 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usu·rio n„o autenticado." });
+                return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
             }
 
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
 
-            if (grupo == null) return NotFound(new { mensagem = "Grupo n„o encontrado." });
+            if (grupo == null) return NotFound(new { mensagem = "Grupo n√£o encontrado." });
 
             if (grupo.IdAdmin != idLogado)
             {
@@ -154,7 +155,7 @@ namespace RepPay.API.Controllers
             var inadimplentes = _context.Parcelas
                 .Include(p => p.IdUsuarioNavigation)
                 .Include(p => p.IdDespesaNavigation)
-                .Where(p => p.IdDespesaNavigation.IdGrupo == idGrupo
+                .Where(p => p.IdDespesaNavigation.IdGrupo == idGrupo && p.IdDespesaNavigation.Ativo == true
                          && (p.Status == StatusParcela.PENDENTE || p.Status == StatusParcela.ATRASADO))
                 .Select(p => new InadimplenteResponseDTO
                 {
@@ -171,7 +172,7 @@ namespace RepPay.API.Controllers
 
             if (!inadimplentes.Any())
             {
-                return Ok(new { mensagem = "Nenhum morador tem dÌvidas neste grupo. Tudo perfeito!", listaInadimplentes = inadimplentes });
+                return Ok(new { mensagem = "Nenhum morador tem d√≠vidas neste grupo. Tudo perfeito!", listaInadimplentes = inadimplentes });
             }
 
             decimal totalAReceber = inadimplentes.Sum(i => i.Valor);
@@ -190,21 +191,21 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usu·rio n„o autenticado." });
+                return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
             }
 
             var parcela = _context.Parcelas.FirstOrDefault(p => p.IdParcela == idParcela);
 
-            if (parcela == null) return NotFound(new { mensagem = "Parcela n„o encontrada." });
+            if (parcela == null) return NotFound(new { mensagem = "Parcela n√£o encontrada." });
 
             if (parcela.IdUsuario != idLogado)
             {
-                return StatusCode(403, new { mensagem = "N„o tem permiss„o para alterar uma dÌvida que n„o lhe pertence!" });
+                return StatusCode(403, new { mensagem = "N√£o tem permiss√£o para alterar uma d√≠vida que n√£o lhe pertence!" });
             }
 
             if (parcela.Status == StatusParcela.PAGO)
             {
-                return BadRequest(new { mensagem = "Esta parcela j· se encontra paga." });
+                return BadRequest(new { mensagem = "Esta parcela j√° se encontra paga." });
             }
 
             parcela.Status = StatusParcela.EM_ANALISE;
@@ -213,7 +214,7 @@ namespace RepPay.API.Controllers
 
             _context.SaveChanges();
 
-            return Ok(new { mensagem = "Pagamento sinalizado! Aguardando validaÁ„o do administrador." });
+            return Ok(new { mensagem = "Pagamento sinalizado! Aguardando valida√ß√£o do administrador." });
         }
 
         [HttpPut("DesfazerSinalizacaoPagamento/{idParcela}")]
@@ -223,21 +224,21 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usu·rio n„o autenticado." });
+                return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
             }
 
             var parcela = _context.Parcelas.FirstOrDefault(p => p.IdParcela == idParcela);
 
-            if (parcela == null) return NotFound(new { mensagem = "Parcela n„o encontrada." });
+            if (parcela == null) return NotFound(new { mensagem = "Parcela n√£o encontrada." });
 
             if (parcela.IdUsuario != idLogado)
             {
-                return StatusCode(403, new { mensagem = "N„o tem permiss„o para alterar uma dÌvida que n„o lhe pertence!" });
+                return StatusCode(403, new { mensagem = "N√£o tem permiss√£o para alterar uma d√≠vida que n√£o lhe pertence!" });
             }
 
             if (parcela.Status != StatusParcela.EM_ANALISE)
             {
-                return BadRequest(new { mensagem = "SÛ È possÌvel desfazer pagamentos que ainda est„o em an·lise." });
+                return BadRequest(new { mensagem = "S√≥ √© poss√≠vel desfazer pagamentos que ainda est√£o em an√°lise." });
             }
 
             parcela.DataPagamento = null;
@@ -245,7 +246,7 @@ namespace RepPay.API.Controllers
 
             _context.SaveChanges();
 
-            return Ok(new { mensagem = "SinalizaÁ„o de pagamento desfeita com sucesso." });
+            return Ok(new { mensagem = "Sinaliza√ß√£o de pagamento desfeita com sucesso." });
         }
 
         [HttpPut("ValidarPagamento/{idParcela}")]
@@ -255,7 +256,7 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usu·rio n„o autenticado." });
+                return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
             }
 
             var parcela = _context.Parcelas
@@ -265,7 +266,7 @@ namespace RepPay.API.Controllers
 
             if (parcela == null)
             {
-                return NotFound(new { mensagem = "Parcela n„o encontrada." });
+                return NotFound(new { mensagem = "Parcela n√£o encontrada." });
             }
 
             if (parcela.IdDespesaNavigation.IdGrupoNavigation.IdAdmin != idLogado)
@@ -275,7 +276,7 @@ namespace RepPay.API.Controllers
 
             if (parcela.Status != StatusParcela.EM_ANALISE)
             {
-                return BadRequest(new { mensagem = "Esta parcela n„o est· aguardando validaÁ„o." });
+                return BadRequest(new { mensagem = "Esta parcela n√£o est√° aguardando valida√ß√£o." });
             }
 
             if (request.Aprovado)
@@ -302,7 +303,7 @@ namespace RepPay.API.Controllers
             {
                 mensagem = request.Aprovado
                     ? "Pagamento aprovado com sucesso! A parcela foi quitada."
-                    : "Pagamento rejeitado. A dÌvida voltou para o morador."
+                    : "Pagamento rejeitado. A d√≠vida voltou para o morador."
             });
         }
 
@@ -313,12 +314,12 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usu·rio n„o autenticado." });
+                return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
             }
 
             var historicoPago = _context.Parcelas
                 .Include(p => p.IdDespesaNavigation)
-                .Where(p => p.IdUsuario == idLogado && p.Status == StatusParcela.PAGO)
+                .Where(p => p.IdUsuario == idLogado && p.Status == StatusParcela.PAGO && p.IdDespesaNavigation.Ativo == true)
                 .Select(p => new HistoricoPagoResponseDTO
                 {
                     IdParcela = p.IdParcela,
@@ -333,10 +334,181 @@ namespace RepPay.API.Controllers
 
             if (!historicoPago.Any())
             {
-                return Ok(new { mensagem = "VocÍ ainda n„o possui pagamentos registrados no histÛrico.", historicoPago = historicoPago });
+                return Ok(new { mensagem = "Voc√™ ainda n√£o possui pagamentos registrados no hist√≥rico.", historicoPago = historicoPago });
             }
 
             return Ok(historicoPago);
+        }
+
+        [HttpGet("HistoricoGrupo/{idGrupo}")]
+        public IActionResult GetHistoricoPagoGrupo(int idGrupo)
+        {
+            int? idLogado = ObterIdUsuarioLogado();
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
+            }
+
+            var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
+
+            if (grupo == null)
+            {
+                return NotFound(new { mensagem = "Grupo n√£o encontrado." });
+            }
+
+            if (grupo.IdAdmin != idLogado)
+            {
+                return StatusCode(403, new { mensagem = "Apenas o administrador pode ver o hist√≥rico financeiro global." });
+            }
+
+            var historico = _context.Parcelas
+                .Include(p => p.IdUsuarioNavigation)
+                .Include(p => p.IdDespesaNavigation)
+                .Where(p => p.IdDespesaNavigation.IdGrupo == idGrupo
+                         && p.IdDespesaNavigation.Ativo == true
+                         && p.Status == StatusParcela.PAGO)
+                .Select(p => new
+                {
+                    idParcela = p.IdParcela,
+                    nomeMorador = p.IdUsuarioNavigation.Nome,
+                    nomeDespesa = p.IdDespesaNavigation.Nome,
+                    valorPago = p.Valor,
+                    dataPagamento = p.DataPagamento,
+                    vencimento = p.IdDespesaNavigation.Vencimento
+                })
+                .OrderByDescending(p => p.dataPagamento)
+                .ToList();
+
+            if (!historico.Any())
+            {
+                return Ok(new { mensagem = "Nenhum hist√≥rico de pagamento registrado neste grupo.", listaHistorico = historico });
+            }  
+
+            return Ok(new { listaHistorico = historico });
+        }
+
+        [HttpGet("MinhasAnalises")]
+        public IActionResult GetMinhasAnalises()
+        {
+            int? idLogado = ObterIdUsuarioLogado();
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
+            }
+
+            var analises = _context.Parcelas
+                .Include(p => p.IdDespesaNavigation)
+                .Where(p => p.IdUsuario == idLogado
+                         && p.IdDespesaNavigation.Ativo == true
+                         && p.Status == StatusParcela.EM_ANALISE)
+                .Select(p => new
+                {
+                    idParcela = p.IdParcela,
+                    nomeDespesa = p.IdDespesaNavigation.Nome,
+                    icone = p.IdDespesaNavigation.Icone,
+                    valor = p.Valor,
+                    vencimento = p.IdDespesaNavigation.Vencimento,
+                    dataSinalizacao = p.DataPagamento
+                })
+                .OrderByDescending(p => p.dataSinalizacao)
+                .ToList();
+
+            if (!analises.Any())
+            {
+                return Ok(new { mensagem = "Nenhum pagamento em an√°lise no momento.", listaAnalises = analises });
+            }
+
+            return Ok(new { listaAnalises = analises });
+        }
+
+        [HttpGet("AnalisesPendentes/{idGrupo}")]
+        public IActionResult GetAnalisesPendentesGrupo(int idGrupo)
+        {
+            int? idLogado = ObterIdUsuarioLogado();
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
+            }
+
+            var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
+
+            if (grupo == null)
+            {
+                return NotFound(new { mensagem = "Grupo n√£o encontrado." });
+            }
+
+            if (grupo.IdAdmin != idLogado)
+            {
+                return StatusCode(403, new { mensagem = "Apenas o administrador pode ver as valida√ß√µes pendentes." });
+            }
+
+            var analisesPendentes = _context.Parcelas
+                .Include(p => p.IdUsuarioNavigation)
+                .Include(p => p.IdDespesaNavigation)
+                .Where(p => p.IdDespesaNavigation.IdGrupo == idGrupo
+                         && p.IdDespesaNavigation.Ativo == true
+                         && p.Status == StatusParcela.EM_ANALISE)
+                .Select(p => new
+                {
+                    idParcela = p.IdParcela,
+                    nomeMorador = p.IdUsuarioNavigation.Nome,
+                    nomeDespesa = p.IdDespesaNavigation.Nome,
+                    valor = p.Valor,
+                    dataSinalizacao = p.DataPagamento
+                })
+                .OrderBy(p => p.dataSinalizacao)
+                .ToList();
+
+            if (!analisesPendentes.Any())
+            {
+                return Ok(new { mensagem = "Nenhuma valida√ß√£o pendente. Tudo atualizado!", listaAnalises = analisesPendentes });
+            }
+
+            return Ok(new { listaAnalises = analisesPendentes });
+        }
+
+        [HttpPut("QuitarDividaAdministrativamente/{idParcela}")]
+        public IActionResult QuitarDividaAdmin(int idParcela)
+        {
+            int? idLogado = ObterIdUsuarioLogado();
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
+            }
+
+            var parcela = _context.Parcelas
+                .Include(p => p.IdDespesaNavigation)
+                .ThenInclude(d => d.IdGrupoNavigation)
+                .FirstOrDefault(p => p.IdParcela == idParcela);
+
+            if (parcela == null)
+            {
+                return NotFound(new { mensagem = "Parcela n√£o encontrada." });
+            }
+
+            if (parcela.IdDespesaNavigation.IdGrupoNavigation.IdAdmin != idLogado)
+            {
+                return StatusCode(403, new { mensagem = "Acesso negado. Apenas o administrador da rep√∫blica pode quitar d√≠vidas administrativamente." });
+            }
+
+            if (parcela.Status == StatusParcela.PAGO)
+            {
+                return BadRequest(new { mensagem = "Esta parcela j√° est√° paga e n√£o precisa de interven√ß√£o." });
+            }
+
+            parcela.Status = StatusParcela.PAGO;
+            parcela.DataPagamento = DateOnly.FromDateTime(DateTime.UtcNow);
+
+            _context.SaveChanges();
+
+            return Ok(new
+            {
+                mensagem = "D√≠vida quitada administrativamente com sucesso! O hist√≥rico do morador foi limpo para esta conta."
+            });
         }
 
         [HttpPut("Editar/{idDespesa}")]
@@ -346,7 +518,7 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usu·rio n„o autenticado." });
+                return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
             }
 
             var despesa = _context.Despesas
@@ -355,7 +527,7 @@ namespace RepPay.API.Controllers
 
             if (despesa == null)
             {
-                return NotFound(new { mensagem = "Despesa n„o encontrada." });
+                return NotFound(new { mensagem = "Despesa n√£o encontrada." });
             }
 
             if (despesa.IdGrupoNavigation.IdAdmin != idLogado)
@@ -375,7 +547,7 @@ namespace RepPay.API.Controllers
             }
             catch (Exception)
             {
-                return BadRequest(new { mensagem = "N„o È permitido alterar o valor ou o vencimento de uma despesa que j· possui parcelas pagas ou em an·lise." });
+                return BadRequest(new { mensagem = "N√£o √© permitido alterar o valor ou o vencimento de uma despesa que j√° possui parcelas pagas ou em an√°lise." });
             }
         }
 
@@ -386,7 +558,7 @@ namespace RepPay.API.Controllers
 
             if (idLogado == null)
             {
-                return Unauthorized(new { mensagem = "Usu·rio n„o autenticado." });
+                return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
             }
 
             var despesa = _context.Despesas
@@ -395,7 +567,7 @@ namespace RepPay.API.Controllers
 
             if (despesa == null)
             {
-                return NotFound(new { mensagem = "Despesa n„o encontrada." });
+                return NotFound(new { mensagem = "Despesa n√£o encontrada." });
             }
 
             if (despesa.IdGrupoNavigation.IdAdmin != idLogado)
@@ -412,7 +584,7 @@ namespace RepPay.API.Controllers
             }
             catch (Exception)
             {
-                return BadRequest(new { mensagem = "N„o È possÌvel deletar uma despesa que ainda possui parcelas pagas!" });
+                return BadRequest(new { mensagem = "N√£o √© poss√≠vel deletar uma despesa que ainda possui parcelas pagas!" });
             }
         }
     }

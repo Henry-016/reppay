@@ -238,9 +238,22 @@ namespace RepPay.API.Controllers
                 return NotFound(new { mensagem = "Usuário não encontrado." });
             }
 
+            bool emailEmUso = _context.Usuarios.Any(u =>
+            u.Email.ToLower() == usuarioAtualizado.Email.ToLower() &&
+            u.IdUsuario != idLogado);
+
+            if (emailEmUso)
+            {
+                return BadRequest(new { mensagem = "Este e-mail já está sendo utilizado por outra conta." });
+            }
+
             usuario.Nome = usuarioAtualizado.Nome;
             usuario.Email = usuarioAtualizado.Email;
-            usuario.Senha = BCrypt.Net.BCrypt.HashPassword(usuarioAtualizado.Senha);
+
+            if (!string.IsNullOrWhiteSpace(usuarioAtualizado.Senha))
+            {
+                usuario.Senha = BCrypt.Net.BCrypt.HashPassword(usuarioAtualizado.Senha);
+            }
 
             _context.SaveChanges();
 
@@ -413,6 +426,7 @@ namespace RepPay.API.Controllers
                 .ThenInclude(d => d.IdGrupoNavigation)
                 .Where(p => p.IdUsuario == idLogado
                          && p.IdDespesaNavigation.Ativo == true
+                         && p.IdDespesaNavigation.IdGrupoNavigation.Ativo == true
                          && (p.Status == StatusParcela.PENDENTE || p.Status == StatusParcela.ATRASADO))
                 .OrderBy(p => p.IdDespesaNavigation.Vencimento)
                 .Select(p => new ProximaContaResponseDTO
@@ -421,38 +435,6 @@ namespace RepPay.API.Controllers
                     NomeGrupo = p.IdDespesaNavigation.IdGrupoNavigation.Nome,
                     Vencimento = p.IdDespesaNavigation.Vencimento,
                     Valor = p.Valor
-                })
-                .FirstOrDefault();
-
-            return Ok(proximaConta);
-        }
-
-        [HttpGet("{idGrupo}/ProximaConta")]
-        public IActionResult ObterProximaContaGrupo(int idGrupo)
-        {
-            int? idLogado = ObterIdUsuarioLogado();
-
-            if (idLogado == null)
-            {
-                return Unauthorized(new { mensagem = "Usuário não autenticado." });
-            }
-
-            if (!_context.Pertences.Any(p => p.IdGrupo == idGrupo && p.IdUsuario == idLogado))
-            {
-                return StatusCode(403, new { mensagem = "Você não pertence a esta república." });
-            }
-
-            var proximaConta = _context.Despesas
-                .Where(d => d.IdGrupo == idGrupo
-                         && d.Ativo == true
-                         && d.Status == StatusDespesa.ATIVA)
-                .OrderBy(d => d.Vencimento)
-                .Select(d => new ProximaContaResponseDTO
-                {
-                    NomeDespesa = d.Nome,
-                    NomeGrupo = null,
-                    Vencimento = d.Vencimento,
-                    Valor = d.Valor
                 })
                 .FirstOrDefault();
 
