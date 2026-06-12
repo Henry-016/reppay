@@ -8,13 +8,14 @@ import moradores_desativado from './../../assets/moradores_desativado.svg'
 import sair from './../../assets/sair.svg'
 import add from './../../assets/add.svg'
 import ModalCriarDespesa from './../modais/ModalCriarDespesa'
+import ParcelaPendente from './../../components/ParcelaPendente'
 
 interface DadosGrupo {
-    idGrupo: number;
-    nome: string;
-    codigoAcesso: string;
-    imagemBanner: string | null;
-    isAdmin: boolean;
+    idGrupo: number
+    nome: string
+    codigoAcesso: string
+    imagemBanner: string | null
+    isAdmin: boolean
 }
 
 interface ProximaConta {
@@ -22,6 +23,17 @@ interface ProximaConta {
     nomeGrupo: string | null
     vencimento: string
     valor: number
+
+}
+
+interface MinhasDividas {
+    idParcela: number
+    nomeDespesa: string
+    icone: string
+    valor: number
+    vencimento: string
+    status: string
+    nomeMorador: string
 
 }
 
@@ -33,17 +45,22 @@ function Admin() {
 
     const { idGrupo } = useParams<{ idGrupo: string }>()
     
+    const [atualizarDados, setAtualizarDados] = useState(0);
     const [grupo, setGrupo] = useState<DadosGrupo | null>(null)
     const [totalReceber, setTotalReceber] = useState<number>(0)
     const [minhaDivida, setMinhaDivida] = useState<number>(0)
     const [modal, setModal] = useState(false)
-    const [proximaConta, setProximaConta] = useState<ProximaConta>(null)
-
+    const [proximaConta, setProximaConta] = useState<ProximaConta>()
+    const [pendente, setPendente] = useState<boolean>(false)
+    const [analise, setAnalise] = useState<boolean>(false)
+    const [pago, setPago] = useState<boolean>(false)
+    const [minhasDividas, setMinhasDividas] = useState<MinhasDividas[]>([])
+    
     const nome = localStorage.getItem('nomeUsuario');
 
     useEffect(() => {
         
-        const buscarDetalhesDoGrupo = async () => {
+        const buscarDadosDoGrupo = async () => {
             const token = localStorage.getItem('token')
             
             
@@ -76,6 +93,7 @@ function Admin() {
                 if (respostaInadimplentes.ok) {
                     const dadosInadimplentes = await respostaInadimplentes.json()
                     setTotalReceber(dadosInadimplentes.totalAReceber || 0)
+                    setMinhasDividas(dadosInadimplentes.listaInadimplentes || [])
                 }
 
                 const respostaDividas = await fetch(`http://localhost:5149/api/Despesa/MinhasDividas`, {
@@ -86,6 +104,7 @@ function Admin() {
                 if (respostaDividas.ok) {
                     const dadosDividas = await respostaDividas.json()
                     setMinhaDivida(dadosDividas.totalDevido || 0)
+
                 }
 
                 const respostaVencimento = await fetch(`http://localhost:5149/api/Usuario/${idGrupo}/proximaConta`, 
@@ -94,11 +113,8 @@ function Admin() {
                 if (respostaVencimento.ok) {
                     const dadosVencimento = await respostaVencimento.json()
                     setProximaConta(dadosVencimento)
-                    console.log(proximaConta)
 
-                }
-
-                
+                }            
 
             } catch (error) {
                 console.error("Erro na requisição:", error)
@@ -106,9 +122,60 @@ function Admin() {
         }
 
         if (idGrupo) {
-            buscarDetalhesDoGrupo();
+            buscarDadosDoGrupo();
         }
-    }, [idGrupo, navigate, totalReceber]);
+    }, [idGrupo, modal, atualizarDados]);
+
+    const mudarOpcao = (id: number) => {
+
+        if (id === 1) {
+            setPendente(true)
+            setAnalise(false)
+            setPago(false)
+
+        }
+
+        else if (id === 2) {
+            setPendente(false)
+            setAnalise(true)
+            setPago(false)
+
+        }
+
+        else if (id === 3) {
+            setPendente(false)
+            setAnalise(false)
+            setPago(true)
+
+        }
+
+    }
+
+    const sinalizarPagamento = async (id: number) => {
+        const token = localStorage.getItem('token')
+
+        try {
+            const resposta = await fetch(`http://localhost:5149/api/Despesa/SinalizarPagamento/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}` 
+            }
+        })
+
+        const resultado = await resposta.json()
+
+        if (resposta.ok) {
+            setAtualizarDados(prev => prev + 1)
+            alert(resultado.mensagem)
+        } else {
+            alert(resultado.mensagem || "Erro ao sinalizar pagamento.")
+        }
+
+        } catch (error) {
+        console.error("Erro ao conectar com a API:", error)
+        }   
+
+    }
 
     return (
         <>
@@ -159,6 +226,45 @@ function Admin() {
                             </button>
 
                         </div>
+                        <div className={styles.opcoes}>
+                            <button onClick={() => mudarOpcao(1)}className={`${styles.opcao} ${pendente ? styles.ativo : ''}`}>
+                                Pendentes
+                            </button>
+                            <button onClick={() => mudarOpcao(2)} className={`${styles.opcao} ${analise ? styles.ativo : ''}`}>
+                                Em Análise
+                            </button>
+                            <button onClick={() => mudarOpcao(3)} className={`${styles.opcao} ${pago ? styles.ativo : ''}`}>
+                                Histórico Pago
+                            </button>
+                        </div>
+                        {pendente && 
+                            <div className={styles.containerDespesas}>
+                                <h2 className={styles.detalhesFatura}>DETALHES DA FATURA</h2>
+                                {minhasDividas.length > 0 ? (
+                                <div className={styles.pendentes}>
+                                    {minhasDividas.map((parcela) => {
+                                        const eminhadivida = parcela.nomeMorador === nome
+                                    
+                                        return (
+
+                                            <ParcelaPendente 
+                                                key={parcela.idParcela} 
+                                                icone={parcela.icone} 
+                                                vencimento={parcela.vencimento} 
+                                                nomeDespesa={parcela.nomeDespesa} 
+                                                nomeMorador={parcela.nomeMorador}
+                                                valor={parcela.valor} onClick={() => sinalizarPagamento(parcela.idParcela)}
+                                                mostrarBotao={eminhadivida}
+                                            />
+                                        )})}
+                                </div>
+                                ) : (
+                                    <div className={styles.vazio}>
+                                        <p>Não foi encontrada nenhuma dívida no momento.</p>
+                                    </div>
+                                )}
+                                
+                            </div>}
 
                     </div>
                 </div>
