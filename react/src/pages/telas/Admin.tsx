@@ -31,8 +31,9 @@ interface MinhasDividas {
     nomeDespesa: string
     icone: string
     valor: number
-    vencimento: string;
+    vencimento: string
     status: string
+    nomeMorador: string
 
 }
 
@@ -92,6 +93,7 @@ function Admin() {
                 if (respostaInadimplentes.ok) {
                     const dadosInadimplentes = await respostaInadimplentes.json()
                     setTotalReceber(dadosInadimplentes.totalAReceber || 0)
+                    setMinhasDividas(dadosInadimplentes.listaInadimplentes || [])
                 }
 
                 const respostaDividas = await fetch(`http://localhost:5149/api/Despesa/MinhasDividas`, {
@@ -102,7 +104,7 @@ function Admin() {
                 if (respostaDividas.ok) {
                     const dadosDividas = await respostaDividas.json()
                     setMinhaDivida(dadosDividas.totalDevido || 0)
-                    setMinhasDividas(dadosDividas.listaDividas || [])
+
                 }
 
                 const respostaVencimento = await fetch(`http://localhost:5149/api/Usuario/${idGrupo}/proximaConta`, 
@@ -240,15 +242,21 @@ function Admin() {
                                 <h2 className={styles.detalhesFatura}>DETALHES DA FATURA</h2>
                                 {minhasDividas.length > 0 ? (
                                 <div className={styles.pendentes}>
-                                    {minhasDividas.map((parcela)=> (
-                                        <ParcelaPendente 
-                                            key={parcela.idParcela} 
-                                            icone={parcela.icone} 
-                                            vencimento={parcela.vencimento} 
-                                            nomeDespesa={parcela.nomeDespesa} 
-                                            valor={parcela.valor} onClick={() => sinalizarPagamento(parcela.idParcela)}
-                                        />
-                                    ))}
+                                    {minhasDividas.map((parcela) => {
+                                        const eminhadivida = parcela.nomeMorador === nome
+                                    
+                                        return (
+
+                                            <ParcelaPendente 
+                                                key={parcela.idParcela} 
+                                                icone={parcela.icone} 
+                                                vencimento={parcela.vencimento} 
+                                                nomeDespesa={parcela.nomeDespesa} 
+                                                nomeMorador={parcela.nomeMorador}
+                                                valor={parcela.valor} onClick={() => sinalizarPagamento(parcela.idParcela)}
+                                                mostrarBotao={eminhadivida}
+                                            />
+                                        )})}
                                 </div>
                                 ) : (
                                     <div className={styles.vazio}>
