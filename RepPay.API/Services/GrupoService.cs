@@ -58,10 +58,18 @@ namespace RepPay.API.Services
         public string EntrarNoGrupo(int idUsuario, EntrarGrupoRequestDTO request)
         {
             var grupo = _context.Grupos.FirstOrDefault(g => g.CodigoAcesso.ToLower() == request.CodigoAcesso.ToLower() && g.Ativo == true);
-            if (grupo == null) throw new KeyNotFoundException("Código de acesso inválido ou república não encontrada.");
+
+            if (grupo == null)
+            {
+                throw new KeyNotFoundException("Código de acesso inválido ou república não encontrada.");
+            }
 
             bool jaPertence = _context.Pertences.Any(p => p.IdGrupo == grupo.IdGrupo && p.IdUsuario == idUsuario);
-            if (jaPertence) throw new Exception("Você já faz parte desta república!");
+
+            if (jaPertence)
+            {
+                throw new Exception("Você já faz parte desta república!");
+            }
 
             var novoVinculo = new Pertence
             {
@@ -96,7 +104,10 @@ namespace RepPay.API.Services
                 .Include(p => p.IdGrupoNavigation)
                 .FirstOrDefault(p => p.IdUsuario == idLogado && p.IdGrupo == idGrupo && p.IdGrupoNavigation.Ativo == true);
 
-            if (relacaoPertence == null) throw new UnauthorizedAccessException("Acesso negado. Você não pertence a este grupo ou ele não existe.");
+            if (relacaoPertence == null)
+            {
+                throw new UnauthorizedAccessException("Acesso negado. Você não pertence a este grupo ou ele não existe.");
+            }
 
             var grupo = relacaoPertence.IdGrupoNavigation;
 
@@ -152,18 +163,28 @@ namespace RepPay.API.Services
         public string SairDoGrupo(int idLogado, int idGrupo)
         {
             var vinculo = _context.Pertences.FirstOrDefault(p => p.IdGrupo == idGrupo && p.IdUsuario == idLogado);
-            if (vinculo == null) throw new KeyNotFoundException("Você não pertence a esta república.");
+
+            if (vinculo == null)
+            {
+                throw new KeyNotFoundException("Você não pertence a esta república.");
+            }
 
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
+
             if (grupo != null && grupo.IdAdmin == idLogado)
+            {
                 throw new Exception("Você é o administrador do grupo. Transfira a liderança para outro morador antes de sair.");
+            }     
 
             bool temDividas = _context.Parcelas
                 .Include(p => p.IdDespesaNavigation)
                 .Any(p => p.IdUsuario == idLogado && p.IdDespesaNavigation.IdGrupo == idGrupo
                        && (p.Status == StatusParcela.PENDENTE || p.Status == StatusParcela.ATRASADO || p.Status == StatusParcela.EM_ANALISE));
 
-            if (temDividas) throw new Exception("Você possui dívidas pendentes ou em análise nesta república. Quite todas as contas antes de sair!");
+            if (temDividas)
+            {
+                throw new Exception("Você possui dívidas pendentes ou em análise nesta república. Quite todas as contas antes de sair!");
+            }
 
             _context.Pertences.Remove(vinculo);
             _context.SaveChanges();
@@ -174,19 +195,38 @@ namespace RepPay.API.Services
         public string ExpulsarMorador(int idLogado, int idGrupo, int idMorador)
         {
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
-            if (grupo == null) throw new KeyNotFoundException("Grupo não encontrado.");
-            if (grupo.IdAdmin != idLogado) throw new UnauthorizedAccessException("Acesso negado. Apenas o administrador pode expulsar moradores.");
-            if (idLogado == idMorador) throw new Exception("Você não pode expulsar a si mesmo. Caso queira sair, utilize a opção de saída voluntária ou exclua o grupo.");
+
+            if (grupo == null)
+            {
+                throw new KeyNotFoundException("Grupo não encontrado.");
+            }
+
+            if (grupo.IdAdmin != idLogado)
+            {
+                throw new UnauthorizedAccessException("Acesso negado. Apenas o administrador pode expulsar moradores.");
+            }
+
+            if (idLogado == idMorador)
+            {
+                throw new Exception("Você não pode expulsar a si mesmo. Caso queira sair, utilize a opção de saída voluntária ou exclua o grupo.");
+            }
 
             var vinculo = _context.Pertences.FirstOrDefault(p => p.IdGrupo == idGrupo && p.IdUsuario == idMorador);
-            if (vinculo == null) throw new KeyNotFoundException("Este usuário não é um morador da sua república.");
+
+            if (vinculo == null)
+            {
+                throw new KeyNotFoundException("Este usuário não é um morador da sua república.");
+            }
 
             bool moradorTemDividas = _context.Parcelas
                 .Include(p => p.IdDespesaNavigation)
                 .Any(p => p.IdUsuario == idMorador && p.IdDespesaNavigation.IdGrupo == idGrupo
                        && (p.Status == StatusParcela.PENDENTE || p.Status == StatusParcela.ATRASADO || p.Status == StatusParcela.EM_ANALISE));
 
-            if (moradorTemDividas) throw new Exception("Não é possível expulsar este morador pois ele possui dívidas ativas. Quite as pendências financeiras dele antes de removê-lo.");
+            if (moradorTemDividas)
+            {
+                throw new Exception("Não é possível expulsar este morador pois ele possui dívidas ativas. Quite as pendências financeiras dele antes de removê-lo.");
+            }
 
             _context.Pertences.Remove(vinculo);
             _context.SaveChanges();
@@ -197,16 +237,35 @@ namespace RepPay.API.Services
         public string TransferirAdmin(int idLogado, int idGrupo, int idNovoAdmin)
         {
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
-            if (grupo == null) throw new KeyNotFoundException("Grupo não encontrado.");
-            if (grupo.IdAdmin != idLogado) throw new UnauthorizedAccessException("Acesso negado. Apenas o administrador atual pode transferir a liderança da casa.");
-            if (idLogado == idNovoAdmin) throw new Exception("Você já é o administrador desta república.");
+
+            if (grupo == null)
+            {
+                throw new KeyNotFoundException("Grupo não encontrado.");
+            }
+
+            if (grupo.IdAdmin != idLogado)
+            {
+                throw new UnauthorizedAccessException("Acesso negado. Apenas o administrador atual pode transferir a liderança da casa.");
+            }
+
+            if (idLogado == idNovoAdmin)
+            {
+                throw new Exception("Você já é o administrador desta república.");
+            }
 
             var moradorDestino = _context.Pertences
                 .Include(p => p.IdUsuarioNavigation)
                 .FirstOrDefault(p => p.IdGrupo == idGrupo && p.IdUsuario == idNovoAdmin);
 
-            if (moradorDestino == null) throw new KeyNotFoundException("O usuário escolhido não é um morador desta república.");
-            if (!moradorDestino.IdUsuarioNavigation.Ativo) throw new Exception("Não é possível transferir a liderança para uma conta desativada.");
+            if (moradorDestino == null)
+            {
+                throw new KeyNotFoundException("O usuário escolhido não é um morador desta república.");
+            }
+
+            if (!moradorDestino.IdUsuarioNavigation.Ativo)
+            {
+                throw new Exception("Não é possível transferir a liderança para uma conta desativada.");
+            }
 
             grupo.IdAdmin = idNovoAdmin;
             _context.SaveChanges();
@@ -217,17 +276,23 @@ namespace RepPay.API.Services
         public ProximaContaResponseDTO? ObterProximaContaGrupo(int idLogado, int idGrupo)
         {
             if (!_context.Pertences.Any(p => p.IdGrupo == idGrupo && p.IdUsuario == idLogado))
+            {
                 throw new UnauthorizedAccessException("Você não pertence a esta república.");
+            }
 
-            return _context.Despesas
-                .Where(d => d.IdGrupo == idGrupo && d.Ativo == true && d.Status == StatusDespesa.ATIVA)
-                .OrderBy(d => d.Vencimento)
-                .Select(d => new ProximaContaResponseDTO
+            return _context.Parcelas
+                .Include(p => p.IdDespesaNavigation)
+                .Where(p => p.IdUsuario == idLogado
+                         && p.IdDespesaNavigation.IdGrupo == idGrupo
+                         && p.IdDespesaNavigation.Ativo == true
+                         && (p.Status == StatusParcela.PENDENTE || p.Status == StatusParcela.ATRASADO))
+                .OrderBy(p => p.IdDespesaNavigation.Vencimento)
+                .Select(p => new ProximaContaResponseDTO
                 {
-                    NomeDespesa = d.Nome,
+                    NomeDespesa = p.IdDespesaNavigation.Nome,
                     NomeGrupo = null,
-                    Vencimento = d.Vencimento,
-                    Valor = d.Valor
+                    Vencimento = p.IdDespesaNavigation.Vencimento,
+                    Valor = p.Valor
                 })
                 .FirstOrDefault();
         }
@@ -235,11 +300,22 @@ namespace RepPay.API.Services
         public string DeletarGrupo(int idLogado, int idGrupo)
         {
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
-            if (grupo == null) throw new KeyNotFoundException("Grupo não encontrado.");
-            if (grupo.IdAdmin != idLogado) throw new UnauthorizedAccessException("Apenas o administrador pode encerrar a república.");
+            if (grupo == null)
+            {
+                throw new KeyNotFoundException("Grupo não encontrado.");
+            }
+
+            if (grupo.IdAdmin != idLogado)
+            {
+                throw new UnauthorizedAccessException("Apenas o administrador pode encerrar a república.");
+            }
 
             int quantidadeMoradores = _context.Pertences.Count(p => p.IdGrupo == idGrupo);
-            if (quantidadeMoradores > 1) throw new Exception("Não é possível encerrar a república enquanto houver outros moradores nela. Peça para que saiam voluntariamente ou remova-os primeiro.");
+
+            if (quantidadeMoradores > 1)
+            {
+                throw new Exception("Não é possível encerrar a república enquanto houver outros moradores nela. Peça para que saiam voluntariamente ou remova-os primeiro.");
+            }
 
             grupo.Ativo = false;
 

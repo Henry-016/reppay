@@ -19,11 +19,16 @@ namespace RepPay.API.Services
         public string CadastrarDespesa(int idLogado, DespesaRequestDTO request)
         {
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == request.IdGrupo);
+
             if (grupo == null || grupo.IdAdmin != idLogado)
+            {
                 throw new UnauthorizedAccessException("Acesso negado. Apenas o administrador pode lançar despesas.");
+            }
 
             if (request.MoradoresIds == null || request.MoradoresIds.Count == 0)
+            {
                 throw new Exception("É necessário selecionar pelo menos um morador para dividir esta conta.");
+            }
 
             var moradoresValidos = _context.Pertences
                 .Where(p => p.IdGrupo == request.IdGrupo && request.MoradoresIds.Contains(p.IdUsuario))
@@ -31,7 +36,9 @@ namespace RepPay.API.Services
                 .ToList();
 
             if (moradoresValidos.Count != request.MoradoresIds.Count)
+            {
                 throw new Exception("Um ou mais moradores informados não existem ou não pertencem a esta república.");
+            }
 
             var novaDespesa = new Despesa
             {
@@ -90,8 +97,16 @@ namespace RepPay.API.Services
         public ResumoInadimplentesDTO GetInadimplentes(int idLogado, int idGrupo)
         {
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
-            if (grupo == null) throw new KeyNotFoundException("Grupo não encontrado.");
-            if (grupo.IdAdmin != idLogado) throw new UnauthorizedAccessException("Acesso negado. Apenas o administrador do grupo pode ver essa lista!");
+
+            if (grupo == null)
+            {
+                throw new KeyNotFoundException("Grupo não encontrado.");
+            }
+
+            if (grupo.IdAdmin != idLogado)
+            {
+                throw new UnauthorizedAccessException("Acesso negado. Apenas o administrador do grupo pode ver essa lista!");
+            }
 
             var inadimplentes = _context.Parcelas
                 .Include(p => p.IdUsuarioNavigation)
@@ -122,9 +137,21 @@ namespace RepPay.API.Services
         public string PagarParcela(int idLogado, int idParcela)
         {
             var parcela = _context.Parcelas.FirstOrDefault(p => p.IdParcela == idParcela);
-            if (parcela == null) throw new KeyNotFoundException("Parcela não encontrada.");
-            if (parcela.IdUsuario != idLogado) throw new UnauthorizedAccessException("Não tem permissão para alterar uma dívida que não lhe pertence!");
-            if (parcela.Status == StatusParcela.PAGO) throw new Exception("Esta parcela já se encontra paga.");
+
+            if (parcela == null)
+            {
+                throw new KeyNotFoundException("Parcela não encontrada.");
+            }
+
+            if (parcela.IdUsuario != idLogado)
+            {
+                throw new UnauthorizedAccessException("Não tem permissão para alterar uma dívida que não lhe pertence!");
+            }
+
+            if (parcela.Status == StatusParcela.PAGO)
+            {
+                throw new Exception("Esta parcela já se encontra paga.");
+            }
 
             parcela.Status = StatusParcela.EM_ANALISE;
             parcela.DataPagamento = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -136,9 +163,21 @@ namespace RepPay.API.Services
         public string DesfazerPagamento(int idLogado, int idParcela)
         {
             var parcela = _context.Parcelas.FirstOrDefault(p => p.IdParcela == idParcela);
-            if (parcela == null) throw new KeyNotFoundException("Parcela não encontrada.");
-            if (parcela.IdUsuario != idLogado) throw new UnauthorizedAccessException("Não tem permissão para alterar uma dívida que não lhe pertence!");
-            if (parcela.Status != StatusParcela.EM_ANALISE) throw new Exception("Só é possível desfazer pagamentos que ainda estão em análise.");
+
+            if (parcela == null)
+            {
+                throw new KeyNotFoundException("Parcela não encontrada.");
+            }
+
+            if (parcela.IdUsuario != idLogado)
+            {
+                throw new UnauthorizedAccessException("Não tem permissão para alterar uma dívida que não lhe pertence!");
+            }
+
+            if (parcela.Status != StatusParcela.EM_ANALISE)
+            {
+                throw new Exception("Só é possível desfazer pagamentos que ainda estão em análise.");
+            }
 
             parcela.DataPagamento = null;
             parcela.Status = StatusParcela.PENDENTE;
@@ -154,16 +193,26 @@ namespace RepPay.API.Services
                 .ThenInclude(d => d.IdGrupoNavigation)
                 .FirstOrDefault(p => p.IdParcela == idParcela);
 
-            if (parcela == null) throw new KeyNotFoundException("Parcela não encontrada.");
+            if (parcela == null)
+            {
+                throw new KeyNotFoundException("Parcela não encontrada.");
+            }
+
             if (parcela.IdDespesaNavigation.IdGrupoNavigation.IdAdmin != idLogado)
+            {
                 throw new UnauthorizedAccessException("Acesso negado. Apenas o administrador do grupo pode validar pagamentos.");
+            }
+
             if (parcela.Status != StatusParcela.EM_ANALISE)
+            {
                 throw new Exception("Esta parcela não está aguardando validação.");
+            }
 
             if (request.Aprovado)
             {
                 parcela.Status = StatusParcela.PAGO;
             }
+
             else
             {
                 parcela.DataPagamento = null;
@@ -202,8 +251,16 @@ namespace RepPay.API.Services
         public List<HistoricoGrupoDTO> GetHistoricoPagoGrupo(int idLogado, int idGrupo)
         {
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
-            if (grupo == null) throw new KeyNotFoundException("Grupo não encontrado.");
-            if (grupo.IdAdmin != idLogado) throw new UnauthorizedAccessException("Apenas o administrador pode ver o histórico financeiro global.");
+
+            if (grupo == null)
+            {
+                throw new KeyNotFoundException("Grupo não encontrado.");
+            }
+
+            if (grupo.IdAdmin != idLogado)
+            {
+                throw new UnauthorizedAccessException("Apenas o administrador pode ver o histórico financeiro global.");
+            }
 
             return _context.Parcelas
                 .Include(p => p.IdUsuarioNavigation)
@@ -244,8 +301,16 @@ namespace RepPay.API.Services
         public List<AnaliseAdminDTO> GetAnalisesPendentesGrupo(int idLogado, int idGrupo)
         {
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
-            if (grupo == null) throw new KeyNotFoundException("Grupo não encontrado.");
-            if (grupo.IdAdmin != idLogado) throw new UnauthorizedAccessException("Apenas o administrador pode ver as validações pendentes.");
+
+            if (grupo == null)
+            {
+                throw new KeyNotFoundException("Grupo não encontrado.");
+            }
+
+            if (grupo.IdAdmin != idLogado)
+            {
+                throw new UnauthorizedAccessException("Apenas o administrador pode ver as validações pendentes.");
+            }
 
             return _context.Parcelas
                 .Include(p => p.IdUsuarioNavigation)
@@ -271,11 +336,20 @@ namespace RepPay.API.Services
                 .ThenInclude(d => d.IdGrupoNavigation)
                 .FirstOrDefault(p => p.IdParcela == idParcela);
 
-            if (parcela == null) throw new KeyNotFoundException("Parcela não encontrada.");
+            if (parcela == null)
+            {
+                throw new KeyNotFoundException("Parcela não encontrada.");
+            }
+
             if (parcela.IdDespesaNavigation.IdGrupoNavigation.IdAdmin != idLogado)
+            {
                 throw new UnauthorizedAccessException("Acesso negado. Apenas o administrador da república pode quitar dívidas administrativamente.");
+            }
+
             if (parcela.Status == StatusParcela.PAGO)
+            {
                 throw new Exception("Esta parcela já está paga e não precisa de intervenção.");
+            }
 
             parcela.Status = StatusParcela.PAGO;
             parcela.DataPagamento = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -290,8 +364,15 @@ namespace RepPay.API.Services
                 .Include(d => d.IdGrupoNavigation)
                 .FirstOrDefault(d => d.IdDespesa == idDespesa);
 
-            if (despesa == null) throw new KeyNotFoundException("Despesa não encontrada.");
-            if (despesa.IdGrupoNavigation.IdAdmin != idLogado) throw new UnauthorizedAccessException("Apenas o administrador pode editar despesas.");
+            if (despesa == null)
+            {
+                throw new KeyNotFoundException("Despesa não encontrada.");
+            }
+
+            if (despesa.IdGrupoNavigation.IdAdmin != idLogado)
+            {
+                throw new UnauthorizedAccessException("Apenas o administrador pode editar despesas.");
+            }
 
             despesa.Nome = request.Nome;
             despesa.Valor = request.Valor;
@@ -315,8 +396,15 @@ namespace RepPay.API.Services
                 .Include(d => d.IdGrupoNavigation)
                 .FirstOrDefault(d => d.IdDespesa == idDespesa);
 
-            if (despesa == null) throw new KeyNotFoundException("Despesa não encontrada.");
-            if (despesa.IdGrupoNavigation.IdAdmin != idLogado) throw new UnauthorizedAccessException("Apenas o administrador pode apagar despesas.");
+            if (despesa == null)
+            {
+                throw new KeyNotFoundException("Despesa não encontrada.");
+            }
+
+            if (despesa.IdGrupoNavigation.IdAdmin != idLogado)
+            {
+                throw new UnauthorizedAccessException("Apenas o administrador pode apagar despesas.");
+            }
 
             despesa.Ativo = false;
 
