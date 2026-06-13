@@ -15,6 +15,7 @@ import ParcelaAnalise from './../../components/ParcelaAnalise'
 import ParcelaPago from './../../components/ParcelaPago'
 import ModalConfirmacao from '../modais/ModalConfirmacao';
 import Morador from './../../components/Morador'
+import key from './../../assets/key.svg'
 
 interface DadosGrupo {
     idGrupo: number
@@ -36,6 +37,8 @@ interface Moradores {
     idUsuario: number
     nome: string
     isAdmin: boolean
+    email: string 
+    totalDevido: number
 
 }
 
@@ -56,6 +59,7 @@ interface Analise {
     nomeDespesa: string
     icone: string
     valor: number
+    dataSinalizacao: string
 
 }
 
@@ -253,6 +257,14 @@ function Admin() {
 
     }
 
+    const copiarParaAreaDeTransferencia = async () => {
+        try {
+          await navigator.clipboard.writeText(grupo.codigoAcesso)
+        } catch (err) {
+          console.error("Falha ao copiar: ", err)
+        }
+      }
+
     return (
         <>
             <section className={styles.tela_admin}>
@@ -358,6 +370,7 @@ function Admin() {
                                                 valor={parcela.valor} onClick={() => setParcelaParaAceitar(parcela.idParcela)}
                                                 onCancel={() => setParcelaParaRejeitar(parcela.idParcela)}
                                                 nomeMorador={parcela.nomeMorador}
+                                                dataSinalizacao={parcela.dataSinalizacao}
                                             />
                                         )})}
                                 </div>
@@ -453,14 +466,22 @@ function Admin() {
                                         key={morador.idUsuario}
                                         nome={morador.nome}
                                         tipo={morador.isAdmin ? 'Admin' : 'Morador'}
-                                        valor={200}
-                                        email={'placeholder'}
-                                        
+                                        valor={morador.totalDevido}
+                                        email={morador.email}                                   
                                     />
                                 ))}
-
                                 </div>
-                                
+                            </div>
+                            <div className={styles.containerCodigo}>
+                                <div className={styles.containerChave}>
+                                        <h2>CÓDIGO DE ACESSO</h2>
+                                        <img src={key} className={styles.key} />
+                                </div>
+                                <div className={styles.codigoCopiar}>
+                                    <h2>{grupo.codigoAcesso}</h2>
+                                    <button onClick={() => copiarParaAreaDeTransferencia()} className={styles.copiar}>Copiar</button>
+                                </div>
+                                <p>Compartilhe este código para convidar novos moradores ao seu grupo.</p>
                             </div>
                         </div>}
                 </div>

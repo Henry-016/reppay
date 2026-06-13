@@ -33,6 +33,10 @@
             p {
                 color: var(--cor-texto-simples);
                 font-size: 0.875rem;
+                width: 7.5rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
 
             }
 

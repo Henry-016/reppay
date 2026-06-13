@@ -42,7 +42,6 @@ function Login() {
                 localStorage.setItem('token', dados.token);
                 localStorage.setItem('idUsuario', dados.idUsuario.toString());
                 localStorage.setItem('nomeUsuario', dados.nome);
-                console.log('opa')
                 navigate('/home'); 
             } else {
                 setErro(dados.mensagem || 'Erro ao realizar login. Verifique os seus dados.');
