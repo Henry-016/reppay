@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RepPay.API.DTOs;
-using RepPay.API.Models;
+using RepPay.API.Services;
 using System.Security.Claims;
-using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 
 namespace RepPay.API.Controllers
 {
@@ -12,128 +13,65 @@ namespace RepPay.API.Controllers
     [Authorize]
     public class GrupoController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IGrupoService _grupoService;
 
-        public GrupoController(AppDbContext context)
+        public GrupoController(IGrupoService grupoService)
         {
-            _context = context;
+            _grupoService = grupoService;
         }
 
         private int? ObterIdUsuarioLogado()
         {
             var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(usuarioIdClaim))
-            {
-                return null;
-            }
+            if (string.IsNullOrEmpty(usuarioIdClaim)) return null;
             return int.Parse(usuarioIdClaim);
-        }
-
-        private string GerarCodigoAcesso()
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            var random = new Random();
-            string codigo;
-            bool codigoExiste;
-
-            do
-            {
-                codigo = new string(Enumerable.Repeat(chars, 8).Select(s => s[random.Next(s.Length)]).ToArray());
-                codigoExiste = _context.Grupos.Any(g => g.CodigoAcesso == codigo);
-            }
-            while (codigoExiste);
-
-            return codigo;
         }
 
         [HttpPost]
         public IActionResult CriarGrupo([FromBody] GrupoRequestDTO request)
         {
             int? idAdmin = ObterIdUsuarioLogado();
+            if (idAdmin == null) return Unauthorized(new { mensagem = "Usuário não autenticado!" });
 
-            if (idAdmin == null)
+            try
             {
-                return Unauthorized(new { mensagem = "Usuário não autenticado!" });
+                var response = _grupoService.CriarGrupo(idAdmin.Value, request);
+                return Created("", response);
             }
-
-            string codigoAcesso = GerarCodigoAcesso();
-
-            var novoGrupo = new Grupo
+            catch (Exception ex)
             {
-                Nome = request.Nome,
-                ImagemBanner = request.ImagemBanner,
-                CodigoAcesso = codigoAcesso,
-                IdAdmin = idAdmin.Value
-            };
-
-            _context.Grupos.Add(novoGrupo);
-            _context.SaveChanges();
-
-            return Created("", new
-            {
-                mensagem = "República criada com sucesso!",
-                codigoAcesso = codigoAcesso
-            });
+                return BadRequest(new { mensagem = ex.Message });
+            }
         }
 
         [HttpPost("Entrar")]
         public IActionResult EntrarNoGrupo([FromBody] EntrarGrupoRequestDTO request)
         {
-            int? idUsuario = ObterIdUsuarioLogado();
+            int? idLogado = ObterIdUsuarioLogado();
+            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado!" });
 
-            if (idUsuario == null)
+            try
             {
-                return Unauthorized(new { mensagem = "Usuário não autenticado!" });
+                var mensagem = _grupoService.EntrarNoGrupo(idLogado.Value, request);
+                return Ok(new { mensagem });
             }
-
-            var grupo = _context.Grupos.FirstOrDefault(g => g.CodigoAcesso.ToLower() == request.CodigoAcesso.ToLower() && g.Ativo == true);
-
-            if (grupo == null)
+            catch (KeyNotFoundException ex)
             {
-                return NotFound(new { mensagem = "Código de acesso inválido ou república não encontrada." });
+                return NotFound(new { mensagem = ex.Message });
             }
-
-            bool jaPertence = _context.Pertences.Any(p => p.IdGrupo == grupo.IdGrupo && p.IdUsuario == idUsuario);
-
-            if (jaPertence)
+            catch (Exception ex)
             {
-                return BadRequest(new { mensagem = "Você já faz parte desta república!" });
+                return BadRequest(new { mensagem = ex.Message });
             }
-
-            var novoVinculo = new Pertence
-            {
-                IdGrupo = grupo.IdGrupo,
-                IdUsuario = idUsuario.Value
-            };
-
-            _context.Pertences.Add(novoVinculo);
-            _context.SaveChanges();
-
-            return Ok(new { mensagem = $"Bem-vindo(a) à {grupo.Nome}!" });
         }
 
         [HttpGet("Meus")]
         public IActionResult GetMeusGrupos()
         {
             int? idLogado = ObterIdUsuarioLogado();
+            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
 
-            if (idLogado == null)
-            {
-                return Unauthorized(new { mensagem = "Usuário não autenticado." });
-            }
-
-            var meusGrupos = _context.Pertences
-                .Include(p => p.IdGrupoNavigation)
-                .Where(p => p.IdUsuario == idLogado && p.IdGrupoNavigation.Ativo == true)
-                .Select(p => new MeuGrupoResponseDTO
-                {
-                    IdGrupo = p.IdGrupoNavigation.IdGrupo,
-                    Nome = p.IdGrupoNavigation.Nome,
-                    CodigoAcesso = p.IdGrupoNavigation.CodigoAcesso,
-                    ImagemBanner = p.IdGrupoNavigation.ImagemBanner,
-                    IsAdmin = p.IdGrupoNavigation.IdAdmin == idLogado
-                }).ToList();
-
+            var meusGrupos = _grupoService.GetMeusGrupos(idLogado.Value);
             return Ok(meusGrupos);
         }
 
@@ -141,300 +79,151 @@ namespace RepPay.API.Controllers
         public IActionResult GetGrupoPorId(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
+            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
 
-            if (idLogado == null)
+            try
             {
-                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+                var response = _grupoService.GetGrupoPorId(idLogado.Value, idGrupo);
+                return Ok(response);
             }
-
-            var relacaoPertence = _context.Pertences
-                .Include(p => p.IdGrupoNavigation)
-                .FirstOrDefault(p => p.IdUsuario == idLogado && p.IdGrupo == idGrupo && p.IdGrupoNavigation.Ativo == true);
-
-            if (relacaoPertence == null)
+            catch (UnauthorizedAccessException ex)
             {
-                return StatusCode(403, new { mensagem = "Acesso negado. Você não pertence a este grupo ou ele não existe." });
+                return StatusCode(403, new { mensagem = ex.Message });
             }
-
-            var grupo = relacaoPertence.IdGrupoNavigation;
-
-            var response = new MeuGrupoResponseDTO
-            {
-                IdGrupo = grupo.IdGrupo,
-                Nome = grupo.Nome,
-                CodigoAcesso = grupo.CodigoAcesso,
-                ImagemBanner = grupo.ImagemBanner,
-                IsAdmin = grupo.IdAdmin == idLogado
-            };
-
-            return Ok(response);
         }
 
         [HttpGet("{idGrupo}/Membros")]
         public IActionResult GetMembrosDoGrupo(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
+            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
 
-            if (idLogado == null)
+            try
             {
-                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+                var membros = _grupoService.GetMembrosDoGrupo(idLogado.Value, idGrupo);
+                return Ok(membros);
             }
-
-            var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo && g.Ativo == true);
-
-            if (grupo == null)
+            catch (KeyNotFoundException ex)
             {
-                return NotFound(new { mensagem = "Grupo não encontrado." });
+                return NotFound(new { mensagem = ex.Message });
             }
-
-            bool usuarioPertence = _context.Pertences.Any(p => p.IdGrupo == idGrupo && p.IdUsuario == idLogado);
-
-            if (!usuarioPertence)
+            catch (UnauthorizedAccessException ex)
             {
-                return StatusCode(403, new { mensagem = "Acesso negado. Você não pertence a este grupo." });
+                return StatusCode(403, new { mensagem = ex.Message });
             }
-
-            var membros = _context.Pertences
-                .Include(p => p.IdUsuarioNavigation)
-                .Where(p => p.IdGrupo == idGrupo)
-                .Select(p => new MembroResponseDTO
-                {
-                    IdUsuario = p.IdUsuario,
-                    Nome = p.IdUsuarioNavigation.Nome,
-                    IsAdmin = p.IdUsuario == grupo.IdAdmin
-                })
-                .OrderByDescending(m => m.IsAdmin)
-                .ThenBy(m => m.Nome)
-                .ToList();
-
-            return Ok(membros);
         }
 
         [HttpDelete("{idGrupo}/Sair")]
         public IActionResult SairDoGrupo(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
+            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
 
-            if (idLogado == null)
+            try
             {
-                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+                var mensagem = _grupoService.SairDoGrupo(idLogado.Value, idGrupo);
+                return Ok(new { mensagem });
             }
-
-            var vinculo = _context.Pertences.FirstOrDefault(p => p.IdGrupo == idGrupo && p.IdUsuario == idLogado);
-
-            if (vinculo == null)
+            catch (KeyNotFoundException ex)
             {
-                return NotFound(new { mensagem = "Você não pertence a esta república." });
+                return NotFound(new { mensagem = ex.Message });
             }
-
-            var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
-
-            if (grupo != null && grupo.IdAdmin == idLogado)
+            catch (Exception ex)
             {
-                return BadRequest(new { mensagem = "Você é o administrador do grupo. Transfira a liderança para outro morador antes de sair." });
+                return BadRequest(new { mensagem = ex.Message });
             }
-
-            bool temDividas = _context.Parcelas
-                .Include(p => p.IdDespesaNavigation)
-                .Any(p => p.IdUsuario == idLogado
-                       && p.IdDespesaNavigation.IdGrupo == idGrupo
-                       && (p.Status == StatusParcela.PENDENTE ||
-                           p.Status == StatusParcela.ATRASADO ||
-                           p.Status == StatusParcela.EM_ANALISE));
-
-            if (temDividas)
-            {
-                return BadRequest(new
-                {
-                    mensagem = "Você possui dívidas pendentes ou em análise nesta república. Quite todas as contas antes de sair!"
-                });
-            }
-
-            _context.Pertences.Remove(vinculo);
-            _context.SaveChanges();
-
-            return Ok(new { mensagem = "Você saiu da república com sucesso. Sentiremos sua falta!" });
         }
 
         [HttpDelete("{idGrupo}/Expulsar/{idMorador}")]
         public IActionResult ExpulsarMorador(int idGrupo, int idMorador)
         {
             int? idLogado = ObterIdUsuarioLogado();
+            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
 
-            if (idLogado == null)
+            try
             {
-                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+                var mensagem = _grupoService.ExpulsarMorador(idLogado.Value, idGrupo, idMorador);
+                return Ok(new { mensagem });
             }
-
-            var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
-
-            if (grupo == null)
+            catch (KeyNotFoundException ex)
             {
-                return NotFound(new { mensagem = "Grupo não encontrado." });
+                return NotFound(new { mensagem = ex.Message });
             }
-
-            if (grupo.IdAdmin != idLogado)
+            catch (UnauthorizedAccessException ex)
             {
-                return StatusCode(403, new { mensagem = "Acesso negado. Apenas o administrador pode expulsar moradores." });
+                return StatusCode(403, new { mensagem = ex.Message });
             }
-
-            if (idLogado == idMorador)
+            catch (Exception ex)
             {
-                return BadRequest(new { mensagem = "Você não pode expulsar a si mesmo. Caso queira sair, utilize a opção de saída voluntária ou exclua o grupo." });
+                return BadRequest(new { mensagem = ex.Message });
             }
-
-            var vinculo = _context.Pertences.FirstOrDefault(p => p.IdGrupo == idGrupo && p.IdUsuario == idMorador);
-
-            if (vinculo == null)
-            {
-                return NotFound(new { mensagem = "Este usuário não é um morador da sua república." });
-            }
-
-            bool moradorTemDividas = _context.Parcelas
-                .Include(p => p.IdDespesaNavigation)
-                .Any(p => p.IdUsuario == idMorador
-                       && p.IdDespesaNavigation.IdGrupo == idGrupo
-                       && (p.Status == StatusParcela.PENDENTE ||
-                           p.Status == StatusParcela.ATRASADO ||
-                           p.Status == StatusParcela.EM_ANALISE));
-
-            if (moradorTemDividas)
-            {
-                return BadRequest(new { mensagem = "Não é possível expulsar este morador pois ele possui dívidas ativas. Quite as pendências financeiras dele antes de removê-lo." });
-            }
-
-            _context.Pertences.Remove(vinculo);
-            _context.SaveChanges();
-
-            return Ok(new { mensagem = "Morador removido da república com sucesso." });
         }
 
         [HttpPut("{idGrupo}/TransferirAdmin/{idNovoAdmin}")]
         public IActionResult TransferirAdmin(int idGrupo, int idNovoAdmin)
         {
             int? idLogado = ObterIdUsuarioLogado();
+            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
 
-            if (idLogado == null)
+            try
             {
-                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+                var mensagem = _grupoService.TransferirAdmin(idLogado.Value, idGrupo, idNovoAdmin);
+                return Ok(new { mensagem });
             }
-
-            var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
-
-            if (grupo == null)
+            catch (KeyNotFoundException ex)
             {
-                return NotFound(new { mensagem = "Grupo não encontrado." });
+                return NotFound(new { mensagem = ex.Message });
             }
-
-            if (grupo.IdAdmin != idLogado)
+            catch (UnauthorizedAccessException ex)
             {
-                return StatusCode(403, new { mensagem = "Acesso negado. Apenas o administrador atual pode transferir a liderança da casa." });
+                return StatusCode(403, new { mensagem = ex.Message });
             }
-
-            if (idLogado == idNovoAdmin)
+            catch (Exception ex)
             {
-                return BadRequest(new { mensagem = "Você já é o administrador desta república." });
+                return BadRequest(new { mensagem = ex.Message });
             }
-
-            var moradorDestino = _context.Pertences
-                .Include(p => p.IdUsuarioNavigation)
-                .FirstOrDefault(p => p.IdGrupo == idGrupo && p.IdUsuario == idNovoAdmin);
-
-            if (moradorDestino == null)
-            {
-                return NotFound(new { mensagem = "O usuário escolhido não é um morador desta república." });
-            }
-
-            if (!moradorDestino.IdUsuarioNavigation.Ativo)
-            {
-                return BadRequest(new { mensagem = "Não é possível transferir a liderança para uma conta desativada." });
-            }
-
-            grupo.IdAdmin = idNovoAdmin;
-
-            _context.SaveChanges();
-
-            return Ok(new
-            {
-                mensagem = $"Liderança transferida com sucesso para {moradorDestino.IdUsuarioNavigation.Nome}! Você agora é um morador comum."
-            });
         }
 
         [HttpGet("{idGrupo}/ProximaConta")]
         public IActionResult ObterProximaContaGrupo(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
+            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
 
-            if (idLogado == null)
+            try
             {
-                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+                var proximaConta = _grupoService.ObterProximaContaGrupo(idLogado.Value, idGrupo);
+                return Ok(proximaConta);
             }
-
-            if (!_context.Pertences.Any(p => p.IdGrupo == idGrupo && p.IdUsuario == idLogado))
+            catch (UnauthorizedAccessException ex)
             {
-                return StatusCode(403, new { mensagem = "Você não pertence a esta república." });
+                return StatusCode(403, new { mensagem = ex.Message });
             }
-
-            var proximaConta = _context.Despesas
-                .Where(d => d.IdGrupo == idGrupo
-                         && d.Ativo == true
-                         && d.Status == StatusDespesa.ATIVA)
-                .OrderBy(d => d.Vencimento)
-                .Select(d => new ProximaContaResponseDTO
-                {
-                    NomeDespesa = d.Nome,
-                    NomeGrupo = null,
-                    Vencimento = d.Vencimento,
-                    Valor = d.Valor
-                })
-                .FirstOrDefault();
-
-            return Ok(proximaConta);
         }
 
         [HttpDelete("Deletar/{idGrupo}")]
         public IActionResult DeletarGrupo(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
-
-            if (idLogado == null)
-            {
-                return Unauthorized(new { mensagem = "Usuário não autenticado." });
-            }
-
-            var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
-
-            if (grupo == null)
-            {
-                return NotFound(new { mensagem = "Grupo não encontrado." });
-            }
-
-            if (grupo.IdAdmin != idLogado)
-            {
-                return StatusCode(403, new { mensagem = "Apenas o administrador pode encerrar a república." });
-            }
-                
-            int quantidadeMoradores = _context.Pertences.Count(p => p.IdGrupo == idGrupo);
-
-            if (quantidadeMoradores > 1)
-            {
-                return BadRequest(new
-                {
-                    mensagem = "Não é possível encerrar a república enquanto houver outros moradores nela. Peça para que saiam voluntariamente ou remova-os primeiro."
-                });
-            }
-
-            grupo.Ativo = false;
+            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
 
             try
             {
-                _context.SaveChanges();
-                return Ok(new { mensagem = "República encerrada com sucesso! Todas as despesas atreladas foram arquivadas." });
+                var mensagem = _grupoService.DeletarGrupo(idLogado.Value, idGrupo);
+                return Ok(new { mensagem });
             }
-            catch (Exception)
+            catch (KeyNotFoundException ex)
             {
-                return BadRequest(new { mensagem = "Não é possível encerrar a república no momento. Existem despesas com parcelas pendentes ou em análise. Quite todas as contas primeiro." });
+                return NotFound(new { mensagem = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { mensagem = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensagem = ex.Message });
             }
         }
-    } 
+    }
 }
