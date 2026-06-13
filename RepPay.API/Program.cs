@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using RepPay.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddHostedService<RepPay.API.Services.LimpezaDespesasService>();
 
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<IGrupoService, GrupoService>();
+builder.Services.AddScoped<IDespesaService, DespesaService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
