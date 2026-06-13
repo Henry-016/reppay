@@ -1,15 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using RepPay.API.Models;
 using RepPay.API.DTOs;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using Microsoft.IdentityModel.Tokens;
+using RepPay.API.Services;
 using Microsoft.AspNetCore.Authorization;
-using System;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
+using System.Security.Claims;
 
 namespace RepPay.API.Controllers
 {
@@ -18,179 +11,78 @@ namespace RepPay.API.Controllers
     [Authorize]
     public class UsuarioController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IUsuarioService _usuarioService;
 
-        public UsuarioController(AppDbContext context)
+        public UsuarioController(IUsuarioService usuarioService)
         {
-            _context = context;
+            _usuarioService = usuarioService;
         }
 
         private int? ObterIdUsuarioLogado()
         {
             var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
             if (string.IsNullOrEmpty(usuarioIdClaim))
             {
                 return null;
             }
+
             return int.Parse(usuarioIdClaim);
-        }
-
-        // Devo mover esta chave para o appsettings.json no futuro!!!
-        private string GerarTokenJWT(Models.Usuario usuario)
-        {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes("MinhaSuperChaveSecretaDoRepPay2026!!");
-
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.NameIdentifier, usuario.IdUsuario.ToString()),
-                    new Claim(ClaimTypes.Email, usuario.Email),
-                    new Claim(ClaimTypes.Name, usuario.Nome)
-                }),
-                Expires = DateTime.UtcNow.AddMinutes(15),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
         }
 
         [AllowAnonymous]
         [HttpPost]
         public IActionResult CriarUsuario([FromBody] UsuarioRequestDTO novoUsuarioDTO)
         {
-            if (_context.Usuarios.Any(u => u.Email.ToLower() == novoUsuarioDTO.Email.ToLower()))
+            try
             {
-                return BadRequest(new { mensagem = "Este e-mail já está cadastrado no sistema!" });
+                _usuarioService.CriarUsuario(novoUsuarioDTO);
+                return Created("", new { mensagem = "Usuário cadastrado com total segurança!" });
             }
-
-            var usuarioParaSalvar = new Usuario
+            catch (Exception ex)
             {
-                Nome = novoUsuarioDTO.Nome,
-                Email = novoUsuarioDTO.Email,
-                Senha = BCrypt.Net.BCrypt.HashPassword(novoUsuarioDTO.Senha)
-            };
-
-            _context.Usuarios.Add(usuarioParaSalvar);
-            _context.SaveChanges();
-
-            return Created("", new { mensagem = "Usuário cadastrado com total segurança!" });
+                return BadRequest(new { mensagem = ex.Message });
+            }
         }
 
         [AllowAnonymous]
         [HttpPost("Login")]
         public IActionResult Login([FromBody] LoginRequestDTO request)
         {
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.Email.ToLower() == request.Email.ToLower());
-
-            if (usuario == null)
+            try
             {
-                return Unauthorized(new { mensagem = "E-mail ou senha incorretos." });
+                var response = _usuarioService.Login(request);
+                return Ok(response);
             }
-
-            if (!usuario.Ativo)
+            catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { mensagem = "Esta conta foi desativada e não possui mais acesso ao sistema." });
+                return Unauthorized(new { mensagem = ex.Message });
             }
-
-            bool senhaValida = BCrypt.Net.BCrypt.Verify(request.Senha, usuario.Senha);
-
-            if (!senhaValida)
+            catch (Exception ex)
             {
-                return Unauthorized(new { mensagem = "E-mail ou senha incorretos." });
+                return BadRequest(new { mensagem = ex.Message });
             }
-
-            var token = GerarTokenJWT(usuario);
-
-            var tokenAleatorio = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-
-            var novoRefreshToken = new RefreshToken
-            {
-                TokenHash = tokenAleatorio,
-                IdUsuario = usuario.IdUsuario,
-                DataExpiracao = DateTime.UtcNow.AddDays(7),
-                Revogado = false
-            };
-
-            _context.RefreshTokens.Add(novoRefreshToken);
-            _context.SaveChanges();
-
-            return Ok(new
-            {
-                mensagem = "Login realizado com sucesso!",
-                token = token,
-                refreshToken = tokenAleatorio,
-                idUsuario = usuario.IdUsuario,
-                nome = usuario.Nome
-            });
         }
 
         [AllowAnonymous]
         [HttpPost("RefreshToken")]
         public IActionResult RenovacaoToken([FromBody] RefreshTokenRequestDTO request)
         {
-            var tokenBanco = _context.RefreshTokens
-                .Include(t => t.IdUsuarioNavigation)
-                .FirstOrDefault(t => t.TokenHash == request.RefreshToken);
-
-            if (tokenBanco == null)
+            try
             {
-                return Unauthorized(new { mensagem = "Refresh Token inválido ou inexistente." });
+                var response = _usuarioService.RenovacaoToken(request);
+                return Ok(response);
             }
-
-            if (tokenBanco.Revogado)
+            catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { mensagem = "Este token já foi revogado por segurança." });
-
+                return Unauthorized(new { mensagem = ex.Message });
             }
-
-            if (tokenBanco.DataExpiracao < DateTime.UtcNow)
-            {
-                return Unauthorized(new { mensagem = "Sua sessão expirou. Por favor, faça login novamente." });
-            }
-
-            if (!tokenBanco.IdUsuarioNavigation.Ativo)
-            {
-                return Unauthorized(new { mensagem = "A conta vinculada a esta sessão está inativa." });
-            }
-
-            tokenBanco.Revogado = true;
-
-            var novoJwt = GerarTokenJWT(tokenBanco.IdUsuarioNavigation);
-            var novoTokenAleatorio = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-
-            var novoRefreshToken = new RefreshToken
-            {
-                TokenHash = novoTokenAleatorio,
-                IdUsuario = tokenBanco.IdUsuario,
-                DataCriacao = DateTime.UtcNow,
-                DataExpiracao = DateTime.UtcNow.AddDays(7),
-                Revogado = false
-            };
-
-            _context.RefreshTokens.Add(novoRefreshToken);
-            _context.SaveChanges();
-
-            return Ok(new
-            {
-                token = novoJwt,
-                refreshToken = novoTokenAleatorio
-            });
         }
 
         [HttpPost("LogOut")]
         public IActionResult LogOut([FromBody] RefreshTokenRequestDTO request)
         {
-            var tokenBanco = _context.RefreshTokens.FirstOrDefault(t => t.TokenHash == request.RefreshToken);
-
-            if (tokenBanco != null)
-            {
-                tokenBanco.Revogado = true;
-                _context.SaveChanges();
-            }
-
+            _usuarioService.LogOut(request);
             return Ok(new { mensagem = "Logout efetuado com sucesso. Sessão encerrada no servidor." });
         }
 
@@ -198,27 +90,21 @@ namespace RepPay.API.Controllers
         public IActionResult GetMeuPerfil()
         {
             int? idLogado = ObterIdUsuarioLogado();
+
             if (idLogado == null)
             {
                 return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
 
-            var usuario = _context.Usuarios
-                .Where(u => u.IdUsuario == idLogado)
-                .Select(u => new UsuarioResponseDTO
-                {
-                    IdUsuario = u.IdUsuario,
-                    Nome = u.Nome,
-                    Email = u.Email
-                })
-                .FirstOrDefault();
-
-            if (usuario == null)
+            try
             {
-                return NotFound(new { mensagem = "Usuário não encontrado." });
+                var usuario = _usuarioService.GetMeuPerfil(idLogado.Value);
+                return Ok(usuario);
             }
-
-            return Ok(usuario);
+            catch (Exception ex)
+            {
+                return NotFound(new { mensagem = ex.Message });
+            }
         }
 
         [HttpPut("Atualizar")]
@@ -231,20 +117,15 @@ namespace RepPay.API.Controllers
                 return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
 
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.IdUsuario == idLogado);
-
-            if (usuario == null)
+            try
             {
-                return NotFound(new { mensagem = "Usuário não encontrado." });
+                _usuarioService.AtualizarUsuario(idLogado.Value, usuarioAtualizado);
+                return Ok(new { mensagem = "Dados do usuário atualizados com sucesso!" });
             }
-
-            usuario.Nome = usuarioAtualizado.Nome;
-            usuario.Email = usuarioAtualizado.Email;
-            usuario.Senha = BCrypt.Net.BCrypt.HashPassword(usuarioAtualizado.Senha);
-
-            _context.SaveChanges();
-
-            return Ok(new { mensagem = "Dados do usuário atualizados com sucesso!" });
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensagem = ex.Message });
+            }
         }
 
         [HttpDelete("Deletar")]
@@ -257,66 +138,22 @@ namespace RepPay.API.Controllers
                 return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
 
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.IdUsuario == idLogado);
-
-            if (usuario == null)
+            try
             {
-                return NotFound(new { mensagem = "Usuário não encontrado!" });
+                _usuarioService.DeletarUsuario(idLogado.Value);
+                return Ok(new { mensagem = "Sua conta foi excluída com sucesso!" });
             }
-
-            bool isAdminDeGrupoAtivo = _context.Grupos.Any(g => g.IdAdmin == idLogado && g.Ativo);
-
-            if (isAdminDeGrupoAtivo)
+            catch (Exception ex)
             {
-                return BadRequest(new { mensagem = "Não é possível excluir sua conta no momento. Você é o administrador de uma república ativa. Transfira a liderança."});
+                return BadRequest(new { mensagem = ex.Message });
             }
-
-            bool temDividasPendentes = _context.Parcelas.Any(p => p.IdUsuario == idLogado &&
-            (p.Status == StatusParcela.PENDENTE ||
-             p.Status == StatusParcela.ATRASADO ||
-             p.Status == StatusParcela.EM_ANALISE));
-
-            if (temDividasPendentes)
-            {
-                return BadRequest(new { mensagem = "Você possui contas pendentes ou em análise. Quite todas as suas dívidas antes de excluir a conta."});
-            }
-
-            usuario.Ativo = false;
-
-            _context.SaveChanges();
-
-            return Ok(new { mensagem = "Sua conta foi excluída com sucesso!" });
         }
 
         [AllowAnonymous]
         [HttpPost("EsqueciSenha")]
         public IActionResult EsqueciSenha([FromBody] EsqueciSenhaRequestDTO request)
         {
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.Email.ToLower() == request.Email.ToLower());
-
-            if (usuario == null)
-            {
-                return Ok(new { mensagem = "Se o e-mail existir em nossa base, um código será enviado!" });
-            }
-
-            Random random = new Random();
-            string codigo = random.Next(100000, 999999).ToString();
-
-            var novoCodigo = new CodigoRecuperacao
-            {
-                Codigo = codigo,
-                DataExpiracao = DateTime.UtcNow.AddMinutes(15),
-                CodigoUsado = false,
-                Tentativas = 0,
-                IdUsuario = usuario.IdUsuario
-            };
-
-            _context.CodigosRecuperacao.Add(novoCodigo);
-            _context.SaveChanges();
-
-            Console.WriteLine("\n========================================================");
-            Console.WriteLine($"📧 MOCK EMAIL -> Para: {usuario.Email} | Código: {codigo}");
-            Console.WriteLine("========================================================\n");
+            _usuarioService.EsqueciSenha(request);
 
             return Ok(new { mensagem = "Se o e-mail existir em nossa base, um código será enviado!" });
         }
@@ -325,77 +162,30 @@ namespace RepPay.API.Controllers
         [HttpPost("ValidarCodigo")]
         public IActionResult ValidarCodigo([FromBody] ValidarCodigoRequestDTO request)
         {
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.Email.ToLower() == request.Email.ToLower());
-
-            if (usuario == null)
+            try
             {
-                return BadRequest(new { mensagem = "Dados inválidos." });
+                _usuarioService.ValidarCodigo(request);
+                return Ok(new { mensagem = "Código validado com sucesso!" });
             }
-
-            var recuperacao = _context.CodigosRecuperacao
-                .Where(c => c.IdUsuario == usuario.IdUsuario && !c.CodigoUsado)
-                .OrderByDescending(c => c.DataExpiracao)
-                .FirstOrDefault();
-
-            if (recuperacao == null)
+            catch (Exception ex)
             {
-                return BadRequest(new { mensagem = "Nenhum código ativo encontrado." });
+                return BadRequest(new { mensagem = ex.Message });
             }
-
-            if (recuperacao.Tentativas >= 3)
-            {
-                return BadRequest(new { mensagem = "Muitas tentativas falhas. Solicite um novo código." });
-            }
-
-            if (recuperacao.DataExpiracao < DateTime.UtcNow)
-            {
-                return BadRequest(new { mensagem = "Este código expirou." });
-            }
-
-            if (recuperacao.Codigo != request.Codigo)
-            {
-                recuperacao.Tentativas++;
-                _context.SaveChanges();
-                return BadRequest(new { mensagem = "Código incorreto." });
-            }
-
-            return Ok(new { mensagem = "Código validado com sucesso!" });
         }
 
         [AllowAnonymous]
         [HttpPost("ResetarSenha")]
         public IActionResult ResetarSenha([FromBody] ResetarSenhaRequestDTO request)
         {
-            const int limiteDeTentativas = 3;
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.Email.ToLower() == request.Email.ToLower());
-
-            if (usuario == null)
+            try
             {
-                return BadRequest(new { mensagem = "Dados inválidos." });
+                _usuarioService.ResetarSenha(request);
+                return Ok(new { mensagem = "Sua senha foi redefinida com sucesso!" });
             }
-
-            var recuperacao = _context.CodigosRecuperacao
-                .Where(c => c.IdUsuario == usuario.IdUsuario && !c.CodigoUsado)
-                .OrderByDescending(c => c.DataExpiracao)
-                .FirstOrDefault();
-
-            if (recuperacao == null || recuperacao.DataExpiracao < DateTime.UtcNow || recuperacao.Tentativas >= limiteDeTentativas)
+            catch (Exception ex)
             {
-                return BadRequest(new { mensagem = "Falha na validação final do código!" });
+                return BadRequest(new { mensagem = ex.Message });
             }
-
-            if (recuperacao.Codigo != request.Codigo)
-            {
-                recuperacao.Tentativas++;
-                _context.SaveChanges();
-                return BadRequest(new { mensagem = "Código incorreto." });
-            }
-
-            usuario.Senha = BCrypt.Net.BCrypt.HashPassword(request.NovaSenha);
-            recuperacao.CodigoUsado = true;
-            _context.SaveChanges();
-
-            return Ok(new { mensagem = "Sua senha foi redefinida com sucesso!" });
         }
 
         [HttpGet("Home/ProximaConta")]
@@ -408,53 +198,7 @@ namespace RepPay.API.Controllers
                 return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
 
-            var proximaConta = _context.Parcelas
-                .Include(p => p.IdDespesaNavigation)
-                .ThenInclude(d => d.IdGrupoNavigation)
-                .Where(p => p.IdUsuario == idLogado
-                         && p.IdDespesaNavigation.Ativo == true
-                         && (p.Status == StatusParcela.PENDENTE || p.Status == StatusParcela.ATRASADO))
-                .OrderBy(p => p.IdDespesaNavigation.Vencimento)
-                .Select(p => new ProximaContaResponseDTO
-                {
-                    NomeDespesa = p.IdDespesaNavigation.Nome,
-                    NomeGrupo = p.IdDespesaNavigation.IdGrupoNavigation.Nome,
-                    Vencimento = p.IdDespesaNavigation.Vencimento,
-                    Valor = p.Valor
-                })
-                .FirstOrDefault();
-
-            return Ok(proximaConta);
-        }
-
-        [HttpGet("{idGrupo}/ProximaConta")]
-        public IActionResult ObterProximaContaGrupo(int idGrupo)
-        {
-            int? idLogado = ObterIdUsuarioLogado();
-
-            if (idLogado == null)
-            {
-                return Unauthorized(new { mensagem = "Usuário não autenticado." });
-            }
-
-            if (!_context.Pertences.Any(p => p.IdGrupo == idGrupo && p.IdUsuario == idLogado))
-            {
-                return StatusCode(403, new { mensagem = "Você não pertence a esta república." });
-            }
-
-            var proximaConta = _context.Despesas
-                .Where(d => d.IdGrupo == idGrupo
-                         && d.Ativo == true
-                         && d.Status == StatusDespesa.ATIVA)
-                .OrderBy(d => d.Vencimento)
-                .Select(d => new ProximaContaResponseDTO
-                {
-                    NomeDespesa = d.Nome,
-                    NomeGrupo = null,
-                    Vencimento = d.Vencimento,
-                    Valor = d.Valor
-                })
-                .FirstOrDefault();
+            var proximaConta = _usuarioService.ObterProximaContaGeral(idLogado.Value);
 
             return Ok(proximaConta);
         }
