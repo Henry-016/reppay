@@ -13,7 +13,7 @@ function ComponenteEscolha( {imagem, titulo, texto, button, onClick}: ComponentP
 
     return (
         <>
-            <section className={styles.tela_componente_escolha}>
+            <section className={styles.componente_escolha}>
                 <img src={imagem} className={styles.imagem}/>
                 <h2>{titulo}</h2>
                 <p>{texto}</p>

@@ -32,7 +32,7 @@ namespace RepPay.API.Controllers
         public IActionResult CadastrarDespesa([FromBody] DespesaRequestDTO request)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usu·rio n„o autenticado." });
+            if (idLogado == null) return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
 
             try
             {
@@ -47,12 +47,12 @@ namespace RepPay.API.Controllers
         public IActionResult GetMinhasDividas()
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usu·rio n„o autenticado." });
+            if (idLogado == null) return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
 
             var resultado = _despesaService.GetMinhasDividas(idLogado.Value);
 
             if (!resultado.ListaDividas.Any())
-                return Ok(new { mensagem = "VocÍ n„o tem dÌvidas pendentes! Tudo em paz.", dividas = resultado.ListaDividas });
+                return Ok(new { mensagem = "Voc√™ n√£o tem d√≠vidas pendentes! Tudo em paz.", dividas = resultado.ListaDividas });
 
             return Ok(resultado);
         }
@@ -61,14 +61,14 @@ namespace RepPay.API.Controllers
         public IActionResult GetInadimplentes(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usu·rio n„o autenticado." });
+            if (idLogado == null) return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
 
             try
             {
                 var resultado = _despesaService.GetInadimplentes(idLogado.Value, idGrupo);
 
                 if (!resultado.ListaInadimplentes.Any())
-                    return Ok(new { mensagem = "Nenhum morador tem dÌvidas neste grupo. Tudo perfeito!", listaInadimplentes = resultado.ListaInadimplentes });
+                    return Ok(new { mensagem = "Nenhum morador tem d√≠vidas neste grupo. Tudo perfeito!", listaInadimplentes = resultado.ListaInadimplentes });
 
                 return Ok(resultado);
             }
@@ -80,7 +80,7 @@ namespace RepPay.API.Controllers
         public IActionResult PagarParcela(int idParcela)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usu·rio n„o autenticado." });
+            if (idLogado == null) return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
 
             try
             {
@@ -96,7 +96,7 @@ namespace RepPay.API.Controllers
         public IActionResult DesfazerPagamento(int idParcela)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usu·rio n„o autenticado." });
+            if (idLogado == null) return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
 
             try
             {
@@ -112,7 +112,7 @@ namespace RepPay.API.Controllers
         public IActionResult ValidarPagamento(int idParcela, [FromBody] ValidarPagamentoRequestDTO request)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usu·rio n„o autenticado." });
+            if (idLogado == null) return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
 
             try
             {
@@ -128,11 +128,11 @@ namespace RepPay.API.Controllers
         public IActionResult GetMeuHistoricoPago()
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usu·rio n„o autenticado." });
+            if (idLogado == null) return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
 
             var historico = _despesaService.GetMeuHistoricoPago(idLogado.Value);
             if (!historico.Any())
-                return Ok(new { mensagem = "VocÍ ainda n„o possui pagamentos registrados no histÛrico.", historicoPago = historico });
+                return Ok(new { mensagem = "Voc√™ ainda n√£o possui pagamentos registrados no hist√≥rico.", historicoPago = historico });
 
             return Ok(historico);
         }
@@ -141,13 +141,13 @@ namespace RepPay.API.Controllers
         public IActionResult GetHistoricoPagoGrupo(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usu·rio n„o autenticado." });
+            if (idLogado == null) return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
 
             try
             {
                 var historico = _despesaService.GetHistoricoPagoGrupo(idLogado.Value, idGrupo);
                 if (!historico.Any())
-                    return Ok(new { mensagem = "Nenhum histÛrico de pagamento registrado neste grupo.", listaHistorico = historico });
+                    return Ok(new { mensagem = "Nenhum hist√≥rico de pagamento registrado neste grupo.", listaHistorico = historico });
 
                 return Ok(new { listaHistorico = historico });
             }
@@ -159,11 +159,11 @@ namespace RepPay.API.Controllers
         public IActionResult GetMinhasAnalises()
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usu·rio n„o autenticado." });
+            if (idLogado == null) return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
 
             var analises = _despesaService.GetMinhasAnalises(idLogado.Value);
             if (!analises.Any())
-                return Ok(new { mensagem = "Nenhum pagamento em an·lise no momento.", listaAnalises = analises });
+                return Ok(new { mensagem = "Nenhum pagamento em an√°lise no momento.", listaAnalises = analises });
 
             return Ok(new { listaAnalises = analises });
         }
@@ -172,13 +172,13 @@ namespace RepPay.API.Controllers
         public IActionResult GetAnalisesPendentesGrupo(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usu·rio n„o autenticado." });
+            if (idLogado == null) return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
 
             try
             {
                 var analises = _despesaService.GetAnalisesPendentesGrupo(idLogado.Value, idGrupo);
                 if (!analises.Any())
-                    return Ok(new { mensagem = "Nenhuma validaÁ„o pendente. Tudo atualizado!", listaAnalises = analises });
+                    return Ok(new { mensagem = "Nenhuma valida√ß√£o pendente. Tudo atualizado!", listaAnalises = analises });
 
                 return Ok(new { listaAnalises = analises });
             }
@@ -190,7 +190,7 @@ namespace RepPay.API.Controllers
         public IActionResult QuitarDividaAdmin(int idParcela)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usu·rio n„o autenticado." });
+            if (idLogado == null) return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
 
             try
             {
@@ -206,7 +206,7 @@ namespace RepPay.API.Controllers
         public IActionResult EditarDespesa(int idDespesa, [FromBody] DespesaRequestDTO request)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usu·rio n„o autenticado." });
+            if (idLogado == null) return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
 
             try
             {
@@ -222,7 +222,7 @@ namespace RepPay.API.Controllers
         public IActionResult DeletarDespesa(int idDespesa)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usu·rio n„o autenticado." });
+            if (idLogado == null) return Unauthorized(new { mensagem = "Usu√°rio n√£o autenticado." });
 
             try
             {

@@ -19,8 +19,6 @@ function ModalCriar( {isOpen, onClose}: ModalProps ) {
 
     const [erro, setErro] = useState('')
 
-    const [codigoGerado, setCodigoGerado] = useState<string | null>(null)
-
     const criarGrupo = async (e: React.SubmitEvent) => {
         e.preventDefault()
         if (!nome) {
@@ -49,7 +47,6 @@ function ModalCriar( {isOpen, onClose}: ModalProps ) {
             const dados = await resposta.json()
 
             if (resposta.ok) {
-                setCodigoGerado(dados.codigoAcesso)
                 setModal(true)
             } else {
                 setErro(dados.mensagem || 'Erro ao criar a república.')
@@ -65,7 +62,6 @@ function ModalCriar( {isOpen, onClose}: ModalProps ) {
         setNome('')
         setLink('')
         setErro('')
-        setCodigoGerado(null)
         onClose()
 
     }
