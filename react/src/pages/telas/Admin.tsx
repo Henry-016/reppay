@@ -5,10 +5,16 @@ import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import dashboard_ativado from './../../assets/dashboard_ativado.svg'
 import moradores_desativado from './../../assets/moradores_desativado.svg'
+import dashboard_desativado from './../../assets/dashboard_desativado.svg'
+import moradores_ativado from './../../assets/moradores_ativado.svg'
 import sair from './../../assets/sair.svg'
 import add from './../../assets/add.svg'
 import ModalCriarDespesa from './../modais/ModalCriarDespesa'
 import ParcelaPendente from './../../components/ParcelaPendente'
+import ParcelaAnalise from './../../components/ParcelaAnalise'
+import ParcelaPago from './../../components/ParcelaPago'
+import ModalConfirmacao from '../modais/ModalConfirmacao';
+import Morador from './../../components/Morador'
 
 interface DadosGrupo {
     idGrupo: number
@@ -26,7 +32,14 @@ interface ProximaConta {
 
 }
 
-interface MinhasDividas {
+interface Moradores {
+    idUsuario: number
+    nome: string
+    isAdmin: boolean
+
+}
+
+interface Inadimplentes {
     idParcela: number
     nomeDespesa: string
     icone: string
@@ -37,7 +50,25 @@ interface MinhasDividas {
 
 }
 
+interface Analise {
+    idParcela: number
+    nomeMorador: string
+    nomeDespesa: string
+    icone: string
+    valor: number
 
+}
+
+interface Pago {
+    idParcela: number
+    nomeMorador: string
+    nomeDespesa: string
+    icone: string
+    valorPago: number
+    dataPagamento: string
+    vencimento: string
+
+}
 
 function Admin() {
     
@@ -51,10 +82,15 @@ function Admin() {
     const [minhaDivida, setMinhaDivida] = useState<number>(0)
     const [modal, setModal] = useState(false)
     const [proximaConta, setProximaConta] = useState<ProximaConta>()
-    const [pendente, setPendente] = useState<boolean>(false)
-    const [analise, setAnalise] = useState<boolean>(false)
-    const [pago, setPago] = useState<boolean>(false)
-    const [minhasDividas, setMinhasDividas] = useState<MinhasDividas[]>([])
+    const [abaAtiva, setAbaAtiva] = useState<number>(1);
+    const [inadimplentes, setInadimplentes] = useState<Inadimplentes[]>([])
+    const [emAnalise, setEmAnalise] = useState<Analise[]>([])
+    const [historicoPago, setHistoricoPago] = useState<Pago[]>([])
+    const [parcelaParaConfirmar, setParcelaParaConfirmar] = useState<number | null>(null)
+    const [parcelaParaAceitar, setParcelaParaAceitar] = useState<number | null>(null)
+    const [parcelaParaRejeitar, setParcelaParaRejeitar] = useState<number | null>(null)
+    const [pagina, setPagina] = useState<number>(1)
+    const [moradores, setMoradores] = useState<Moradores[]>([])
     
     const nome = localStorage.getItem('nomeUsuario');
 
@@ -93,7 +129,7 @@ function Admin() {
                 if (respostaInadimplentes.ok) {
                     const dadosInadimplentes = await respostaInadimplentes.json()
                     setTotalReceber(dadosInadimplentes.totalAReceber || 0)
-                    setMinhasDividas(dadosInadimplentes.listaInadimplentes || [])
+                    setInadimplentes(dadosInadimplentes.listaInadimplentes || [])
                 }
 
                 const respostaDividas = await fetch(`http://localhost:5149/api/Despesa/MinhasDividas`, {
@@ -107,14 +143,47 @@ function Admin() {
 
                 }
 
-                const respostaVencimento = await fetch(`http://localhost:5149/api/Usuario/${idGrupo}/proximaConta`, 
+                const respostaVencimento = await fetch(`http://localhost:5149/api/Grupo/${idGrupo}/proximaConta`, 
                 {method: 'GET', headers: { 'Authorization': `Bearer ${token}`}})
 
                 if (respostaVencimento.ok) {
                     const dadosVencimento = await respostaVencimento.json()
                     setProximaConta(dadosVencimento)
 
-                }            
+                }
+                
+                const respostaEmAnalise = await fetch(`http://localhost:5149/api/Despesa/AnalisesPendentes/${idGrupo}`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+                
+                if (respostaEmAnalise.ok) {
+                    const dadosEmAnalise = await respostaEmAnalise.json()
+                    setEmAnalise(dadosEmAnalise.listaAnalises || [])
+                    
+                }
+
+                const respostaPago = await fetch(`http://localhost:5149/api/Despesa/HistoricoGrupo/${idGrupo}`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+                
+                if (respostaPago.ok) {
+                    const dadosPago = await respostaPago.json()
+                    setHistoricoPago(dadosPago.listaHistorico || [])
+                    
+                }
+
+                const respostaMoradores = await fetch(`http://localhost:5149/api/Grupo/${idGrupo}/Membros`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+                
+                if (respostaMoradores.ok) {
+                    const dadosMoradores = await respostaMoradores.json()
+                    setMoradores(dadosMoradores || [])
+                    
+                }
 
             } catch (error) {
                 console.error("Erro na requisição:", error)
@@ -124,32 +193,8 @@ function Admin() {
         if (idGrupo) {
             buscarDadosDoGrupo();
         }
+
     }, [idGrupo, modal, atualizarDados]);
-
-    const mudarOpcao = (id: number) => {
-
-        if (id === 1) {
-            setPendente(true)
-            setAnalise(false)
-            setPago(false)
-
-        }
-
-        else if (id === 2) {
-            setPendente(false)
-            setAnalise(true)
-            setPago(false)
-
-        }
-
-        else if (id === 3) {
-            setPendente(false)
-            setAnalise(false)
-            setPago(true)
-
-        }
-
-    }
 
     const sinalizarPagamento = async (id: number) => {
         const token = localStorage.getItem('token')
@@ -167,8 +212,39 @@ function Admin() {
         if (resposta.ok) {
             setAtualizarDados(prev => prev + 1)
             alert(resultado.mensagem)
+            setParcelaParaConfirmar(null)
         } else {
             alert(resultado.mensagem || "Erro ao sinalizar pagamento.")
+        }
+
+        } catch (error) {
+        console.error("Erro ao conectar com a API:", error)
+        }   
+
+    }
+
+    const validarPagamento = async (id: number, decisao: boolean) => {
+        const token = localStorage.getItem('token')
+
+        try {
+            const resposta = await fetch(`http://localhost:5149/api/Despesa/ValidarPagamento/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify({ aprovado: decisao })
+        })
+
+        const resultado = await resposta.json()
+
+        if (resposta.ok) {
+            setAtualizarDados(prev => prev + 1)
+            alert(resultado.mensagem)
+            setParcelaParaAceitar(null)
+            setParcelaParaRejeitar(null)
+        } else {
+            alert(resultado.mensagem || "Erro ao aceitar pagamento.")
         }
 
         } catch (error) {
@@ -183,12 +259,12 @@ function Admin() {
                 <div className={styles.sideBar}>
                     <div className={styles.sideBarUp}>
                         <h2>RepPay</h2>
-                        <button className={styles.ativado}>
-                            <img src={dashboard_ativado}/>
+                        <button onClick={() => setPagina(1)}className={`${pagina === 1 ? styles.ativado : styles.desativado}`}>
+                            <img src={pagina === 1 ? dashboard_ativado : dashboard_desativado}/>
                             Dashboard
                         </button>
-                        <button className={styles.desativado}>
-                            <img src={moradores_desativado}/>
+                        <button onClick={() => setPagina(2)}className={`${pagina === 2 ? styles.ativado : styles.desativado}`}>
+                            <img src={pagina === 2 ? moradores_ativado : moradores_desativado}/>
                             Moradores
                         </button>
                     </div>
@@ -202,7 +278,8 @@ function Admin() {
                 </div>
                 <div className={styles.principal}>
                     <HeaderGrupo nome={nome || 'Usuário'} tipo={grupo?.isAdmin ? 'ADMINISTRADOR' : 'MORADOR'} nome_grupo={grupo?.nome || 'Republica'} />
-                    <div className={styles.conteudo}>
+                    {pagina === 1 && 
+                        <div className={styles.conteudo}>
                         <div className={styles.despesasRepublica}>
                             <div className={styles.informacaoPrincipal}>
                                 <div className={styles.dividaTotal}>
@@ -216,7 +293,7 @@ function Admin() {
                                     </div>
                                     <div className={styles.vencimento}>
                                         <p>Próximo Vencimento</p>
-                                        <h2>{proximaConta?.vencimento}</h2>
+                                        <h2>{proximaConta?.vencimento || "Não há nenhuma conta próxima do vencimento!"}</h2>
                                     </div>
                                 </div>
                             </div>
@@ -227,22 +304,22 @@ function Admin() {
 
                         </div>
                         <div className={styles.opcoes}>
-                            <button onClick={() => mudarOpcao(1)}className={`${styles.opcao} ${pendente ? styles.ativo : ''}`}>
+                            <button onClick={() => setAbaAtiva(1)}className={`${styles.opcao} ${abaAtiva === 1 ? styles.ativo : ''}`}>
                                 Pendentes
                             </button>
-                            <button onClick={() => mudarOpcao(2)} className={`${styles.opcao} ${analise ? styles.ativo : ''}`}>
+                            <button onClick={() => setAbaAtiva(2)} className={`${styles.opcao} ${abaAtiva === 2 ? styles.ativo : ''}`}>
                                 Em Análise
                             </button>
-                            <button onClick={() => mudarOpcao(3)} className={`${styles.opcao} ${pago ? styles.ativo : ''}`}>
+                            <button onClick={() => setAbaAtiva(3)} className={`${styles.opcao} ${abaAtiva === 3 ? styles.ativo : ''}`}>
                                 Histórico Pago
                             </button>
                         </div>
-                        {pendente && 
+                        {abaAtiva === 1 && 
                             <div className={styles.containerDespesas}>
-                                <h2 className={styles.detalhesFatura}>DETALHES DA FATURA</h2>
-                                {minhasDividas.length > 0 ? (
-                                <div className={styles.pendentes}>
-                                    {minhasDividas.map((parcela) => {
+                                <h2 className={styles.detalhesConta}>DETALHES DA FATURA</h2>
+                                {inadimplentes.length > 0 ? (
+                                <div className={styles.contas}>
+                                    {inadimplentes.map((parcela) => {
                                         const eminhadivida = parcela.nomeMorador === nome
                                     
                                         return (
@@ -253,7 +330,7 @@ function Admin() {
                                                 vencimento={parcela.vencimento} 
                                                 nomeDespesa={parcela.nomeDespesa} 
                                                 nomeMorador={parcela.nomeMorador}
-                                                valor={parcela.valor} onClick={() => sinalizarPagamento(parcela.idParcela)}
+                                                valor={parcela.valor} onClick={() => setParcelaParaConfirmar(parcela.idParcela)}
                                                 mostrarBotao={eminhadivida}
                                             />
                                         )})}
@@ -265,8 +342,127 @@ function Admin() {
                                 )}
                                 
                             </div>}
+                        {abaAtiva === 2 && 
+                            <div className={styles.containerDespesas}>
+                                <h2 className={styles.detalhesConta}>DÍVIDAS AGUARDANDO CONFIRMAÇÃO</h2>
+                                {emAnalise.length > 0 ? (
+                                <div className={styles.contas}>
+                                    {emAnalise.map((parcela) => {
+                                    
+                                        return (
 
-                    </div>
+                                            <ParcelaAnalise 
+                                                key={parcela.idParcela} 
+                                                icone={parcela.icone} 
+                                                nomeDespesa={parcela.nomeDespesa}
+                                                valor={parcela.valor} onClick={() => setParcelaParaAceitar(parcela.idParcela)}
+                                                onCancel={() => setParcelaParaRejeitar(parcela.idParcela)}
+                                                nomeMorador={parcela.nomeMorador}
+                                            />
+                                        )})}
+                                </div>
+                                ) : (
+                                    <div className={styles.vazio}>
+                                        <p>Não foi encontrada nenhuma dívida no momento.</p>
+                                    </div>
+                                )}
+ 
+                        </div>}
+                        {abaAtiva === 3 && 
+                            <div className={styles.containerDespesas}>
+                                <h2 className={styles.detalhesConta}>DÍVIDAS PAGAS</h2>
+                                {historicoPago.length > 0 ? (
+                                <div className={styles.contas}>
+                                    {historicoPago.map((parcela) => {
+                                    
+                                        return (
+
+                                            <ParcelaPago 
+                                                key={parcela.idParcela} 
+                                                icone={parcela.icone} 
+                                                nomeDespesa={parcela.nomeDespesa}
+                                                valor={parcela.valorPago} 
+                                                nomeMorador={parcela.nomeMorador}
+                                                dataPago={parcela.dataPagamento}
+                                            />
+                                        )})}
+                                </div>
+                                ) : (
+                                    <div className={styles.vazio}>
+                                        <p>Não foi encontrada nenhuma dívida no momento.</p>
+                                    </div>
+                                )}
+
+                        </div>}
+
+                            <ModalConfirmacao 
+                                texto={'Você tem certeza que deseja prosseguir com a validação deste pagamento? Após confirmar, a despesa vai para a aba “Em Análise” para o administrador validar!'}
+                                isOpen={parcelaParaConfirmar !== null} 
+                                onClose={() => setParcelaParaConfirmar(null)} 
+                                onClick={() => {
+                                    if (parcelaParaConfirmar !== null) {
+                                        sinalizarPagamento(parcelaParaConfirmar);
+                                    }
+                                }}
+                            />
+
+                            <ModalConfirmacao 
+                                texto={'Você tem certeza que deseja prosseguir com a validação deste pagamento? Após confirmar, não será mais possível reverter!'}
+                                isOpen={parcelaParaAceitar !== null} 
+                                onClose={() => setParcelaParaAceitar(null)} 
+                                onClick={() => {
+                                    if (parcelaParaAceitar !== null) {
+                                        validarPagamento(parcelaParaAceitar, true);
+                                    }
+                                }}
+                            />
+
+                            <ModalConfirmacao 
+                                texto={'Você tem certeza que deseja prosseguir com a rejeição deste pagamento? Após confirmar, não será mais possível reverter!'}
+                                isOpen={parcelaParaRejeitar !== null} 
+                                onClose={() => setParcelaParaRejeitar(null)} 
+                                onClick={() => {
+                                    if (parcelaParaRejeitar !== null) {
+                                        validarPagamento(parcelaParaRejeitar, false);
+                                    }
+                                }}
+                            />
+
+                        </div>}
+                    
+                    {pagina === 2 &&
+                        <div className={styles.moradores}>
+                            <div className={styles.moradoresTexto}>
+                                <h2 className={styles.gerenciamento}>Gerenciamento de Moradores</h2>
+                                <p className={styles.gerenciamentoP}>Controle de acesso e membros do grupo da república.</p>
+                                
+                            </div>
+                            <div className={styles.containerMoradores}>
+                                <div className={styles.containerMembrosDoGrupo}>
+                                    <h2>Membros do Grupo</h2>
+                                    <p>Membros</p>
+                                </div>
+                                <div className={styles.colunasMoradores}>
+                                    <p className={`${styles.coluna} ${styles.colunaMorador}`}>MORADOR</p>
+                                    <p className={`${styles.coluna} ${styles.colunaCargo}`}>CARGO</p>
+                                    <p className={`${styles.coluna} ${styles.colunaDivida}`}>DÍVIDA ATUAL</p>
+                                </div>
+                                <div className={styles.moradorComponente}>
+                                    {moradores.map((morador) => (
+                                    <Morador
+                                        key={morador.idUsuario}
+                                        nome={morador.nome}
+                                        tipo={morador.isAdmin ? 'Admin' : 'Morador'}
+                                        valor={200}
+                                        email={'placeholder'}
+                                        
+                                    />
+                                ))}
+
+                                </div>
+                                
+                            </div>
+                        </div>}
                 </div>
                 <ModalCriarDespesa isOpen={modal} onClose={() => setModal(false)} />
 
