@@ -73,7 +73,7 @@ function HomeGeral() {
                                     if (grupo.isAdmin) {
                                         navigate(`/home/admin/${grupo.idGrupo}`);
                                     } else {
-                                        navigate(`/morador/${grupo.idGrupo}`);
+                                        navigate(`/home/morador/${grupo.idGrupo}`);
                                     }
                                 }}
                             />

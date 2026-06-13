@@ -1,4 +1,4 @@
-import styles from './Morador.module.scss'
+import styles from './MoradorComponente.module.scss'
 import icone from './../assets/user_icon.svg'
 
 interface ComponentProps {
@@ -9,7 +9,7 @@ interface ComponentProps {
 
 }
 
-function Morador( {nome, email, tipo, valor}: ComponentProps ) {
+function MoradorComponente( {nome, email, tipo, valor}: ComponentProps ) {
 
     return (
         <>
@@ -36,4 +36,4 @@ function Morador( {nome, email, tipo, valor}: ComponentProps ) {
 
 }
 
-export default Morador;
+export default MoradorComponente;

@@ -1,8 +1,8 @@
 import styles from './Admin.module.scss'
 import { useState, useEffect } from 'react'
 import HeaderGrupo from './HeaderGrupo'
-import { useParams } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import dashboard_ativado from './../../assets/dashboard_ativado.svg'
 import moradores_desativado from './../../assets/moradores_desativado.svg'
 import dashboard_desativado from './../../assets/dashboard_desativado.svg'
@@ -13,8 +13,8 @@ import ModalCriarDespesa from './../modais/ModalCriarDespesa'
 import ParcelaPendente from './../../components/ParcelaPendente'
 import ParcelaAnalise from './../../components/ParcelaAnalise'
 import ParcelaPago from './../../components/ParcelaPago'
-import ModalConfirmacao from '../modais/ModalConfirmacao';
-import Morador from './../../components/Morador'
+import ModalConfirmacao from '../modais/ModalConfirmacao'
+import MoradorComponente from '../../components/MoradorComponente'
 import key from './../../assets/key.svg'
 
 interface DadosGrupo {
@@ -281,7 +281,7 @@ function Admin() {
                         </button>
                     </div>
                     <div className={styles.sideBarBottom}>
-                        <button>
+                        <button onClick={() => navigate('/home')}>
                             <img src={sair}/>
                             Sair
                         </button>
@@ -462,7 +462,7 @@ function Admin() {
                                 </div>
                                 <div className={styles.moradorComponente}>
                                     {moradores.map((morador) => (
-                                    <Morador
+                                    <MoradorComponente
                                         key={morador.idUsuario}
                                         nome={morador.nome}
                                         tipo={morador.isAdmin ? 'Admin' : 'Morador'}
