@@ -2,10 +2,10 @@ import styles from './Morador.module.scss'
 import icone from './../assets/user_icon.svg'
 
 interface ComponentProps {
-    nome: string;
-    email: string;
-    tipo: string;
-    valor: number;
+    nome: string
+    email: string
+    tipo: string
+    valor: number
 
 }
 

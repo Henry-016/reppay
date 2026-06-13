@@ -7,6 +7,7 @@ interface ComponentProps {
     nomeDespesa: string
     nomeMorador: string
     valor: number
+    dataSinalizacao: string
     onClick: () => void
     onCancel: () => void
 
@@ -14,7 +15,7 @@ interface ComponentProps {
 
 
 
-function ComponenteEscolha( {icone, nomeDespesa,nomeMorador, valor, onClick, onCancel}: ComponentProps ) {
+function ComponenteEscolha( {icone, nomeDespesa,nomeMorador, valor, dataSinalizacao, onClick, onCancel}: ComponentProps ) {
 
     return (
         <>
@@ -24,6 +25,7 @@ function ComponenteEscolha( {icone, nomeDespesa,nomeMorador, valor, onClick, onC
                     <div className={styles.containerNome}>
                         <h2>{nomeMorador}</h2>
                         <p>{nomeDespesa}</p>
+                        <p>Data da Sinalização: {dataSinalizacao}</p>
                     </div>
                 </div>
                 <div className={styles.containerEsquerda}>
