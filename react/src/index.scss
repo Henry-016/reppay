@@ -109,3 +109,16 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+button {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+      opacity: 0.9;
+  }
+
+  &:active {
+      transform: scale(0.96);
+  }
+}
