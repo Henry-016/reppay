@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import styles from './Login.module.scss'
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from './../../context/AuthContext'
 
 function Login() {
     const [email, setEmail] = useState('')
     const [senha, setSenha] = useState('')
     const [erro, setErro] = useState('')
-    const [carregando, setCarregando] = useState(false)
     const navigate = useNavigate()
+    const { setAuth } = useAuth()
 
     const fazerLogin = async (e: React.SubmitEvent) => {
         e.preventDefault()
@@ -22,7 +23,6 @@ function Login() {
         }
 
         setErro('');
-        setCarregando(true);
 
         try {
             const resposta = await fetch('http://localhost:5149/api/Usuario/Login', {
@@ -39,10 +39,11 @@ function Login() {
             const dados = await resposta.json();
 
             if (resposta.ok) {
-                localStorage.setItem('token', dados.token);
-                localStorage.setItem('idUsuario', dados.idUsuario.toString());
-                localStorage.setItem('nomeUsuario', dados.nome);
-                navigate('/home'); 
+
+                console.log("Valores recebidos da API:", dados);
+                console.log("Função setAuth disponível?", typeof setAuth)
+                setAuth( dados.token, { id: dados.idUsuario, nome: dados.nome} )
+                navigate('/home') 
             } else {
                 setErro(dados.mensagem || 'Erro ao realizar login. Verifique os seus dados.');
             }
@@ -50,8 +51,6 @@ function Login() {
         } catch (error) {
             console.error('Erro na requisição:', error);
             setErro('Não foi possível ligar ao servidor. Tente novamente mais tarde.');
-        } finally {
-            setCarregando(false);
         }
     }
 

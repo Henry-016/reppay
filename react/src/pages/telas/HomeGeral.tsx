@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import Modal_EscolhaCriarEntrar from './../modais/Modal_EscolhaCriarEntrar'
 import CardGrupo from './../../components/CardGrupo'
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from './../../context/AuthContext'
 
 interface GrupoUsuario {
     idGrupo: number;
@@ -19,13 +20,15 @@ function HomeGeral() {
     const [modal, setModal] = useState(false)
     const [grupos, setGrupos] = useState<GrupoUsuario[]>([])
 
-    const nome = localStorage.getItem('nomeUsuario')
+    const { token } = useAuth()
+    const { usuario } = useAuth()
+
+    const nome = usuario?.nome
 
     const navigate = useNavigate()
 
     useEffect(() => {
         const buscarGrupos = async () => {
-            const token = localStorage.getItem('token')
             try {
                 const resposta = await fetch('http://localhost:5149/api/Grupo/Meus', {
                     method: 'GET',
