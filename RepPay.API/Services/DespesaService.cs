@@ -231,11 +231,12 @@ namespace RepPay.API.Services
             return request.Aprovado ? "Pagamento aprovado com sucesso! A parcela foi quitada." : "Pagamento rejeitado. A dívida voltou para o morador.";
         }
 
-        public List<HistoricoPagoResponseDTO> GetMeuHistoricoPago(int idLogado)
+        public List<HistoricoPagoResponseDTO> GetMeuHistoricoPago(int idLogado, int idGrupo)
         {
             return _context.Parcelas
                 .Include(p => p.IdDespesaNavigation)
-                .Where(p => p.IdUsuario == idLogado && p.Status == StatusParcela.PAGO && p.IdDespesaNavigation.Ativo == true)
+                .Where(p => p.IdUsuario == idLogado && p.IdDespesaNavigation.IdGrupo == idGrupo
+                      && p.Status == StatusParcela.PAGO && p.IdDespesaNavigation.Ativo == true)
                 .Select(p => new HistoricoPagoResponseDTO
                 {
                     IdParcela = p.IdParcela,
@@ -281,11 +282,12 @@ namespace RepPay.API.Services
                 .ToList();
         }
 
-        public List<AnaliseMoradorDTO> GetMinhasAnalises(int idLogado)
+        public List<AnaliseMoradorDTO> GetMinhasAnalises(int idLogado, int idGrupo)
         {
             return _context.Parcelas
                 .Include(p => p.IdDespesaNavigation)
-                .Where(p => p.IdUsuario == idLogado && p.IdDespesaNavigation.Ativo == true && p.Status == StatusParcela.EM_ANALISE)
+                .Where(p => p.IdUsuario == idLogado && p.IdDespesaNavigation.IdGrupo == idGrupo
+                      && p.IdDespesaNavigation.Ativo == true && p.Status == StatusParcela.EM_ANALISE)
                 .Select(p => new AnaliseMoradorDTO
                 {
                     IdParcela = p.IdParcela,
