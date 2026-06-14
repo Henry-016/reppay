@@ -53,7 +53,7 @@ namespace RepPay.API.Controllers
             catch (Exception ex) { return BadRequest(new { mensagem = ex.Message }); }
         }
 
-        [HttpGet("MinhasDividas")]
+        [HttpGet("MinhasDividas/{idGrupo}")]
         public IActionResult GetMinhasDividas(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
@@ -158,7 +158,7 @@ namespace RepPay.API.Controllers
             catch (Exception ex) { return BadRequest(new { mensagem = ex.Message }); }
         }
 
-        [HttpGet("HistoricoPago")]
+        [HttpGet("HistoricoPago/{idGrupo}")]
         public IActionResult GetMeuHistoricoPago(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
@@ -203,7 +203,7 @@ namespace RepPay.API.Controllers
             catch (UnauthorizedAccessException ex) { return StatusCode(403, new { mensagem = ex.Message }); }
         }
 
-        [HttpGet("MinhasAnalises")]
+        [HttpGet("MinhasAnalises/{idGrupo}")]
         public IActionResult GetMinhasAnalises(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
