@@ -9,8 +9,6 @@ interface ComponentProps {
 
 }
 
-
-
 function ComponenteEscolha( {icone, dataPago, nomeDespesa,nomeMorador, valor}: ComponentProps ) {
 
     return (

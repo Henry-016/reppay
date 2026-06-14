@@ -100,51 +100,8 @@ function Admin() {
     const [moradores, setMoradores] = useState<Moradores[]>([])
     
     const { usuario, loading } = useAuth()
-
     const nome = usuario?.nome
-
     const { token } = useAuth()
-
-    const buscarMinhasDividas = async () => {
-        try {
-            const res = await fetch(`http://localhost:5149/api/Despesa/MinhasDividas`, { headers: { 'Authorization': `Bearer ${token}` } });
-            if (res.ok) {
-                const dados = await res.json();
-                setMinhaDivida(dados.totalDevido || 0);
-            }
-        } catch (error) { console.error(error); }
-    };
-
-    const buscarProximaConta = async () => {
-        try {
-            const res = await fetch(`http://localhost:5149/api/Grupo/${idGrupo}/proximaConta`, { headers: { 'Authorization': `Bearer ${token}` } });
-            if (res.ok && (await res.text()).trim() !== "") { setProximaConta(await res.json());
-            }
-            else {
-                setProximaConta(undefined)
-            }
-        } catch (error) { console.error(error); }
-    }
-
-    const buscarAnalises = async () => {
-        try {
-            const res = await fetch(`http://localhost:5149/api/Despesa/AnalisesPendentes/${idGrupo}`, { headers: { 'Authorization': `Bearer ${token}` } });
-            if (res.ok) {
-                const dados = await res.json();
-                setEmAnalise(dados.listaAnalises || []);
-            }
-        } catch (error) { console.error(error); }
-    };
-
-    const buscarHistorico = async () => {
-        try {
-            const res = await fetch(`http://localhost:5149/api/Despesa/HistoricoGrupo/${idGrupo}`, { headers: { 'Authorization': `Bearer ${token}` } });
-            if (res.ok) {
-                const dados = await res.json();
-                setHistoricoPago(dados.listaHistorico || []);
-            }
-        } catch (error) { console.error(error); }
-    };
 
     useEffect(() => {
 
@@ -155,58 +112,61 @@ function Admin() {
 
             if (!dadosGrupo.isAdmin) {
                 navigate(`/morador/${idGrupo}`)
-                return;
+                return
+                
             }
             
             setGrupo(dadosGrupo)
 
             const [dadosInadimplentes, dadosMinhasDividas, dadosProximaConta, dadosAnalises, dadosHistorico, dadosMoradores] = await Promise.all([
                 despesaService.buscarInadimplentes(idGrupo, token),
-                buscarMinhasDividas(),
-                buscarProximaConta(),
-                buscarAnalises(),
-                buscarHistorico(),
+                despesaService.buscarMinhasDividas(idGrupo, token),
+                grupoService.buscarProximaConta(idGrupo, token),
+                despesaService.buscarAnalises(idGrupo, token),
+                despesaService.buscarHistorico(idGrupo, token),
                 grupoService.buscarMoradores(idGrupo, token)
             ])
 
             setInadimplentes(dadosInadimplentes.listaInadimplentes)
+            setTotalReceber(dadosInadimplentes.totalAReceber)
             setMoradores(dadosMoradores)
+            setMinhaDivida(dadosMinhasDividas.totalDevido)
+            setProximaConta(dadosProximaConta)
+            setEmAnalise(dadosAnalises.listaAnalises)
+            setHistoricoPago(dadosHistorico.listaHistorico)
 
         }
 
         if (idGrupo) buscarDadosDoGrupo();
-    }, [idGrupo, modal, atualizarDados, loading, token]);
+    }, [idGrupo, modal, atualizarDados, loading, token])
 
     const sinalizarPagamento = async (id: number) => {
         try {
-            const res = await fetch(`http://localhost:5149/api/Despesa/SinalizarPagamento/${id}`, {
-                method: 'PUT',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const resData = await res.json();
-            if (res.ok) {
-                setAtualizarDados(prev => prev + 1);
-                alert(resData.mensagem);
-                setParcelaParaConfirmar(null);
-            } else { alert(resData.mensagem); }
-        } catch (error) { console.error(error); }
-    };
+            await despesaService.sinalizarPagamento(id, token)
+
+            setAtualizarDados(prev => prev + 1)
+            alert("Pagamento sinalizado com sucesso!")
+            setParcelaParaConfirmar(null)
+        } catch (error) {
+            console.error("Falha ao sinalizar:", error)
+            alert("Erro ao processar o pagamento. Tente novamente.")
+        }
+
+    }
 
     const validarPagamento = async (id: number, decisao: boolean) => {
         try {
-            const res = await fetch(`http://localhost:5149/api/Despesa/ValidarPagamento/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ aprovado: decisao })
-            });
-            const resData = await res.json();
-            if (res.ok) {
-                setAtualizarDados(prev => prev + 1);
-                alert(resData.mensagem);
-                setParcelaParaAceitar(null);
-                setParcelaParaRejeitar(null);
-            } else { alert(resData.mensagem); }
-        } catch (error) { console.error(error); }
+            const mensagem = await despesaService.validarPagamento(id, decisao, token!);
+            
+            setAtualizarDados(prev => prev + 1);
+            alert(mensagem);
+            
+            setParcelaParaAceitar(null);
+            setParcelaParaRejeitar(null);
+        } catch (error: any) {
+            console.error(error);
+            alert(error.message);
+        }
     };
 
     const copiarParaAreaDeTransferencia = async () => {

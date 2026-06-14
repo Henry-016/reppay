@@ -11,8 +11,6 @@ interface ComponentProps {
 
 }
 
-
-
 function ComponenteEscolha( {icone, vencimento, nomeDespesa,nomeMorador, valor, mostrarBotao, onClick}: ComponentProps ) {
 
     return (

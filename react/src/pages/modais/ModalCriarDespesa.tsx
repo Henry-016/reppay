@@ -5,6 +5,8 @@ import { useParams } from 'react-router-dom';
 import UsuarioSelecao from './../../components/UsuarioSelecao'
 import ModalSucesso from './ModalSucesso'
 import { useAuth } from './../../context/AuthContext'
+import { grupoService } from './../../services/grupoService'
+import { despesaService } from '../../services/despesaService';
 
 interface ModalProps {
     isOpen: boolean
@@ -34,34 +36,26 @@ function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
 
     const { idGrupo } = useParams<{ idGrupo: string }>()
 
-    const token = useAuth()
+    const { token } = useAuth()
+
+    const { loading } = useAuth()
 
     useEffect(() => {
+
+        if (loading) return
+        
         const buscarMoradores = async () => {
             try {
-                const resposta = await fetch(`http://localhost:5149/api/Grupo/${idGrupo}/Membros`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                })
-
-                if (resposta.ok) {
-                    const dados = await resposta.json()
-                    setMoradores(dados)
-                }
+                const dados = await grupoService.buscarMoradores(idGrupo, token)
+                setMoradores(dados || [])
+            } catch (err) {
+                console.error("Erro ao buscar moradores:", err)
             }
-
-            catch (error) {
-                console.error(error)
-
-            }
-
         }
-
         buscarMoradores()
+        
 
-    }, [idGrupo])
+    }, [idGrupo, token, loading, isOpen])
 
     const alternarSelecao = (id: number) => {
         setSelecionados(prev => 
@@ -81,7 +75,7 @@ function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
 
         }
 
-        const valorFormatado = valor.replace(',', '.');
+        const valorFormatado = valor.replace(',', '.')
     
         if (isNaN(Number(valorFormatado))) {
             setErro("Valor invalido!")
@@ -110,23 +104,11 @@ function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
             MoradoresIds: selecionados
         }
 
-        const token = localStorage.getItem('token')
-
         try {
-            const resposta = await fetch('http://localhost:5149/api/Despesa/LancarDespesa', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(dadosDespesa)
-            })
-
-            if (resposta.ok) {
-                setModalValidado(true)
-            } else {
-                setErro('Falha ao realizar o cadastro. Verifique as informações.')
-            }
+            
+            await despesaService.lancarDespesa(dadosDespesa, token!)
+    
+            setModalValidado(true)
 
         } catch (erro) {
             alert('Erro ao conectar com o servidor. Verifique se o backend está rodando.')

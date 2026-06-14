@@ -2,6 +2,8 @@ import styles from './ModalCriar.module.scss'
 import x from './../../assets/x.svg'
 import { useState} from 'react'
 import ModalSucesso from './ModalSucesso'
+import { grupoService } from '../../services/grupoService'
+import { useAuth } from '../../context/AuthContext'
 
 interface ModalProps {
     isOpen: boolean
@@ -19,6 +21,8 @@ function ModalCriar( {isOpen, onClose}: ModalProps ) {
 
     const [erro, setErro] = useState('')
 
+    const { token } = useAuth()
+
     const criarGrupo = async (e: React.SubmitEvent) => {
         e.preventDefault()
         if (!nome) {
@@ -28,33 +32,14 @@ function ModalCriar( {isOpen, onClose}: ModalProps ) {
 
         setErro('')
 
-        const token = localStorage.getItem('token');
-
         try {
-            const resposta = await fetch('http://localhost:5149/api/Grupo', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` 
-                },
-                body: JSON.stringify({
-                    Nome: nome,
-                    ImagemBanner: link,
-
-                })
-            });
-
-            const dados = await resposta.json()
-
-            if (resposta.ok) {
-                setModal(true)
-            } else {
-                setErro(dados.mensagem || 'Erro ao criar a república.')
-            }
+            await grupoService.criarGrupo(nome, link, token!);
+            setModal(true);
 
         } catch (error) {
             console.error('Erro na requisição:', error)
             setErro('Não foi possível conectar ao servidor.')
+
         }
     }
 

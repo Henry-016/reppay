@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import { useParams } from 'react-router-dom'
 import calendario from './../../assets/calendario.svg'
 import { useAuth } from './../../context/AuthContext'
+import { grupoService } from '../../services/grupoService'
 
 interface DadosGrupo {
     idGrupo: number
@@ -38,57 +39,48 @@ function Morador() {
 
     const { idGrupo } = useParams<{ idGrupo: string }>()
 
+    const { token } = useAuth()
+
     useEffect(() => {
         
         const buscarDadosDoGrupo = async () => {
-            const token = localStorage.getItem('token')
-            
             
             try {
-                const resposta = await fetch(`http://localhost:5149/api/Grupo/${idGrupo}`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                })
+                const dadosGrupo = await grupoService.buscarGrupo( idGrupo, token)
 
-                if (resposta.ok) {
-                    const dados = await resposta.json()
-                    
-                    if (dados.isAdmin) {
-                        navigate(`/admin/${idGrupo}`);
-                        return; 
-                    }
+            if (dadosGrupo.isAdmin) {
+                navigate(`/admin/${idGrupo}`)
+                return
 
-                    setGrupo(dados)
-                    setAtualizarDados(prev => prev + 1)
-                }
-                
-                const respostaDividas = await fetch(`http://localhost:5149/api/Despesa/MinhasDividas`, {
-                    method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                })
-                
-                if (respostaDividas.ok) {
-                    const dadosDividas = await respostaDividas.json()
-                    setMinhaDivida(dadosDividas.totalDevido || 0)
-
-                }
-
-                else {
-                    navigate('/home');
-                }
-
-            } catch (error) {
-                console.error("Erro na requisição:", error)
             }
-        }
+            
+            setGrupo(dadosGrupo)
+                
+                const [dadosMinhasDividas, dadosProximaConta, dadosAnalises, dadosHistorico, dadosMoradores] = await Promise.all([
+                despesaService.buscarMinhasDividas(idGrupo, token),
+                grupoService.buscarProximaConta(idGrupo, token),
+                despesaService.buscarAnalises(idGrupo, token),
+                despesaService.buscarHistorico(idGrupo, token),
+                grupoService.buscarMoradores(idGrupo, token)
+            ])
 
-        if (idGrupo) {
-            buscarDadosDoGrupo();
-        }
+                setInadimplentes(dadosInadimplentes.listaInadimplentes)
+                setTotalReceber(dadosInadimplentes.totalAReceber)
+                setMoradores(dadosMoradores)
+                setMinhaDivida(dadosMinhasDividas.totalDevido)
+                setProximaConta(dadosProximaConta)
+                setEmAnalise(dadosAnalises.listaAnalises)
+                setHistoricoPago(dadosHistorico.listaHistorico)
 
-    }, [idGrupo, atualizarDados]);
+            }
+
+            if (idGrupo) {
+                buscarDadosDoGrupo();
+            }
+
+    }
+
+    }, [idGrupo, atualizarDados])
 
     return (
         <>
