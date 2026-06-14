@@ -23,7 +23,12 @@ namespace RepPay.API.Controllers
         private int? ObterIdUsuarioLogado()
         {
             var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(usuarioIdClaim)) return null;
+
+            if (string.IsNullOrEmpty(usuarioIdClaim))
+            {
+                return null;
+            }
+
             return int.Parse(usuarioIdClaim);
         }
 
@@ -31,7 +36,11 @@ namespace RepPay.API.Controllers
         public IActionResult CriarGrupo([FromBody] GrupoRequestDTO request)
         {
             int? idAdmin = ObterIdUsuarioLogado();
-            if (idAdmin == null) return Unauthorized(new { mensagem = "Usuário não autenticado!" });
+
+            if (idAdmin == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado!" });
+            }
 
             try
             {
@@ -48,7 +57,11 @@ namespace RepPay.API.Controllers
         public IActionResult EntrarNoGrupo([FromBody] EntrarGrupoRequestDTO request)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado!" });
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado!" });
+            }
 
             try
             {
@@ -65,11 +78,15 @@ namespace RepPay.API.Controllers
             }
         }
 
-        [HttpGet("Meus")]
+        [HttpGet("MeusGrupos")]
         public IActionResult GetMeusGrupos()
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
 
             var meusGrupos = _grupoService.GetMeusGrupos(idLogado.Value);
             return Ok(meusGrupos);
@@ -79,7 +96,11 @@ namespace RepPay.API.Controllers
         public IActionResult GetGrupoPorId(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
 
             try
             {
@@ -96,7 +117,11 @@ namespace RepPay.API.Controllers
         public IActionResult GetMembrosDoGrupo(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
 
             try
             {
@@ -117,7 +142,11 @@ namespace RepPay.API.Controllers
         public IActionResult SairDoGrupo(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
 
             try
             {
@@ -138,7 +167,11 @@ namespace RepPay.API.Controllers
         public IActionResult ExpulsarMorador(int idGrupo, int idMorador)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
 
             try
             {
@@ -163,7 +196,11 @@ namespace RepPay.API.Controllers
         public IActionResult TransferirAdmin(int idGrupo, int idNovoAdmin)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
 
             try
             {
@@ -188,7 +225,11 @@ namespace RepPay.API.Controllers
         public IActionResult ObterProximaContaGrupo(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
 
             try
             {
@@ -205,7 +246,11 @@ namespace RepPay.API.Controllers
         public IActionResult DeletarGrupo(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
 
             try
             {
