@@ -159,7 +159,7 @@ namespace RepPay.API.Controllers
         }
 
         [HttpGet("HistoricoPago")]
-        public IActionResult GetMeuHistoricoPago()
+        public IActionResult GetMeuHistoricoPago(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
 
@@ -168,7 +168,7 @@ namespace RepPay.API.Controllers
                 return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
 
-            var historico = _despesaService.GetMeuHistoricoPago(idLogado.Value);
+            var historico = _despesaService.GetMeuHistoricoPago(idLogado.Value, idGrupo);
 
             if (!historico.Any())
             {
@@ -204,7 +204,7 @@ namespace RepPay.API.Controllers
         }
 
         [HttpGet("MinhasAnalises")]
-        public IActionResult GetMinhasAnalises()
+        public IActionResult GetMinhasAnalises(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
 
@@ -213,7 +213,7 @@ namespace RepPay.API.Controllers
                 return Unauthorized(new { mensagem = "Usuário não autenticado." });
             }
 
-            var analises = _despesaService.GetMinhasAnalises(idLogado.Value);
+            var analises = _despesaService.GetMinhasAnalises(idLogado.Value, idGrupo);
 
             if (!analises.Any())
             {
