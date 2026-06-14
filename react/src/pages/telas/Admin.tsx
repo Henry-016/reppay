@@ -149,7 +149,7 @@ function Admin() {
             setParcelaParaConfirmar(null)
         } catch (error) {
             console.error("Falha ao sinalizar:", error)
-            alert("Erro ao processar o pagamento. Tente novamente.")
+
         }
 
     }
@@ -165,7 +165,7 @@ function Admin() {
             setParcelaParaRejeitar(null);
         } catch (error: any) {
             console.error(error);
-            alert(error.message);
+            
         }
     };
 
