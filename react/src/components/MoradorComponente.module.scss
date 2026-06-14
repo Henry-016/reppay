@@ -1,0 +1,91 @@
+.componente_morador {
+    display: flex;
+    width: 100%;
+    border-bottom: 0.063rem solid #ffffff;
+    height: 4.375rem;
+
+    .informacoesMorador {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        width: 40%;
+
+        .icone {
+            width: 2.813rem;
+            height: 2.813rem;
+
+        }
+
+        .informacoes {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+
+
+            h2 {
+                font-size: 1rem;
+                color: var(--cor-titulo);
+                font-weight: bold;
+
+            }
+
+            p {
+                color: var(--cor-texto-simples);
+                font-size: 0.875rem;
+                width: 7.5rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+
+            }
+
+        }
+
+    }
+
+    .informacoesCargo {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 20%;
+        border-left: 0.063rem solid #ffffff;
+        border-right: 0.063rem solid #ffffff;
+
+        .admin {
+            color: var(--cor-azul-claro);
+            font-size: 0.75rem;
+            background-color: rgb(0, 229, 255, 50%);
+            font-weight: bold;
+            border-radius: 12rem;
+            padding: 0rem 1rem;
+
+        }
+
+        .morador {
+            color: var(--cor-texto-simples);
+            font-size: 0.75rem;
+            background-color: rgb(62, 73, 93, 40%);
+            font-weight: bold;
+            border-radius: 12rem;
+            padding: 0rem 1rem;
+
+        }
+
+    }
+
+    .informacoesDivida {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 40%;
+
+        h2 {
+            color: var(--cor-titulo);
+            font-size: 1.5rem;
+
+        }
+
+    }
+
+}

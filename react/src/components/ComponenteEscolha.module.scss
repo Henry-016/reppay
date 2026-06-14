@@ -1,0 +1,45 @@
+.componente_escolha {
+    width: 24.188rem;
+    height: 21rem;
+    background-color: var(--cor-fundo-modal);
+    border: 0.125rem solid #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    padding: 1rem;
+    border-radius: 0.75rem;
+
+    .imagem {
+        width: 5rem;
+        height: 5rem;
+
+    }
+
+    h2 {
+        color: var(--cor-titulo);
+        font-size: 1.5rem;
+
+    }
+
+    p {
+        color: var(--cor-texto-simples);
+        font-size: 0.875rem;
+
+    }
+
+    button {
+        background-color: var(--cor-azul-claro);
+        border: none;
+        cursor: pointer;
+        width: 20.063rem;
+        height: 2.5rem;
+        font-size: 0.875rem;
+        color: #000000;
+        border-radius: 0.5rem;
+        font-weight: bold;
+
+    }
+
+}

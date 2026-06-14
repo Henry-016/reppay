@@ -1,0 +1,104 @@
+.componente_card {
+    width: calc((100% - 2.375rem) / 3);
+    height: 26.75rem;
+    border: 0.188rem solid rgb(51, 65, 85, 50%);
+    border-radius: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgb(30, 41, 59, 70%);
+
+    .imagem {
+        height: 12rem;
+        width: 100%;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        display: flex;
+        justify-content: flex-end;
+        padding: 0.75rem;   
+        border-top-right-radius: 0.75rem;
+        border-top-left-radius: 0.75rem;
+        flex-shrink: 0;
+
+        .admin {
+            width: 8.339rem;
+            height: 1.625rem;
+            background-color: rgb(0, 229, 255, 20%);
+            border: 0.063rem solid rgb(0, 229, 255, 30%);
+            border-radius: 0.813rem;
+
+            p {
+                font-size: 0.75rem;
+                color: #00E5FF;
+
+            }
+
+        }
+
+        .morador {
+            width: 8.339rem;
+            height: 1.625rem;
+            background-color: rgb(62, 73, 93, 50%);
+            border: 0.063rem solid rgb(188, 199, 222, 30%);
+            border-radius: 0.813rem;
+
+            p {
+                font-size: 0.75rem;
+                color: #BCC7DE;
+
+            }
+
+        }
+
+    }
+
+    .conteudo {
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+
+        .texto {
+            width: 100%;
+            height: 9rem;
+
+            h2 {
+                font-size: 1.5rem;
+                color: var(--cor-titulo);
+                text-align: center;
+                width: 100%;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                
+
+            }
+
+            p {
+                font-size: 0.875rem;
+                color: var(--cor-texto-simples);
+                overflow: hidden;
+                text-overflow: ellipsis;
+
+            }
+
+        }
+
+        button {
+            width: 100%;
+            height: 2.625rem;
+            background-color: var(--cor-azul-claro);
+            color: #00626E;
+            font-size: 0.875rem;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            border-radius: 0.5rem;
+
+        }
+
+    }
+
+}
