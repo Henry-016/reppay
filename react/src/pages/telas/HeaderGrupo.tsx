@@ -9,7 +9,7 @@ interface ModalProps {
 
 }
 
-function HeaderGrupo( {nome, imagem, tipo, nome_grupo}: ModalProps ) {
+function HeaderGrupo( {nome, tipo, nome_grupo}: ModalProps ) {
 
     return (
         <>

@@ -22,12 +22,12 @@ namespace RepPay.API.Services
 
             if (grupo == null || grupo.IdAdmin != idLogado)
             {
-                throw new UnauthorizedAccessException("Acesso negado. Apenas o administrador pode lançar despesas.");
+                throw new UnauthorizedAccessException("Acesso negado. Apenas o administrador pode lanï¿½ar despesas.");
             }
 
             if (request.MoradoresIds == null || request.MoradoresIds.Count == 0)
             {
-                throw new Exception("É necessário selecionar pelo menos um morador para dividir esta conta.");
+                throw new Exception("ï¿½ necessï¿½rio selecionar pelo menos um morador para dividir esta conta.");
             }
 
             var moradoresValidos = _context.Pertences
@@ -37,7 +37,7 @@ namespace RepPay.API.Services
 
             if (moradoresValidos.Count != request.MoradoresIds.Count)
             {
-                throw new Exception("Um ou mais moradores informados não existem ou não pertencem a esta república.");
+                throw new Exception("Um ou mais moradores informados nï¿½o existem ou nï¿½o pertencem a esta repï¿½blica.");
             }
 
             var novaDespesa = new Despesa
@@ -66,7 +66,7 @@ namespace RepPay.API.Services
             _context.Despesas.Add(novaDespesa);
             _context.SaveChanges();
 
-            return "Despesa lançada e rateio gerado com sucesso!";
+            return "Despesa lanï¿½ada e rateio gerado com sucesso!";
         }
 
         public ResumoDividasDTO GetMinhasDividas(int idLogado, int idGrupo)
@@ -101,7 +101,7 @@ namespace RepPay.API.Services
 
             if (grupo == null)
             {
-                throw new KeyNotFoundException("Grupo não encontrado.");
+                throw new KeyNotFoundException("Grupo nï¿½o encontrado.");
             }
 
             if (grupo.IdAdmin != idLogado)
@@ -141,24 +141,24 @@ namespace RepPay.API.Services
 
             if (parcela == null)
             {
-                throw new KeyNotFoundException("Parcela não encontrada.");
+                throw new KeyNotFoundException("Parcela nï¿½o encontrada.");
             }
 
             if (parcela.IdUsuario != idLogado)
             {
-                throw new UnauthorizedAccessException("Não tem permissão para alterar uma dívida que não lhe pertence!");
+                throw new UnauthorizedAccessException("Nï¿½o tem permissï¿½o para alterar uma dï¿½vida que nï¿½o lhe pertence!");
             }
 
             if (parcela.Status == StatusParcela.PAGO)
             {
-                throw new Exception("Esta parcela já se encontra paga.");
+                throw new Exception("Esta parcela jï¿½ se encontra paga.");
             }
 
             parcela.Status = StatusParcela.EM_ANALISE;
             parcela.DataPagamento = DateOnly.FromDateTime(DateTime.UtcNow);
             _context.SaveChanges();
 
-            return "Pagamento sinalizado! Aguardando validação do administrador.";
+            return "Pagamento sinalizado! Aguardando validaï¿½ï¿½o do administrador.";
         }
 
         public string DesfazerPagamento(int idLogado, int idParcela)
@@ -167,24 +167,24 @@ namespace RepPay.API.Services
 
             if (parcela == null)
             {
-                throw new KeyNotFoundException("Parcela não encontrada.");
+                throw new KeyNotFoundException("Parcela nï¿½o encontrada.");
             }
 
             if (parcela.IdUsuario != idLogado)
             {
-                throw new UnauthorizedAccessException("Não tem permissão para alterar uma dívida que não lhe pertence!");
+                throw new UnauthorizedAccessException("Nï¿½o tem permissï¿½o para alterar uma dï¿½vida que nï¿½o lhe pertence!");
             }
 
             if (parcela.Status != StatusParcela.EM_ANALISE)
             {
-                throw new Exception("Só é possível desfazer pagamentos que ainda estão em análise.");
+                throw new Exception("Sï¿½ ï¿½ possï¿½vel desfazer pagamentos que ainda estï¿½o em anï¿½lise.");
             }
 
             parcela.DataPagamento = null;
             parcela.Status = StatusParcela.PENDENTE;
             _context.SaveChanges();
 
-            return "Sinalização de pagamento desfeita com sucesso.";
+            return "Sinalizaï¿½ï¿½o de pagamento desfeita com sucesso.";
         }
 
         public string ValidarPagamento(int idLogado, int idParcela, ValidarPagamentoRequestDTO request)
@@ -196,7 +196,7 @@ namespace RepPay.API.Services
 
             if (parcela == null)
             {
-                throw new KeyNotFoundException("Parcela não encontrada.");
+                throw new KeyNotFoundException("Parcela nï¿½o encontrada.");
             }
 
             if (parcela.IdDespesaNavigation.IdGrupoNavigation.IdAdmin != idLogado)
@@ -206,7 +206,7 @@ namespace RepPay.API.Services
 
             if (parcela.Status != StatusParcela.EM_ANALISE)
             {
-                throw new Exception("Esta parcela não está aguardando validação.");
+                throw new Exception("Esta parcela nï¿½o estï¿½ aguardando validaï¿½ï¿½o.");
             }
 
             if (request.Aprovado)
@@ -228,7 +228,7 @@ namespace RepPay.API.Services
             }
 
             _context.SaveChanges();
-            return request.Aprovado ? "Pagamento aprovado com sucesso! A parcela foi quitada." : "Pagamento rejeitado. A dívida voltou para o morador.";
+            return request.Aprovado ? "Pagamento aprovado com sucesso! A parcela foi quitada." : "Pagamento rejeitado. A dï¿½vida voltou para o morador.";
         }
 
         public List<HistoricoPagoResponseDTO> GetMeuHistoricoPago(int idLogado)
@@ -255,12 +255,12 @@ namespace RepPay.API.Services
 
             if (grupo == null)
             {
-                throw new KeyNotFoundException("Grupo não encontrado.");
+                throw new KeyNotFoundException("Grupo nï¿½o encontrado.");
             }
 
             if (grupo.IdAdmin != idLogado)
             {
-                throw new UnauthorizedAccessException("Apenas o administrador pode ver o histórico financeiro global.");
+                throw new UnauthorizedAccessException("Apenas o administrador pode ver o histï¿½rico financeiro global.");
             }
 
             return _context.Parcelas
@@ -305,12 +305,12 @@ namespace RepPay.API.Services
 
             if (grupo == null)
             {
-                throw new KeyNotFoundException("Grupo não encontrado.");
+                throw new KeyNotFoundException("Grupo nï¿½o encontrado.");
             }
 
             if (grupo.IdAdmin != idLogado)
             {
-                throw new UnauthorizedAccessException("Apenas o administrador pode ver as validações pendentes.");
+                throw new UnauthorizedAccessException("Apenas o administrador pode ver as validaï¿½ï¿½es pendentes.");
             }
 
             return _context.Parcelas
@@ -339,24 +339,24 @@ namespace RepPay.API.Services
 
             if (parcela == null)
             {
-                throw new KeyNotFoundException("Parcela não encontrada.");
+                throw new KeyNotFoundException("Parcela nï¿½o encontrada.");
             }
 
             if (parcela.IdDespesaNavigation.IdGrupoNavigation.IdAdmin != idLogado)
             {
-                throw new UnauthorizedAccessException("Acesso negado. Apenas o administrador da república pode quitar dívidas administrativamente.");
+                throw new UnauthorizedAccessException("Acesso negado. Apenas o administrador da repï¿½blica pode quitar dï¿½vidas administrativamente.");
             }
 
             if (parcela.Status == StatusParcela.PAGO)
             {
-                throw new Exception("Esta parcela já está paga e não precisa de intervenção.");
+                throw new Exception("Esta parcela jï¿½ estï¿½ paga e nï¿½o precisa de intervenï¿½ï¿½o.");
             }
 
             parcela.Status = StatusParcela.PAGO;
             parcela.DataPagamento = DateOnly.FromDateTime(DateTime.UtcNow);
             _context.SaveChanges();
 
-            return "Dívida quitada administrativamente com sucesso! O histórico do morador foi limpo para esta conta.";
+            return "Dï¿½vida quitada administrativamente com sucesso! O histï¿½rico do morador foi limpo para esta conta.";
         }
 
         public string EditarDespesa(int idLogado, int idDespesa, DespesaRequestDTO request)
@@ -367,7 +367,7 @@ namespace RepPay.API.Services
 
             if (despesa == null)
             {
-                throw new KeyNotFoundException("Despesa não encontrada.");
+                throw new KeyNotFoundException("Despesa nï¿½o encontrada.");
             }
 
             if (despesa.IdGrupoNavigation.IdAdmin != idLogado)
@@ -387,7 +387,7 @@ namespace RepPay.API.Services
             }
             catch (Exception)
             {
-                throw new Exception("Não é permitido alterar o valor ou o vencimento de uma despesa que já possui parcelas pagas ou em análise.");
+                throw new Exception("Nï¿½o ï¿½ permitido alterar o valor ou o vencimento de uma despesa que jï¿½ possui parcelas pagas ou em anï¿½lise.");
             }
         }
 
@@ -399,7 +399,7 @@ namespace RepPay.API.Services
 
             if (despesa == null)
             {
-                throw new KeyNotFoundException("Despesa não encontrada.");
+                throw new KeyNotFoundException("Despesa nï¿½o encontrada.");
             }
 
             if (despesa.IdGrupoNavigation.IdAdmin != idLogado)
@@ -416,7 +416,7 @@ namespace RepPay.API.Services
             }
             catch (Exception)
             {
-                throw new Exception("Não é possível deletar uma despesa que ainda possui parcelas pagas!");
+                throw new Exception("Nï¿½o ï¿½ possï¿½vel deletar uma despesa que ainda possui parcelas pagas!");
             }
         }
     }

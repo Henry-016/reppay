@@ -8,6 +8,7 @@ import { useParams } from 'react-router-dom'
 import calendario from './../../assets/calendario.svg'
 import { useAuth } from './../../context/AuthContext'
 import { grupoService } from '../../services/grupoService'
+import { despesaService } from '../../services/despesaService'
 
 interface DadosGrupo {
     idGrupo: number
@@ -26,6 +27,38 @@ interface ProximaConta {
 
 }
 
+interface MinhasDividas {
+    idParcela: number
+    nomeDespesa: string
+    icone: string
+    valor: number
+    vencimento: string
+    status: string
+    nomeMorador: string
+
+}
+
+interface Analise {
+    idParcela: number
+    nomeMorador: string
+    nomeDespesa: string
+    icone: string
+    valor: number
+    dataSinalizacao: string
+
+}
+
+interface Pago {
+    idParcela: number
+    nomeMorador: string
+    nomeDespesa: string
+    icone: string
+    valorPago: number
+    dataPagamento: string
+    vencimento: string
+
+}
+
 function Morador() {
 
     const navigate = useNavigate()
@@ -34,6 +67,9 @@ function Morador() {
     const [grupo, setGrupo] = useState<DadosGrupo | null>(null)
     const [minhaDivida, setMinhaDivida] = useState<number>(0)
     const [proximaConta, setProximaConta] = useState<ProximaConta>()
+    const [emAnalise, setEmAnalise] = useState<Analise[]>([])
+    const [pendentes, setPendentes] = useState<MinhasDividas[]>([])
+    const [historicoPago, setHistoricoPago] = useState<Pago[]>([])
 
     const nome = localStorage.getItem('nomeUsuario');
 
@@ -56,19 +92,16 @@ function Morador() {
             
             setGrupo(dadosGrupo)
                 
-                const [dadosMinhasDividas, dadosProximaConta, dadosAnalises, dadosHistorico, dadosMoradores] = await Promise.all([
+                const [dadosMinhasDividas, dadosProximaConta, dadosAnalises, dadosHistorico] = await Promise.all([
                 despesaService.buscarMinhasDividas(idGrupo, token),
                 grupoService.buscarProximaConta(idGrupo, token),
                 despesaService.buscarAnalises(idGrupo, token),
-                despesaService.buscarHistorico(idGrupo, token),
-                grupoService.buscarMoradores(idGrupo, token)
+                despesaService.buscarHistorico(idGrupo, token)
             ])
 
-                setInadimplentes(dadosInadimplentes.listaInadimplentes)
-                setTotalReceber(dadosInadimplentes.totalAReceber)
-                setMoradores(dadosMoradores)
                 setMinhaDivida(dadosMinhasDividas.totalDevido)
                 setProximaConta(dadosProximaConta)
+                setPendentes(dadosMinhasDividas.listaDividas)
                 setEmAnalise(dadosAnalises.listaAnalises)
                 setHistoricoPago(dadosHistorico.listaHistorico)
 
@@ -76,6 +109,7 @@ function Morador() {
 
             if (idGrupo) {
                 buscarDadosDoGrupo();
+
             }
 
     }
