@@ -2,6 +2,7 @@ import { useState} from 'react'
 import styles from './Cadastro.module.scss'
 import Modal_FeedBack_ContaCriada from './../modais/Modal_FeedBack_ContaCriada'
 import { useNavigate } from 'react-router-dom'
+import { usuarioService } from '../../services/usuarioService'
 
 function Cadastro() {
     const [nome, setNome] = useState('')
@@ -43,22 +44,13 @@ function Cadastro() {
         }
 
         try {
-            const resposta = await fetch('http://localhost:5149/api/Usuario', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(dadosDoUsuario)
-            })
+            await usuarioService.cadastrar(dadosDoUsuario);
+            setModal(true)
+            
+        } catch (erro: any) {
+            console.error(erro);
+            alert(erro.message || 'Erro ao conectar com o servidor.')
 
-            if (resposta.ok) {
-                setModal(true)
-            } else {
-                alert('Falha ao realizar o cadastro. Verifique as informações.')
-            }
-
-        } catch (erro) {
-            alert('Erro ao conectar com o servidor. Verifique se o backend está rodando.')
         }
     }  
 

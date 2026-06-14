@@ -6,6 +6,7 @@ import Modal_EscolhaCriarEntrar from './../modais/Modal_EscolhaCriarEntrar'
 import CardGrupo from './../../components/CardGrupo'
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './../../context/AuthContext'
+import { grupoService } from '../../services/grupoService'
 
 interface GrupoUsuario {
     idGrupo: number;
@@ -31,25 +32,19 @@ function HomeGeral() {
 
         if (!token) return;
 
-        const buscarGrupos = async () => {
+        const carregarGrupos = async () => {
             try {
-                const resposta = await fetch('http://localhost:5149/api/Grupo/Meus', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+                const dados = await grupoService.buscarGrupos(token)
+                setGrupos(dados)
 
-                if (resposta.ok) {
-                    const dados = await resposta.json();
-                    setGrupos(dados)
-                }
             } catch (error) {
-                console.error(error)
-            }
-        };
+                console.error("Erro ao carregar grupos:", error)
 
-        buscarGrupos();
+            }
+        }
+    
+        carregarGrupos()
+
     }, [token]);
 
     return (

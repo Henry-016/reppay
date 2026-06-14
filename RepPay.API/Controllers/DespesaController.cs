@@ -53,7 +53,7 @@ namespace RepPay.API.Controllers
             catch (Exception ex) { return BadRequest(new { mensagem = ex.Message }); }
         }
 
-        [HttpGet("MinhasDividas")]
+        [HttpGet("MinhasDividas/{idGrupo}")]
         public IActionResult GetMinhasDividas(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
