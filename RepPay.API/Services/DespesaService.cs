@@ -69,11 +69,12 @@ namespace RepPay.API.Services
             return "Despesa lançada e rateio gerado com sucesso!";
         }
 
-        public ResumoDividasDTO GetMinhasDividas(int idLogado)
+        public ResumoDividasDTO GetMinhasDividas(int idLogado, int idGrupo)
         {
             var dividas = _context.Parcelas
                 .Include(p => p.IdDespesaNavigation)
-                .Where(p => p.IdUsuario == idLogado && p.IdDespesaNavigation.Ativo == true && p.IdDespesaNavigation.IdGrupoNavigation.Ativo == true
+                .Where(p => p.IdUsuario == idLogado && p.IdDespesaNavigation.IdGrupo == idGrupo
+                         && p.IdDespesaNavigation.Ativo == true && p.IdDespesaNavigation.IdGrupoNavigation.Ativo == true
                          && (p.Status == StatusParcela.PENDENTE || p.Status == StatusParcela.ATRASADO))
                 .Select(p => new MinhaDividaResponseDTO
                 {

@@ -24,7 +24,12 @@ namespace RepPay.API.Controllers
         private int? ObterIdUsuarioLogado()
         {
             var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(usuarioIdClaim)) return null;
+
+            if (string.IsNullOrEmpty(usuarioIdClaim))
+            {
+                return null;
+            }
+
             return int.Parse(usuarioIdClaim);
         }
 
@@ -32,27 +37,38 @@ namespace RepPay.API.Controllers
         public IActionResult CadastrarDespesa([FromBody] DespesaRequestDTO request)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
 
             try
             {
                 var mensagem = _despesaService.CadastrarDespesa(idLogado.Value, request);
                 return Created("", new { mensagem });
             }
+
             catch (UnauthorizedAccessException ex) { return StatusCode(403, new { mensagem = ex.Message }); }
             catch (Exception ex) { return BadRequest(new { mensagem = ex.Message }); }
         }
 
         [HttpGet("MinhasDividas")]
-        public IActionResult GetMinhasDividas()
+        public IActionResult GetMinhasDividas(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
 
-            var resultado = _despesaService.GetMinhasDividas(idLogado.Value);
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
+
+            var resultado = _despesaService.GetMinhasDividas(idLogado.Value, idGrupo);
 
             if (!resultado.ListaDividas.Any())
+            {
                 return Ok(new { mensagem = "Você não tem dívidas pendentes! Tudo em paz.", dividas = resultado.ListaDividas });
+            }
 
             return Ok(resultado);
         }
@@ -61,14 +77,20 @@ namespace RepPay.API.Controllers
         public IActionResult GetInadimplentes(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
 
             try
             {
                 var resultado = _despesaService.GetInadimplentes(idLogado.Value, idGrupo);
 
                 if (!resultado.ListaInadimplentes.Any())
+                {
                     return Ok(new { mensagem = "Nenhum morador tem dívidas neste grupo. Tudo perfeito!", listaInadimplentes = resultado.ListaInadimplentes });
+                }
 
                 return Ok(resultado);
             }
@@ -80,7 +102,11 @@ namespace RepPay.API.Controllers
         public IActionResult PagarParcela(int idParcela)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
 
             try
             {
@@ -96,7 +122,11 @@ namespace RepPay.API.Controllers
         public IActionResult DesfazerPagamento(int idParcela)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
 
             try
             {
@@ -112,7 +142,11 @@ namespace RepPay.API.Controllers
         public IActionResult ValidarPagamento(int idParcela, [FromBody] ValidarPagamentoRequestDTO request)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
 
             try
             {
@@ -128,11 +162,18 @@ namespace RepPay.API.Controllers
         public IActionResult GetMeuHistoricoPago()
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
 
             var historico = _despesaService.GetMeuHistoricoPago(idLogado.Value);
+
             if (!historico.Any())
+            {
                 return Ok(new { mensagem = "Você ainda não possui pagamentos registrados no histórico.", historicoPago = historico });
+            }
 
             return Ok(historico);
         }
@@ -141,13 +182,20 @@ namespace RepPay.API.Controllers
         public IActionResult GetHistoricoPagoGrupo(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
 
             try
             {
                 var historico = _despesaService.GetHistoricoPagoGrupo(idLogado.Value, idGrupo);
+
                 if (!historico.Any())
+                {
                     return Ok(new { mensagem = "Nenhum histórico de pagamento registrado neste grupo.", listaHistorico = historico });
+                }
 
                 return Ok(new { listaHistorico = historico });
             }
@@ -159,11 +207,18 @@ namespace RepPay.API.Controllers
         public IActionResult GetMinhasAnalises()
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
 
             var analises = _despesaService.GetMinhasAnalises(idLogado.Value);
+
             if (!analises.Any())
+            {
                 return Ok(new { mensagem = "Nenhum pagamento em análise no momento.", listaAnalises = analises });
+            }
 
             return Ok(new { listaAnalises = analises });
         }
@@ -172,13 +227,20 @@ namespace RepPay.API.Controllers
         public IActionResult GetAnalisesPendentesGrupo(int idGrupo)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
 
             try
             {
                 var analises = _despesaService.GetAnalisesPendentesGrupo(idLogado.Value, idGrupo);
+
                 if (!analises.Any())
+                {
                     return Ok(new { mensagem = "Nenhuma validação pendente. Tudo atualizado!", listaAnalises = analises });
+                }
 
                 return Ok(new { listaAnalises = analises });
             }
@@ -190,7 +252,11 @@ namespace RepPay.API.Controllers
         public IActionResult QuitarDividaAdmin(int idParcela)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
 
             try
             {
@@ -206,7 +272,11 @@ namespace RepPay.API.Controllers
         public IActionResult EditarDespesa(int idDespesa, [FromBody] DespesaRequestDTO request)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
 
             try
             {
@@ -222,7 +292,11 @@ namespace RepPay.API.Controllers
         public IActionResult DeletarDespesa(int idDespesa)
         {
             int? idLogado = ObterIdUsuarioLogado();
-            if (idLogado == null) return Unauthorized(new { mensagem = "Usuário não autenticado." });
+
+            if (idLogado == null)
+            {
+                return Unauthorized(new { mensagem = "Usuário não autenticado." });
+            }
 
             try
             {

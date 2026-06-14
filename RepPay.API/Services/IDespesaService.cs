@@ -6,7 +6,7 @@ namespace RepPay.API.Services
     public interface IDespesaService
     {
         string CadastrarDespesa(int idLogado, DespesaRequestDTO request);
-        ResumoDividasDTO GetMinhasDividas(int idLogado);
+        ResumoDividasDTO GetMinhasDividas(int idLogado, int idGrupo);
         ResumoInadimplentesDTO GetInadimplentes(int idLogado, int idGrupo);
         string PagarParcela(int idLogado, int idParcela);
         string DesfazerPagamento(int idLogado, int idParcela);

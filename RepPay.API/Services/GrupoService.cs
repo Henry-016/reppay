@@ -145,7 +145,7 @@ namespace RepPay.API.Services
                     IdUsuario = p.IdUsuario,
                     Nome = p.IdUsuarioNavigation.Nome,
                     Email = p.IdUsuarioNavigation.Email,
-                    FotoPerfil = p.IdUsuarioNavigation.FotoPerfil,
+                    // FotoPerfil = p.IdUsuarioNavigation.FotoPerfil,
                     IsAdmin = p.IdUsuario == grupo.IdAdmin,
 
                     TotalDevido = _context.Parcelas
