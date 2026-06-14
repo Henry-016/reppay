@@ -49,21 +49,19 @@ CREATE TABLE despesa (
     vencimento DATE NOT NULL, 
     nome VARCHAR(255) NOT NULL,
     valor DECIMAL(10,2) NOT NULL CHECK (valor > 0),
-    icone VARCHAR(500),
+    icone text,
     status VARCHAR(20) NOT NULL DEFAULT 'ATIVA',
     ativo BOOLEAN NOT NULL DEFAULT TRUE,
     id_grupo INT NOT NULL REFERENCES grupo(id_grupo) ON DELETE CASCADE,
     CONSTRAINT chk_status_despesa CHECK (status IN ('ATIVA', 'QUITADA'))
 );
 
--- Tabela Associativa de Moradores
 CREATE TABLE pertence (
     id_usuario INT NOT NULL REFERENCES usuario(id_usuario) ON DELETE RESTRICT,
     id_grupo INT NOT NULL REFERENCES grupo(id_grupo) ON DELETE CASCADE,
     PRIMARY KEY (id_usuario, id_grupo)
 );
 
--- Tabela de Parcelas (Rateio Individual com status EM_ANALISE)
 CREATE TABLE parcela (
     id_parcela SERIAL PRIMARY KEY,
     valor DECIMAL(10,2) NOT NULL CHECK (valor > 0),
