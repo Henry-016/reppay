@@ -19,6 +19,7 @@ import key from './../../assets/key.svg'
 import { useAuth } from './../../context/AuthContext'
 import { grupoService } from './../../services/grupoService'
 import { despesaService } from './../../services/despesaService'
+import { utilitarios } from '../../services/utilitariosService'
 
 interface DadosGrupo {
     idGrupo: number
@@ -137,7 +138,7 @@ function Admin() {
 
         }
 
-        if (idGrupo) buscarDadosDoGrupo();
+        if (idGrupo) buscarDadosDoGrupo()
     }, [idGrupo, modal, atualizarDados, loading, token])
 
     const sinalizarPagamento = async (id: number) => {
@@ -167,11 +168,7 @@ function Admin() {
             console.error(error);
             
         }
-    };
-
-    const copiarParaAreaDeTransferencia = async () => {
-        if (grupo) await navigator.clipboard.writeText(grupo.codigoAcesso);
-    };
+    }
 
     return (
         <>
@@ -204,12 +201,12 @@ function Admin() {
                             <div className={styles.informacaoPrincipal}>
                                 <div className={styles.dividaTotal}>
                                     <p>DÍVIDA TOTAL DA REPÚBLICA</p>
-                                    <h2>R$ {totalReceber}</h2>
+                                    <h2>{utilitarios.formatarValor(totalReceber)}</h2>
                                 </div>
                                 <div className={styles.despesasRepublicaBottom}>
                                     <div className={styles.dividaIndividual}>
                                         <p>Sua parte individual</p>
-                                        <h2>R$ {minhaDivida}</h2>
+                                        <h2>{utilitarios.formatarValor(minhaDivida)}</h2>
                                     </div>
                                     <div className={styles.vencimento}>
                                         <p>Próximo Vencimento</p>
@@ -361,7 +358,7 @@ function Admin() {
                             <div className={styles.containerMoradores}>
                                 <div className={styles.containerMembrosDoGrupo}>
                                     <h2>Membros do Grupo</h2>
-                                    <p>Membros</p>
+                                    <p>{moradores.length} Membros</p>
                                 </div>
                                 <div className={styles.colunasMoradores}>
                                     <p className={`${styles.coluna} ${styles.colunaMorador}`}>MORADOR</p>
@@ -387,7 +384,7 @@ function Admin() {
                                 </div>
                                 <div className={styles.codigoCopiar}>
                                     <h2>{grupo?.codigoAcesso || ''}</h2>
-                                    <button onClick={() => copiarParaAreaDeTransferencia()} className={styles.copiar}>Copiar</button>
+                                    <button onClick={() => utilitarios.copiarParaAreaDeTransferencia(grupo)} className={styles.copiar}>Copiar</button>
                                 </div>
                                 <p>Compartilhe este código para convidar novos moradores ao seu grupo.</p>
                             </div>

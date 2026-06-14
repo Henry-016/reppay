@@ -1,9 +1,9 @@
 import styles from './ParcelaPendente.module.scss'
+import { utilitarios } from '../services/utilitariosService'
 
 interface ComponentProps {
     icone: string
     nomeDespesa: string
-    nomeMorador: string
     valor: number
     dataPago: string
 
@@ -22,7 +22,7 @@ function ParcelaPagoIndividual( {icone, dataPago, nomeDespesa, valor}: Component
                     </div>
                 </div>
                 <div className={styles.containerEsquerda}>
-                    <h2>R$ {valor}</h2>
+                    <h2>{utilitarios.formatarValor(valor)}</h2>
                 </div>   
             </section>
         

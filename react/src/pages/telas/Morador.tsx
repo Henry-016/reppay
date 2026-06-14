@@ -13,6 +13,9 @@ import ParcelaPagoIndividual from '../../components/ParcelaPagoIndividual'
 import ParcelaPendenteIndividual from '../../components/ParcelaPendenteIndividual'
 import ParcelaAnaliseIndividual from './../../components/ParcelaAnaliseIndividual'
 import ModalConfirmacao from '../modais/ModalConfirmacao'
+import ModalSucesso from '../modais/ModalSucesso'
+import desfazer from './../../assets/desfazer.svg'
+import { utilitarios } from '../../services/utilitariosService'
 
 interface DadosGrupo {
     idGrupo: number
@@ -77,6 +80,7 @@ function Morador() {
     const [abaAtiva, setAbaAtiva] = useState<number>(1)
     const [parcelaParaConfirmar, setParcelaParaConfirmar] = useState<number | null>(null)
     const [parcelaParaDesfazer, setParcelaParaDesfazer] = useState<number | null>(null)
+    const [modalAviso, setModalAviso] = useState<boolean>(false)
 
     const { usuario, loading } = useAuth()
     const nome = usuario?.nome
@@ -86,6 +90,8 @@ function Morador() {
     const { token } = useAuth()
 
     useEffect(() => {
+
+        if (loading) return
         
         const buscarDadosDoGrupo = async () => {
             
@@ -103,8 +109,8 @@ function Morador() {
                     const [dadosMinhasDividas, dadosProximaConta, dadosAnalises, dadosHistorico] = await Promise.all([
                     despesaService.buscarMinhasDividas(idGrupo, token),
                     grupoService.buscarProximaConta(idGrupo, token),
-                    despesaService.buscarAnalisesIndividuais(token),
-                    despesaService.buscarHistoricoIndividuais(token)
+                    despesaService.buscarAnalisesIndividuais(idGrupo, token),
+                    despesaService.buscarHistoricoIndividuais(idGrupo, token)
                 ])
 
                     setMinhaDivida(dadosMinhasDividas.totalDevido)
@@ -120,14 +126,10 @@ function Morador() {
 
             }
 
-            if (idGrupo) {
-                buscarDadosDoGrupo();
+        }
+        if (idGrupo) buscarDadosDoGrupo()
 
-            }
-
-    }
-
-    }, [idGrupo, atualizarDados])
+    }, [idGrupo, atualizarDados, token, loading])
 
     const sinalizarPagamento = async (id: number) => {
         try {
@@ -139,6 +141,21 @@ function Morador() {
         } catch (error) {
             console.error("Falha ao sinalizar:", error)
 
+        }
+
+    }
+
+    const desfazerPagamento = async (id: number) => {
+        try {
+            const mensagem = await despesaService.desfazerPagamento(id, token!);
+            
+            setAtualizarDados(prev => prev + 1);
+            alert(mensagem);
+            
+            setParcelaParaDesfazer(null);
+        } catch (error: any) {
+            console.error(error);
+            
         }
 
     }
@@ -165,17 +182,19 @@ function Morador() {
                 <div className={styles.principal}>
                     <HeaderGrupo nome={nome || 'Usuário'} tipo={grupo?.isAdmin ? 'ADMINISTRADOR' : 'MORADOR'} nome_grupo={grupo?.nome || 'Republica'} />
                     <div className={styles.conteudo}>
-                        <div className={styles.containerDevedor}>
-                            <p>SEU SALDO DEVEDOR</p>
-                            <h2>{minhaDivida}</h2>
-                        </div>
-                        <div className={styles.containerVencimento}>
-                            <div className={styles.proximoVencimento}>
-                                <p>Próximo Vencimento</p>
-                                <img src={calendario} className={styles.calendario} />
+                        <div className={styles.containerInformacaoPrincipal}>
+                            <div className={styles.containerDevedor}>
+                                <p>SEU SALDO DEVEDOR</p>
+                                <h2>{utilitarios.formatarValor(minhaDivida)}</h2>
                             </div>
-                            <h2>{proximaConta.vencimento}</h2>
-                            <p>R$ {proximaConta.valor} ({proximaConta.nomeDespesa})</p>   
+                            <div className={styles.containerVencimento}>
+                                <div className={styles.proximoVencimento}>
+                                    <p>Próximo Vencimento</p>
+                                    <img src={calendario} className={styles.calendario} />
+                                </div>
+                                <h2 className={proximaConta ? styles.existe : styles.naoExiste}>{proximaConta?.vencimento || "Não há nenhuma conta próxima do vencimento!"}</h2>
+                                <p>{utilitarios.formatarValor(proximaConta?.valor || 0)} {proximaConta?.nomeDespesa || ''}</p>
+                            </div>
                         </div>
                         <div className={styles.opcoes}>
                             <button onClick={() => setAbaAtiva(1)}className={`${styles.opcao} ${abaAtiva === 1 ? styles.ativo : ''}`}>
@@ -194,7 +213,6 @@ function Morador() {
                                 {pendentes.length > 0 ? (
                                 <div className={styles.contas}>
                                     {pendentes.map((parcela) => {
-                                        const eminhadivida = parcela.nomeMorador === nome
                                     
                                         return (
 
@@ -227,7 +245,7 @@ function Morador() {
                                                 key={parcela.idParcela} 
                                                 icone={parcela.icone} 
                                                 nomeDespesa={parcela.nomeDespesa}
-                                                valor={parcela.valor} onClick={() => setParcelaParaAceitar(parcela.idParcela)}
+                                                valor={parcela.valor} onClick={() => setModalAviso(true)}
                                                 onCancel={() => setParcelaParaDesfazer(parcela.idParcela)}
                                                 dataSinalizacao={parcela.dataSinalizacao}
                                             />
@@ -249,12 +267,11 @@ function Morador() {
                                     
                                         return (
 
-                                            <ParcelaPago 
+                                            <ParcelaPagoIndividual 
                                                 key={parcela.idParcela} 
                                                 icone={parcela.icone} 
                                                 nomeDespesa={parcela.nomeDespesa}
                                                 valor={parcela.valorPago} 
-                                                nomeMorador={parcela.nomeMorador}
                                                 dataPago={parcela.dataPagamento}
                                             />
                                         )})}
@@ -279,15 +296,17 @@ function Morador() {
                             />
 
                             <ModalConfirmacao 
-                                texto={'Você tem certeza que deseja desfazar a validação deste pagamento? Após confirmar, não será mais possível reverter!'}
+                                texto={'Você tem certeza que deseja desfazer a validação deste pagamento? Após confirmar, não será mais possível reverter!'}
                                 isOpen={parcelaParaDesfazer !== null} 
                                 onClose={() => setParcelaParaDesfazer(null)} 
                                 onClick={() => {
                                     if (parcelaParaDesfazer !== null) {
-                                        desfazerPagamento(parcelaParaDesfazer, true);
+                                        desfazerPagamento(parcelaParaDesfazer)
                                     }
                                 }}
                             />
+
+                            <ModalSucesso isOpen={modalAviso} onClose={() => setModalAviso(false)} titulo={'Aguardando Validação!'} texto={'Essa despesa está aguardando a validaçãodo administrador responsável! Basta aguardar.'} imagem={desfazer} />
 
                     </div>
 

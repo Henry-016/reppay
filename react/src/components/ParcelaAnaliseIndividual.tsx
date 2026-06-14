@@ -1,11 +1,9 @@
-import styles from './ParcelaAnalise.module.scss'
-import confirm from './../assets/confirm.svg'
-import cancel from './../assets/cancel.svg'
+import styles from './ParcelaAnaliseIndividual.module.scss'
+import { utilitarios } from '../services/utilitariosService'
 
 interface ComponentProps {
     icone: string
     nomeDespesa: string
-    nomeMorador: string
     valor: number
     dataSinalizacao: string
     onClick: () => void
@@ -26,12 +24,12 @@ function ComponenteEscolha( {icone, nomeDespesa, valor, dataSinalizacao, onClick
                     </div>
                 </div>
                 <div className={styles.containerEsquerda}>
-                    <h2>R$ {valor}</h2>
+                    <h2>{utilitarios.formatarValor(valor)}</h2>
                     <div className={styles.analiseBotoes}>
-                        <button className={styles.emAnalise}>
+                        <button onClick={onClick} className={styles.emAnalise}>
                             Em Análise
                         </button>
-                        <button className={styles.desfazer}>
+                        <button onClick={onCancel} className={styles.desfazer}>
                             Desfazer
                         </button>
                     </div>

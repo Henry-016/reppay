@@ -1,4 +1,5 @@
 import styles from './ParcelaPendente.module.scss'
+import { utilitarios } from '../services/utilitariosService'
 
 interface ComponentProps {
     icone: string
@@ -22,7 +23,7 @@ function ParcelaPendenteIndividual( {icone, vencimento, nomeDespesa, valor, onCl
                     </div>
                 </div>
                 <div className={styles.containerEsquerda}>
-                    <h2>R$ {valor}</h2>
+                    <h2>{utilitarios.formatarValor(valor)}</h2>
                     <button onClick={onClick}>Pagar</button>
                 </div>   
             </section>

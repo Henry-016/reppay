@@ -1,5 +1,6 @@
 import styles from './MoradorComponente.module.scss'
 import icone from './../assets/user_icon.svg'
+import { utilitarios } from '../services/utilitariosService'
 
 interface ComponentProps {
     nome: string
@@ -25,7 +26,7 @@ function MoradorComponente( {nome, email, tipo, valor}: ComponentProps ) {
                     <p className={`${tipo === 'Admin' ? styles.admin : styles.morador}`}>{tipo}</p>
                 </div>
                 <div className={styles.informacoesDivida}>
-                    <h2>R$ {valor}</h2>
+                    <h2>{utilitarios.formatarValor(valor)}</h2>
                 </div>
 
             </section>

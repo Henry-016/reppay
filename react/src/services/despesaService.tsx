@@ -146,8 +146,8 @@ export const despesaService = {
 
     },
 
-    buscarAnalisesIndividuais: async (token: string) => {
-        const res = await fetch(`http://localhost:5149/api/Despesa/MinhasAnalises`, { 
+    buscarAnalisesIndividuais: async (idGrupo: string,token: string) => {
+        const res = await fetch(`http://localhost:5149/api/Despesa/MinhasAnalises/${idGrupo}`, { 
             headers: { 
                 'Authorization': `Bearer ${token}` 
 
@@ -169,8 +169,8 @@ export const despesaService = {
 
     },
 
-    buscarHistoricoIndividuais: async (token: string) => {
-        const res = await fetch(`http://localhost:5149/api/Despesa/HistoricoPago}`, { 
+    buscarHistoricoIndividuais: async (idGrupo: string, token: string) => {
+        const res = await fetch(`http://localhost:5149/api/Despesa/HistoricoPago/${idGrupo}`, { 
             headers: { 
                 'Authorization': `Bearer ${token}` 
 
@@ -187,6 +187,24 @@ export const despesaService = {
 
         return dados
 
+    },
+
+    desfazerPagamento: async (idParcela: number, token: string) => {
+        const res = await fetch(`http://localhost:5149/api/Despesa/DesfazerSinalizacaoPagamento/${idParcela}`, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${token}` 
+            }
+        });
+    
+        const resData = await res.json().catch(() => ({}));
+    
+        if (!res.ok) {
+            throw new Error(resData.mensagem || "Erro ao desfazer a sinalização de pagamento.");
+        }
+    
+        
+        return resData.mensagem;
     }
 
 }
