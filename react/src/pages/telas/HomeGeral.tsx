@@ -28,6 +28,9 @@ function HomeGeral() {
     const navigate = useNavigate()
 
     useEffect(() => {
+
+        if (!token) return;
+
         const buscarGrupos = async () => {
             try {
                 const resposta = await fetch('http://localhost:5149/api/Grupo/Meus', {
@@ -47,7 +50,7 @@ function HomeGeral() {
         };
 
         buscarGrupos();
-    }, [grupos]);
+    }, [token]);
 
     return (
         <>

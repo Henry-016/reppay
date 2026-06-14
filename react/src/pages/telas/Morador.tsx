@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useParams } from 'react-router-dom'
 import calendario from './../../assets/calendario.svg'
+import { useAuth } from './../../context/AuthContext'
 
 interface DadosGrupo {
     idGrupo: number

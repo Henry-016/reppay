@@ -16,6 +16,9 @@ import ParcelaPago from './../../components/ParcelaPago'
 import ModalConfirmacao from '../modais/ModalConfirmacao'
 import MoradorComponente from '../../components/MoradorComponente'
 import key from './../../assets/key.svg'
+import { useAuth } from './../../context/AuthContext'
+import { grupoService } from './../../services/grupoService'
+import { despesaService } from './../../services/despesaService'
 
 interface DadosGrupo {
     idGrupo: number
@@ -96,30 +99,11 @@ function Admin() {
     const [pagina, setPagina] = useState<number>(1)
     const [moradores, setMoradores] = useState<Moradores[]>([])
     
-    const nome = localStorage.getItem('nomeUsuario');
+    const { usuario, loading } = useAuth()
 
-    const token = localStorage.getItem('token');
+    const nome = usuario?.nome
 
-    const buscarGrupo = async () => {
-        try {
-            const res = await fetch(`http://localhost:5149/api/Grupo/${idGrupo}`, { headers: { 'Authorization': `Bearer ${token}` } });
-            if (!res.ok) { navigate('/home'); return; }
-            const dados = await res.json();
-            if (!dados.isAdmin) { navigate(`/morador/${idGrupo}`); return; }
-            setGrupo(dados);
-        } catch (error) { console.error(error); }
-    };
-
-    const buscarInadimplentes = async () => {
-        try {
-            const res = await fetch(`http://localhost:5149/api/Despesa/Inadimplentes/${idGrupo}`, { headers: { 'Authorization': `Bearer ${token}` } });
-            if (res.ok) {
-                const dados = await res.json();
-                setTotalReceber(dados.totalAReceber || 0);
-                setInadimplentes(dados.listaInadimplentes || []);
-            }
-        } catch (error) { console.error(error); }
-    };
+    const { token } = useAuth()
 
     const buscarMinhasDividas = async () => {
         try {
@@ -162,28 +146,36 @@ function Admin() {
         } catch (error) { console.error(error); }
     };
 
-    const buscarMoradores = async () => {
-        try {
-            const res = await fetch(`http://localhost:5149/api/Grupo/${idGrupo}/Membros`, { headers: { 'Authorization': `Bearer ${token}` } });
-            if (res.ok) setMoradores(await res.json());
-        } catch (error) { console.error(error); }
-    };
-
     useEffect(() => {
+
+        if (loading) return
+
         const buscarDadosDoGrupo = async () => {
-            await buscarGrupo();
-            await Promise.all([
-                buscarInadimplentes(),
+            const dadosGrupo = await grupoService.buscarGrupo( idGrupo, token)
+
+            if (!dadosGrupo.isAdmin) {
+                navigate(`/morador/${idGrupo}`)
+                return;
+            }
+            
+            setGrupo(dadosGrupo)
+
+            const [dadosInadimplentes, dadosMinhasDividas, dadosProximaConta, dadosAnalises, dadosHistorico, dadosMoradores] = await Promise.all([
+                despesaService.buscarInadimplentes(idGrupo, token),
                 buscarMinhasDividas(),
                 buscarProximaConta(),
                 buscarAnalises(),
                 buscarHistorico(),
-                buscarMoradores()
-            ]);
-        };
+                grupoService.buscarMoradores(idGrupo, token)
+            ])
+
+            setInadimplentes(dadosInadimplentes.listaInadimplentes)
+            setMoradores(dadosMoradores)
+
+        }
 
         if (idGrupo) buscarDadosDoGrupo();
-    }, [idGrupo, modal, atualizarDados]);
+    }, [idGrupo, modal, atualizarDados, loading, token]);
 
     const sinalizarPagamento = async (id: number) => {
         try {
