@@ -39,10 +39,7 @@ function Login() {
             const dados = await resposta.json();
 
             if (resposta.ok) {
-
-                console.log("Valores recebidos da API:", dados);
-                console.log("Função setAuth disponível?", typeof setAuth)
-                setAuth( dados.token, { id: dados.idUsuario, nome: dados.nome} )
+                setAuth(dados.token, { id: dados.idUsuario, nome: dados.nome }, dados.refreshToken)
                 navigate('/home') 
             } else {
                 setErro(dados.mensagem || 'Erro ao realizar login. Verifique os seus dados.');

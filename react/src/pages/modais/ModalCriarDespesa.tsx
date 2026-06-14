@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom';
 import UsuarioSelecao from './../../components/UsuarioSelecao'
 import ModalSucesso from './ModalSucesso'
+import { useAuth } from './../../context/AuthContext'
 
 interface ModalProps {
     isOpen: boolean
@@ -33,9 +34,10 @@ function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
 
     const { idGrupo } = useParams<{ idGrupo: string }>()
 
+    const token = useAuth()
+
     useEffect(() => {
         const buscarMoradores = async () => {
-            const token = localStorage.getItem('token')
             try {
                 const resposta = await fetch(`http://localhost:5149/api/Grupo/${idGrupo}/Membros`, {
                     method: 'GET',
