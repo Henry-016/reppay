@@ -98,172 +98,128 @@ function Admin() {
     
     const nome = localStorage.getItem('nomeUsuario');
 
-    useEffect(() => {
-        
-        const buscarDadosDoGrupo = async () => {
-            const token = localStorage.getItem('token')
-            
-            
-            try {
-                const resposta = await fetch(`http://localhost:5149/api/Grupo/${idGrupo}`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                })
+    const token = localStorage.getItem('token');
 
-                if (resposta.ok) {
-                    const dados = await resposta.json()
-                    
-                    if (!dados.isAdmin) {
-                        navigate(`/morador/${idGrupo}`);
-                        return; 
-                    }
+    const buscarGrupo = async () => {
+        try {
+            const res = await fetch(`http://localhost:5149/api/Grupo/${idGrupo}`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!res.ok) { navigate('/home'); return; }
+            const dados = await res.json();
+            if (!dados.isAdmin) { navigate(`/morador/${idGrupo}`); return; }
+            setGrupo(dados);
+        } catch (error) { console.error(error); }
+    };
 
-                    setGrupo(dados)
-                } else {
-                    navigate('/home');
-                }
-
-                const respostaInadimplentes = await fetch(`http://localhost:5149/api/Despesa/Inadimplentes/${idGrupo}`, {
-                    method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                })
-                
-                if (respostaInadimplentes.ok) {
-                    const dadosInadimplentes = await respostaInadimplentes.json()
-                    setTotalReceber(dadosInadimplentes.totalAReceber || 0)
-                    setInadimplentes(dadosInadimplentes.listaInadimplentes || [])
-                }
-
-                const respostaDividas = await fetch(`http://localhost:5149/api/Despesa/MinhasDividas`, {
-                    method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                })
-                
-                if (respostaDividas.ok) {
-                    const dadosDividas = await respostaDividas.json()
-                    setMinhaDivida(dadosDividas.totalDevido || 0)
-
-                }
-
-                const respostaVencimento = await fetch(`http://localhost:5149/api/Grupo/${idGrupo}/proximaConta`, 
-                {method: 'GET', headers: { 'Authorization': `Bearer ${token}`}})
-
-                if (respostaVencimento.ok) {
-                    const dadosVencimento = await respostaVencimento.json()
-                    setProximaConta(dadosVencimento)
-
-                }
-                
-                const respostaEmAnalise = await fetch(`http://localhost:5149/api/Despesa/AnalisesPendentes/${idGrupo}`, {
-                    method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                })
-                
-                if (respostaEmAnalise.ok) {
-                    const dadosEmAnalise = await respostaEmAnalise.json()
-                    setEmAnalise(dadosEmAnalise.listaAnalises || [])
-                    
-                }
-
-                const respostaPago = await fetch(`http://localhost:5149/api/Despesa/HistoricoGrupo/${idGrupo}`, {
-                    method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                })
-                
-                if (respostaPago.ok) {
-                    const dadosPago = await respostaPago.json()
-                    setHistoricoPago(dadosPago.listaHistorico || [])
-                    
-                }
-
-                const respostaMoradores = await fetch(`http://localhost:5149/api/Grupo/${idGrupo}/Membros`, {
-                    method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                })
-                
-                if (respostaMoradores.ok) {
-                    const dadosMoradores = await respostaMoradores.json()
-                    setMoradores(dadosMoradores || [])
-                    
-                }
-
-            } catch (error) {
-                console.error("Erro na requisição:", error)
+    const buscarInadimplentes = async () => {
+        try {
+            const res = await fetch(`http://localhost:5149/api/Despesa/Inadimplentes/${idGrupo}`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (res.ok) {
+                const dados = await res.json();
+                setTotalReceber(dados.totalAReceber || 0);
+                setInadimplentes(dados.listaInadimplentes || []);
             }
-        }
+        } catch (error) { console.error(error); }
+    };
 
-        if (idGrupo) {
-            buscarDadosDoGrupo();
-        }
+    const buscarMinhasDividas = async () => {
+        try {
+            const res = await fetch(`http://localhost:5149/api/Despesa/MinhasDividas`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (res.ok) {
+                const dados = await res.json();
+                setMinhaDivida(dados.totalDevido || 0);
+            }
+        } catch (error) { console.error(error); }
+    };
 
+    const buscarProximaConta = async () => {
+        try {
+            const res = await fetch(`http://localhost:5149/api/Grupo/${idGrupo}/proximaConta`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (res.ok && (await res.text()).trim() !== "") { setProximaConta(await res.json());
+            }
+            else {
+                setProximaConta(undefined)
+            }
+        } catch (error) { console.error(error); }
+    }
+
+    const buscarAnalises = async () => {
+        try {
+            const res = await fetch(`http://localhost:5149/api/Despesa/AnalisesPendentes/${idGrupo}`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (res.ok) {
+                const dados = await res.json();
+                setEmAnalise(dados.listaAnalises || []);
+            }
+        } catch (error) { console.error(error); }
+    };
+
+    const buscarHistorico = async () => {
+        try {
+            const res = await fetch(`http://localhost:5149/api/Despesa/HistoricoGrupo/${idGrupo}`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (res.ok) {
+                const dados = await res.json();
+                setHistoricoPago(dados.listaHistorico || []);
+            }
+        } catch (error) { console.error(error); }
+    };
+
+    const buscarMoradores = async () => {
+        try {
+            const res = await fetch(`http://localhost:5149/api/Grupo/${idGrupo}/Membros`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (res.ok) setMoradores(await res.json());
+        } catch (error) { console.error(error); }
+    };
+
+    useEffect(() => {
+        const buscarDadosDoGrupo = async () => {
+            await buscarGrupo();
+            await Promise.all([
+                buscarInadimplentes(),
+                buscarMinhasDividas(),
+                buscarProximaConta(),
+                buscarAnalises(),
+                buscarHistorico(),
+                buscarMoradores()
+            ]);
+        };
+
+        if (idGrupo) buscarDadosDoGrupo();
     }, [idGrupo, modal, atualizarDados]);
 
     const sinalizarPagamento = async (id: number) => {
-        const token = localStorage.getItem('token')
-
         try {
-            const resposta = await fetch(`http://localhost:5149/api/Despesa/SinalizarPagamento/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${token}` 
-            }
-        })
-
-        const resultado = await resposta.json()
-
-        if (resposta.ok) {
-            setAtualizarDados(prev => prev + 1)
-            alert(resultado.mensagem)
-            setParcelaParaConfirmar(null)
-        } else {
-            alert(resultado.mensagem || "Erro ao sinalizar pagamento.")
-        }
-
-        } catch (error) {
-        console.error("Erro ao conectar com a API:", error)
-        }   
-
-    }
+            const res = await fetch(`http://localhost:5149/api/Despesa/SinalizarPagamento/${id}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const resData = await res.json();
+            if (res.ok) {
+                setAtualizarDados(prev => prev + 1);
+                alert(resData.mensagem);
+                setParcelaParaConfirmar(null);
+            } else { alert(resData.mensagem); }
+        } catch (error) { console.error(error); }
+    };
 
     const validarPagamento = async (id: number, decisao: boolean) => {
-        const token = localStorage.getItem('token')
-
         try {
-            const resposta = await fetch(`http://localhost:5149/api/Despesa/ValidarPagamento/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` 
-            },
-            body: JSON.stringify({ aprovado: decisao })
-        })
-
-        const resultado = await resposta.json()
-
-        if (resposta.ok) {
-            setAtualizarDados(prev => prev + 1)
-            alert(resultado.mensagem)
-            setParcelaParaAceitar(null)
-            setParcelaParaRejeitar(null)
-        } else {
-            alert(resultado.mensagem || "Erro ao aceitar pagamento.")
-        }
-
-        } catch (error) {
-        console.error("Erro ao conectar com a API:", error)
-        }   
-
-    }
+            const res = await fetch(`http://localhost:5149/api/Despesa/ValidarPagamento/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ aprovado: decisao })
+            });
+            const resData = await res.json();
+            if (res.ok) {
+                setAtualizarDados(prev => prev + 1);
+                alert(resData.mensagem);
+                setParcelaParaAceitar(null);
+                setParcelaParaRejeitar(null);
+            } else { alert(resData.mensagem); }
+        } catch (error) { console.error(error); }
+    };
 
     const copiarParaAreaDeTransferencia = async () => {
-        try {
-          await navigator.clipboard.writeText(grupo.codigoAcesso)
-        } catch (err) {
-          console.error("Falha ao copiar: ", err)
-        }
-      }
+        if (grupo) await navigator.clipboard.writeText(grupo.codigoAcesso);
+    };
 
     return (
         <>
@@ -478,7 +434,7 @@ function Admin() {
                                         <img src={key} className={styles.key} />
                                 </div>
                                 <div className={styles.codigoCopiar}>
-                                    <h2>{grupo.codigoAcesso}</h2>
+                                    <h2>{grupo?.codigoAcesso || ''}</h2>
                                     <button onClick={() => copiarParaAreaDeTransferencia()} className={styles.copiar}>Copiar</button>
                                 </div>
                                 <p>Compartilhe este código para convidar novos moradores ao seu grupo.</p>
