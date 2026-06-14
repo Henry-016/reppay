@@ -6,7 +6,7 @@ namespace RepPay.API.DTOs
 		public string Nome { get; set; }
 		public bool IsAdmin { get; set; }
         public string Email { get; set; } = string.Empty;
-        public string? FotoPerfil { get; set; }
+        // public string? FotoPerfil { get; set; }
         public decimal TotalDevido { get; set; }
     }
 }
