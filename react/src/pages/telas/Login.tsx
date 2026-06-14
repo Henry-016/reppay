@@ -2,6 +2,7 @@ import { useState } from 'react'
 import styles from './Login.module.scss'
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './../../context/AuthContext'
+import { usuarioService } from '../../services/usuarioService';
 
 function Login() {
     const [email, setEmail] = useState('')
@@ -25,25 +26,10 @@ function Login() {
         setErro('');
 
         try {
-            const resposta = await fetch('http://localhost:5149/api/Usuario/Login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    Email: email,
-                    Senha: senha
-                })
-            });
+            const dados = await usuarioService.login(email, senha)
 
-            const dados = await resposta.json();
-
-            if (resposta.ok) {
-                setAuth(dados.token, { id: dados.idUsuario, nome: dados.nome }, dados.refreshToken)
-                navigate('/home') 
-            } else {
-                setErro(dados.mensagem || 'Erro ao realizar login. Verifique os seus dados.');
-            }
+            setAuth(dados.token, { id: dados.idUsuario, nome: dados.nome }, dados.refreshToken)
+            navigate('/home') 
 
         } catch (error) {
             console.error('Erro na requisição:', error);

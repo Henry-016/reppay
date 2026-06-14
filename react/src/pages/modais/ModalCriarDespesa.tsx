@@ -6,6 +6,7 @@ import UsuarioSelecao from './../../components/UsuarioSelecao'
 import ModalSucesso from './ModalSucesso'
 import { useAuth } from './../../context/AuthContext'
 import { grupoService } from './../../services/grupoService'
+import { despesaService } from '../../services/despesaService';
 
 interface ModalProps {
     isOpen: boolean
@@ -74,7 +75,7 @@ function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
 
         }
 
-        const valorFormatado = valor.replace(',', '.');
+        const valorFormatado = valor.replace(',', '.')
     
         if (isNaN(Number(valorFormatado))) {
             setErro("Valor invalido!")
@@ -104,20 +105,10 @@ function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
         }
 
         try {
-            const resposta = await fetch('http://localhost:5149/api/Despesa/LancarDespesa', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(dadosDespesa)
-            })
-
-            if (resposta.ok) {
-                setModalValidado(true)
-            } else {
-                setErro('Falha ao realizar o cadastro. Verifique as informações.')
-            }
+            
+            await despesaService.lancarDespesa(dadosDespesa, token!)
+    
+            setModalValidado(true)
 
         } catch (erro) {
             alert('Erro ao conectar com o servidor. Verifique se o backend está rodando.')

@@ -14,5 +14,25 @@ export const usuarioService = {
         }
 
         return await res.json();
+    },
+
+    login: async (email: string, senha: string) => {
+        const res = await fetch('http://localhost:5149/api/Usuario/Login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ Email: email, Senha: senha })
+        })
+
+        const dados = await res.json()
+
+        if (!res.ok) {
+            throw new Error(dados.mensagem || 'Erro ao realizar login. Verifique os seus dados.');
+        }
+
+        return dados
+
     }
-};
+
+}

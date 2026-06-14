@@ -112,7 +112,8 @@ function Admin() {
 
             if (!dadosGrupo.isAdmin) {
                 navigate(`/morador/${idGrupo}`)
-                return;
+                return
+                
             }
             
             setGrupo(dadosGrupo)

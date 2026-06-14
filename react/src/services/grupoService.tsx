@@ -1,4 +1,50 @@
 export const grupoService = {
+
+    criarGrupo: async (nome: string, link: string, token: string) => {
+        const res = await fetch('http://localhost:5149/api/Grupo', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify({
+                Nome: nome,
+                ImagemBanner: link
+            })
+        });
+
+        const dados = await res.json();
+
+        if (!res.ok) {
+            throw new Error(dados.mensagem || 'Erro ao criar a república.')
+
+        }
+
+        return dados
+    },
+
+    entrarGrupo: async (codigo: string, token: string) => {
+        const res = await fetch('http://localhost:5149/api/Grupo/Entrar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify({
+                CodigoAcesso: codigo
+            })
+        });
+
+        const dados = await res.json()
+
+        if (!res.ok) {
+            throw new Error(dados.mensagem || 'Erro ao tentar entrar no grupo.')
+        }
+
+        return dados
+
+    },
+
     buscarGrupo: async (idGrupo: string, token: string) => {
         const res = await fetch(`http://localhost:5149/api/Grupo/${idGrupo}`, { 
             headers: { 'Authorization': `Bearer ${token}` } 

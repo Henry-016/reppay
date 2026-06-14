@@ -3,6 +3,8 @@ import x from './../../assets/x.svg'
 import { useState } from 'react'
 import ModalSucesso from './ModalSucesso'
 import imagem from './../../assets/users_codigo.svg'
+import { grupoService } from '../../services/grupoService'
+import { useAuth } from '../../context/AuthContext'
 
 interface ModalProps {
     isOpen: boolean
@@ -17,43 +19,27 @@ function ModalEntrar( {isOpen, onClose}: ModalProps ) {
 
     const [erro, setErro] = useState('')
 
+    const { token } = useAuth()
+
     const entrarGrupo = async (e: React.SubmitEvent) => {
         e.preventDefault();
 
         if (!codigo) {
-            setErro('Por favor, insira o código do grupo.');
+            setErro('Por favor, insira o código do grupo.')
             return;
         }
 
         setErro('');
 
-        const token = localStorage.getItem('token');
-
         try {
-            const resposta = await fetch('http://localhost:5149/api/Grupo/Entrar', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` 
-                },
-                body: JSON.stringify({
-                    CodigoAcesso: codigo
-                })
-            });
-
-            const dados = await resposta.json();
-
-            if (resposta.ok) {
-                setModal(true); 
-            } else {
-                setErro(dados.mensagem || 'Erro ao tentar entrar no grupo.')
-            }
-
-        } catch (error) {
-            console.error('Erro na requisição:', error)
-            setErro('Não foi possível conectar ao servidor.')
+            await grupoService.entrarGrupo(codigo, token!)
+            setModal(true);
+            
+        } catch (erro: any) {
+            setErro(erro.message || 'Erro ao tentar entrar no grupo.')
+            
         }
-    };
+    }
 
     const fecharELimpar = () => {
         setCodigo('');

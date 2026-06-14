@@ -1,4 +1,27 @@
 export const despesaService = {
+
+    lancarDespesa: async (dadosDespesa: any, token: string) => {
+        const res = await fetch('http://localhost:5149/api/Despesa/LancarDespesa', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            
+            body: JSON.stringify(dadosDespesa)
+
+        });
+
+        if (!res.ok) {
+            const erroData = await res.json().catch(() => ({}));
+            throw new Error(erroData.mensagem || 'Falha ao lançar despesa. Verifique as informações.')
+
+        }
+
+        return await res.json().catch(() => ({}))
+
+    },
+
     buscarInadimplentes: async (idGrupo: string, token: string) => {
         const res = await fetch(`http://localhost:5149/api/Despesa/Inadimplentes/${idGrupo}`, { 
             headers: { 'Authorization': `Bearer ${token}` }

@@ -45,7 +45,7 @@ function HomeGeral() {
     
         carregarGrupos()
 
-    }, [token]);
+    }, [token, grupos, modal]);
 
     return (
         <>
