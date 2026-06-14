@@ -56,6 +56,8 @@ export const despesaService = {
 
         return {
             totalDevido: dados.totalDevido || 0,
+            listaDividas: dados.listaDividas || []
+
         }
 
     },
@@ -141,6 +143,49 @@ export const despesaService = {
         }
 
         return resData.mensagem;
+
+    },
+
+    buscarAnalisesIndividuais: async (token: string) => {
+        const res = await fetch(`http://localhost:5149/api/Despesa/MinhasAnalises`, { 
+            headers: { 
+                'Authorization': `Bearer ${token}` 
+
+            } 
+    
+        })
+
+        if (!res.ok) {
+            throw new Error(`Erro ao buscar minhas analises: ${res.status}`)
+
+        }
+
+        const dados = await res.json()
+
+        return {
+            listaAnalises: dados.listaAnalises || []
+
+        }
+
+    },
+
+    buscarHistoricoIndividuais: async (token: string) => {
+        const res = await fetch(`http://localhost:5149/api/Despesa/HistoricoPago}`, { 
+            headers: { 
+                'Authorization': `Bearer ${token}` 
+
+            } 
+    
+        })
+
+        if (!res.ok) {
+            throw new Error(`Erro ao buscar minhas dividas pagas: ${res.status}`)
+
+        }
+
+        const dados = await res.json()
+
+        return dados
 
     }
 
