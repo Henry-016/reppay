@@ -1,21 +1,45 @@
 import styles from './HeaderGeral.module.scss'
-import iconeUsuario from '../../assets/user_icon.svg';
-
+import iconeUsuario from '../../assets/user_icon.svg'
+import { useState, useEffect, useRef } from 'react'
+import ModalPerfil from '../modais/ModalPerfil'
 interface ModalProps {
-    nome: string;
-    imagem?: string;
+    nome: string
+    imagem?: string
 
 }
 
 function HeaderGeral( {nome, imagem}: ModalProps ) {
 
+    const [modalAberto, setModalAberto] = useState(false)
+
+    const menuRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        const lidarComCliqueFora = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setModalAberto(false)
+            }
+        }
+
+        document.addEventListener('mousedown', lidarComCliqueFora)
+        
+        return () => {
+            document.removeEventListener('mousedown', lidarComCliqueFora)
+        }
+    }, [])
+
     return (
         <>
             <section className={styles.tela_header_geral}>
                 <h2 className={styles.titulo}>RepPay</h2>
-                <div className={styles.usuario}>
+                <div className={styles.usuario} ref={menuRef}>
                     <p className={styles.nome}>{nome}</p>
-                    <img className={styles.user_icon} src={iconeUsuario}/>
+                    <div className={styles.containerIcone}>
+                        <img className={styles.user_icon} src={iconeUsuario} onClick={() => setModalAberto(!modalAberto)} />
+                        {modalAberto && (
+                        <ModalPerfil />
+                        )}
+                    </div>
                 </div>
             </section>
         </>
@@ -24,4 +48,4 @@ function HeaderGeral( {nome, imagem}: ModalProps ) {
 
 }
 
-export default HeaderGeral;
+export default HeaderGeral

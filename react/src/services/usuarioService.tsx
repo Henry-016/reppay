@@ -10,10 +10,10 @@ export const usuarioService = {
 
         if (!res.ok) {
             const erroData = await res.json().catch(() => ({}));
-            throw new Error(erroData.mensagem || "Falha ao realizar o cadastro.");
+            throw new Error(erroData.mensagem || "Falha ao realizar o cadastro.")
         }
 
-        return await res.json();
+        return await res.json()
     },
 
     login: async (email: string, senha: string) => {
@@ -28,10 +28,24 @@ export const usuarioService = {
         const dados = await res.json()
 
         if (!res.ok) {
-            throw new Error(dados.mensagem || 'Erro ao realizar login. Verifique os seus dados.');
+            throw new Error(dados.mensagem || 'Erro ao realizar login. Verifique os seus dados.')
         }
 
         return dados
+
+    },
+
+    logOut: async (refreshToken: string, token: string) => {
+        const res = await fetch('http://localhost:5149/api/Usuario/Logout', {
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ RefreshToken: refreshToken }) 
+        
+})
+    
+        if (!res.ok) {
+            throw new Error("Falha ao Deslogar:")
+        }
 
     }
 
