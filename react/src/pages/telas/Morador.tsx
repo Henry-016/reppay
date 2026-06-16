@@ -92,6 +92,16 @@ function Morador() {
     useEffect(() => {
 
         if (loading) return
+    
+        if (!token) {
+            navigate('/login')
+            return;
+        }
+
+        if (!idGrupo) {
+            navigate('/home')
+            return
+        }
         
         const buscarDadosDoGrupo = async () => {
             
@@ -99,7 +109,7 @@ function Morador() {
                 const dadosGrupo = await grupoService.buscarGrupo( idGrupo, token)
 
                 if (dadosGrupo.isAdmin) {
-                    navigate(`/admin/${idGrupo}`)
+                    navigate(`/home/admin/${idGrupo}`)
                     return
 
                 }
@@ -133,7 +143,7 @@ function Morador() {
 
     const sinalizarPagamento = async (id: number) => {
         try {
-            await despesaService.sinalizarPagamento(id, token)
+            await despesaService.sinalizarPagamento(id, token || '')
 
             setAtualizarDados(prev => prev + 1)
             alert("Pagamento sinalizado com sucesso!")
