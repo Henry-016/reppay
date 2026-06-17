@@ -69,7 +69,7 @@ namespace RepPay.API.Services
             return "Despesa lançada e rateio gerado com sucesso!";
         }
 
-        public ResumoDividasDTO GetMinhasDividas(int idLogado, int idGrupo)
+        public ResumoDividasResponseDTO GetMinhasDividas(int idLogado, int idGrupo)
         {
             var dividas = _context.Parcelas
                 .Include(p => p.IdDespesaNavigation)
@@ -88,7 +88,7 @@ namespace RepPay.API.Services
                 .OrderBy(p => p.Vencimento)
                 .ToList();
 
-            return new ResumoDividasDTO
+            return new ResumoDividasResponseDTO
             {
                 TotalDevido = dividas.Sum(d => d.Valor),
                 ListaDividas = dividas
@@ -397,6 +397,7 @@ namespace RepPay.API.Services
         {
             var despesa = _context.Despesas
                 .Include(d => d.IdGrupoNavigation)
+                .Include(d => d.Parcelas)
                 .FirstOrDefault(d => d.IdDespesa == idDespesa);
 
             if (despesa == null)
@@ -407,6 +408,14 @@ namespace RepPay.API.Services
             if (despesa.IdGrupoNavigation.IdAdmin != idLogado)
             {
                 throw new UnauthorizedAccessException("Apenas o administrador pode apagar despesas.");
+            }
+
+            bool temParcelaPagaOuEmAnalise = despesa.Parcelas.Any(p =>
+                p.Status == StatusParcela.PAGO || p.Status == StatusParcela.EM_ANALISE);
+
+            if (temParcelaPagaOuEmAnalise)
+            {
+                throw new Exception("Não é possível deletar uma despesa que ainda possui parcelas pagas.");
             }
 
             despesa.Ativo = false;

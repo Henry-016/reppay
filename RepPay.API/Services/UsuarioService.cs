@@ -46,6 +46,11 @@ namespace RepPay.API.Services
 
         public void CriarUsuario(UsuarioRequestDTO novoUsuarioDTO)
         {
+            if (string.IsNullOrWhiteSpace(novoUsuarioDTO.Senha))
+            {
+                throw new Exception("A senha é obrigatória e não pode estar vazia!");
+            }
+
             if (_context.Usuarios.Any(u => u.Email.ToLower() == novoUsuarioDTO.Email.ToLower()))
             {
                 throw new Exception("Este e-mail já está cadastrado no sistema!");
