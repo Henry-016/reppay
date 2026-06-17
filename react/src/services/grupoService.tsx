@@ -110,6 +110,24 @@ export const grupoService = {
 
     },
 
+    sairDoGrupo: async (idGrupo: string, token: string) => {
+        const res = await fetch(`http://localhost:5149/api/Grupo/${idGrupo}/Sair`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+
+        })
+
+        if (!res.ok) {
+            const erroBackend = await res.json().catch(() => ({}))
+            throw new Error(`Erro ao Sair do grupo: ${erroBackend.mensagem}`)
+
+        }
+
+
+    },
+
     transferirAdmin: async (idGrupo: string, idNovoAdmin: number, token: string) => {
         const res = await fetch(`http://localhost:5149/api/Grupo/${idGrupo}/TransferirAdmin/${idNovoAdmin}`, {
             method: 'PUT',

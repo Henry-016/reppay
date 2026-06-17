@@ -200,6 +200,7 @@ export const despesaService = {
         const resData = await res.json().catch(() => ({}));
     
         if (!res.ok) {
+            
             throw new Error(resData.mensagem || "Erro ao desfazer a sinalização de pagamento.");
         }
     
