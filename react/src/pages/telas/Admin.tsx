@@ -7,6 +7,7 @@ import dashboard_ativado from './../../assets/dashboard_ativado.svg'
 import moradores_desativado from './../../assets/moradores_desativado.svg'
 import dashboard_desativado from './../../assets/dashboard_desativado.svg'
 import moradores_ativado from './../../assets/moradores_ativado.svg'
+import back from './../../assets/arrow_back.svg'
 import sair from './../../assets/sair.svg'
 import add from './../../assets/add.svg'
 import ModalCriarDespesa from './../modais/ModalCriarDespesa'
@@ -99,6 +100,7 @@ function Admin() {
     const [parcelaParaRejeitar, setParcelaParaRejeitar] = useState<number | null>(null)
     const [pagina, setPagina] = useState<number>(1)
     const [moradores, setMoradores] = useState<Moradores[]>([])
+    const [modalSair, setModalSair] = useState<boolean>(false)
     
     const { usuario, loading } = useAuth()
     const nome = usuario?.nome
@@ -178,6 +180,20 @@ function Admin() {
             console.error(error);
             
         }
+
+    }
+
+    const sairDoGrupo = async () => {
+        try {
+            await grupoService.sairDoGrupo(idGrupo, token)
+            setAtualizarDados(prev => prev + 1)
+            navigate('/home')
+            
+        } catch(error: any) {
+            alert(error.message)
+
+        }
+
     }
 
     return (
@@ -197,8 +213,12 @@ function Admin() {
                     </div>
                     <div className={styles.sideBarBottom}>
                         <button onClick={() => navigate('/home')}>
+                            <img src={back}/>
+                            Voltar para Home
+                        </button>
+                        <button onClick={() => setModalSair(true)}>
                             <img src={sair}/>
-                            Sair
+                            Sair do Grupo
                         </button>
                     </div>
 
@@ -354,6 +374,12 @@ function Admin() {
                                         validarPagamento(parcelaParaRejeitar, false);
                                     }
                                 }}
+                            />
+                            <ModalConfirmacao 
+                                texto={'Você tem certeza que deseja sair deste grupo, se fizer isso o efeito será irreversivel!'}
+                                isOpen={modalSair} 
+                                onClose={() => setModalSair(false)} 
+                                onClick={sairDoGrupo}
                             />
 
                         </div>}

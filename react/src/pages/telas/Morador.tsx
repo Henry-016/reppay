@@ -1,6 +1,7 @@
 import styles from './Morador.module.scss'
 import dashboard_ativado from './../../assets/dashboard_ativado.svg'
 import sair from './../../assets/sair.svg'
+import back from './../../assets/arrow_back.svg'
 import HeaderGrupo from './HeaderGrupo'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -81,6 +82,7 @@ function Morador() {
     const [parcelaParaConfirmar, setParcelaParaConfirmar] = useState<number | null>(null)
     const [parcelaParaDesfazer, setParcelaParaDesfazer] = useState<number | null>(null)
     const [modalAviso, setModalAviso] = useState<boolean>(false)
+    const [modalSair, setModalSair] = useState<boolean>(false)
 
     const { usuario, loading } = useAuth()
     const nome = usuario?.nome
@@ -170,6 +172,19 @@ function Morador() {
 
     }
 
+    const sairDoGrupo = async () => {
+        try {
+            await grupoService.sairDoGrupo(idGrupo, token)
+            setAtualizarDados(prev => prev + 1)
+            navigate('/home')
+            
+        } catch(error: any) {
+            alert(error.message)
+
+        }
+
+    }
+
     return (
         <>
             <section className={styles.tela_morador}>
@@ -183,8 +198,12 @@ function Morador() {
                     </div>
                     <div className={styles.sideBarBottom}>
                         <button onClick={() => navigate('/home')}>
+                            <img src={back}/>
+                            Voltar para Home
+                        </button>
+                        <button onClick={() => setModalSair(true)}>
                             <img src={sair}/>
-                            Sair
+                            Sair do Grupo
                         </button>
                     </div>
 
@@ -314,6 +333,13 @@ function Morador() {
                                         desfazerPagamento(parcelaParaDesfazer)
                                     }
                                 }}
+                            />
+
+                            <ModalConfirmacao 
+                                texto={'Você tem certeza que deseja sair deste grupo, se fizer isso o efeito será irreversivel!'}
+                                isOpen={modalSair} 
+                                onClose={() => setModalSair(false)} 
+                                onClick={sairDoGrupo}
                             />
 
                             <ModalSucesso isOpen={modalAviso} onClose={() => setModalAviso(false)} titulo={'Aguardando Validação!'} texto={'Essa despesa está aguardando a validaçãodo administrador responsável! Basta aguardar.'} imagem={desfazer} />
