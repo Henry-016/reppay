@@ -1,6 +1,7 @@
 import styles from './MoradorComponente.module.scss'
 import icone from './../assets/user_icon.svg'
 import { utilitarios } from '../services/utilitariosService'
+import expulsar from './../assets/cancel.svg'
 
 interface ComponentProps {
     nome: string
@@ -8,10 +9,11 @@ interface ComponentProps {
     tipo: string
     valor: number
     onClick: () => void
+    clickExpulsar: () => void
 
 }
 
-function MoradorComponente( {nome, email, tipo, valor, onClick}: ComponentProps ) {
+function MoradorComponente( {nome, email, tipo, valor, onClick, clickExpulsar}: ComponentProps ) {
 
     return (
         <>
@@ -21,7 +23,11 @@ function MoradorComponente( {nome, email, tipo, valor, onClick}: ComponentProps 
                     <div className={styles.informacoes}>
                         <h2>{nome}</h2>
                         <p>{email}</p>
-                    </div>  
+                    </div>
+                    {tipo === 'Morador' && 
+                        <img src={expulsar} onClick={clickExpulsar} className={styles.expulsar}/>
+                    
+                    }
                 </div>
                 <div className={styles.informacoesCargo}>
                     <p className={`${tipo === 'Admin' ? styles.admin : styles.morador}`} onClick={onClick}>{tipo}</p>

@@ -85,7 +85,7 @@ function Admin() {
 
     const { idGrupo } = useParams<{ idGrupo: string }>()
     
-    const [atualizarDados, setAtualizarDados] = useState(0);
+    const [atualizarDados, setAtualizarDados] = useState(0)
     const [grupo, setGrupo] = useState<DadosGrupo | null>(null)
     const [totalReceber, setTotalReceber] = useState<number>(0)
     const [minhaDivida, setMinhaDivida] = useState<number>(0)
@@ -102,6 +102,7 @@ function Admin() {
     const [moradores, setMoradores] = useState<Moradores[]>([])
     const [modalSair, setModalSair] = useState<boolean>(false)
     const [modalTrocar, setModalTrocar] = useState<number | null>(null)
+    const [modalExpulsar, setModalExpulsar] = useState<number | null>(null)
     
     const { usuario, loading } = useAuth()
     const nome = usuario?.nome
@@ -186,7 +187,7 @@ function Admin() {
 
     const sairDoGrupo = async () => {
         try {
-            await grupoService.sairDoGrupo(idGrupo, token)
+            await grupoService.sairDoGrupo(idGrupo || "", token || "")
             setAtualizarDados(prev => prev + 1)
             navigate('/home')
             
@@ -202,9 +203,26 @@ function Admin() {
             await grupoService.transferirAdmin(idGrupo || "", id, token || "")
 
             setAtualizarDados(prev => prev + 1)
+            setModalTrocar(null)
 
         } catch (error: any) {
             console.error(error)
+
+        }
+
+    }
+
+    const expulsarMorador = async (id: number) => {
+        try {
+            await grupoService.expulsarMorador(idGrupo || "", id, token || "")
+
+            setAtualizarDados(prev => prev + 1)
+            setModalExpulsar(null)
+
+            
+
+        } catch (error: any) {
+            alert(error)
 
         }
 
@@ -424,6 +442,7 @@ function Admin() {
                                         valor={morador.totalDevido}
                                         email={morador.email} 
                                         onClick={morador.isAdmin ? () => {} : () => setModalTrocar(morador.idUsuario)}
+                                        clickExpulsar={() => setModalExpulsar(morador.idUsuario)}
                                                                           
                                     />
                                 ))}
@@ -453,6 +472,19 @@ function Admin() {
                                         trocarAdmin(modalTrocar)
 
                                     }
+                                }}
+                            />
+
+                            <ModalConfirmacao 
+                                texto={'Você tem certeza que quer expulsar esse morador?'}
+                                isOpen={modalExpulsar !== null} 
+                                onClose={() => setModalExpulsar(null)} 
+                                onClick={() => {
+                                    if (modalExpulsar !== null) {
+                                        expulsarMorador(modalExpulsar)
+
+                                    }
+
                                 }}
                             />
 
