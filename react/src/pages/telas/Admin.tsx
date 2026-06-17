@@ -99,6 +99,7 @@ function Admin() {
     const [parcelaParaRejeitar, setParcelaParaRejeitar] = useState<number | null>(null)
     const [pagina, setPagina] = useState<number>(1)
     const [moradores, setMoradores] = useState<Moradores[]>([])
+    const [modalTrocar, setModalTrocar] = useState<number | null>(null)
     
     const { usuario, loading } = useAuth()
     const nome = usuario?.nome
@@ -167,17 +168,30 @@ function Admin() {
 
     const validarPagamento = async (id: number, decisao: boolean) => {
         try {
-            const mensagem = await despesaService.validarPagamento(id, decisao, token!);
+            const mensagem = await despesaService.validarPagamento(id, decisao, token!)
             
-            setAtualizarDados(prev => prev + 1);
-            alert(mensagem);
+            setAtualizarDados(prev => prev + 1)
+            alert(mensagem)
             
-            setParcelaParaAceitar(null);
-            setParcelaParaRejeitar(null);
+            setParcelaParaAceitar(null)
+            setParcelaParaRejeitar(null)
         } catch (error: any) {
-            console.error(error);
+            console.error(error)
             
         }
+    }
+
+    const trocarAdmin = async (id: number) => {
+        try {
+            await grupoService.transferirAdmin(idGrupo || "", id, token || "")
+
+            setAtualizarDados(prev => prev + 1)
+
+        } catch (error: any) {
+            console.error(error)
+
+        }
+
     }
 
     return (
@@ -382,9 +396,14 @@ function Admin() {
                                         nome={morador.nome}
                                         tipo={morador.isAdmin ? 'Admin' : 'Morador'}
                                         valor={morador.totalDevido}
-                                        email={morador.email}                                   
+                                        email={morador.email} 
+                                        onClick={morador.isAdmin ? () => {} : () => setModalTrocar(morador.idUsuario)}
+                                                                          
                                     />
                                 ))}
+                                </div>
+                                <div className={styles.containerAvisoAdmin}>
+                                    <p>Para trocar o administrador é só apertar no cargo do morador que você deseja que seja o novo administrador</p>
                                 </div>
                             </div>
                             <div className={styles.containerCodigo}>
@@ -398,7 +417,21 @@ function Admin() {
                                 </div>
                                 <p>Compartilhe este código para convidar novos moradores ao seu grupo.</p>
                             </div>
+
+                            <ModalConfirmacao 
+                                texto={'Você tem certeza que quer trocar o administrador do grupo?'}
+                                isOpen={modalTrocar !== null} 
+                                onClose={() => setModalTrocar(null)} 
+                                onClick={() => {
+                                    if (modalTrocar !== null) {
+                                        trocarAdmin(modalTrocar)
+
+                                    }
+                                }}
+                            />
+
                         </div>}
+
                 </div>
                 <ModalCriarDespesa isOpen={modal} onClose={() => setModal(false)} />
 

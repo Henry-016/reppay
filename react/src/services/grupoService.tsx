@@ -108,6 +108,25 @@ export const grupoService = {
 
         return await res.json()
 
+    },
+
+    transferirAdmin: async (idGrupo: string, idNovoAdmin: number, token: string) => {
+        const res = await fetch(`http://localhost:5149/api/Grupo/${idGrupo}/TransferirAdmin/${idNovoAdmin}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`
+
+            }
+
+        })
+
+        if (!res.ok) {
+            throw new Error(`Erro ao trocar o admin: ${res.status}`)
+
+        }
+
+        return await res.json()
+
     }
 
 }

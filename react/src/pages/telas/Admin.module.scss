@@ -398,6 +398,20 @@
 
                 }
 
+                .containerAvisoAdmin {
+                    display: flex;
+                    width: 100%;
+                    justify-content: center;
+                    align-items: center;
+                    padding: 1rem;
+
+                    p {
+                        color: var(--cor-texto-simples);
+
+                    }
+
+                }
+
             }
 
             .containerCodigo {

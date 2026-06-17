@@ -7,10 +7,11 @@ interface ComponentProps {
     email: string
     tipo: string
     valor: number
+    onClick: () => void
 
 }
 
-function MoradorComponente( {nome, email, tipo, valor}: ComponentProps ) {
+function MoradorComponente( {nome, email, tipo, valor, onClick}: ComponentProps ) {
 
     return (
         <>
@@ -23,7 +24,7 @@ function MoradorComponente( {nome, email, tipo, valor}: ComponentProps ) {
                     </div>  
                 </div>
                 <div className={styles.informacoesCargo}>
-                    <p className={`${tipo === 'Admin' ? styles.admin : styles.morador}`}>{tipo}</p>
+                    <p className={`${tipo === 'Admin' ? styles.admin : styles.morador}`} onClick={onClick}>{tipo}</p>
                 </div>
                 <div className={styles.informacoesDivida}>
                     <h2>{utilitarios.formatarValor(valor)}</h2>
