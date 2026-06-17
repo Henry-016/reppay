@@ -7,6 +7,8 @@ import CardGrupo from './../../components/CardGrupo'
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './../../context/AuthContext'
 import { grupoService } from '../../services/grupoService'
+import ModalConfirmacao from '../modais/ModalConfirmacao'
+
 
 interface GrupoUsuario {
     idGrupo: number;
@@ -20,6 +22,8 @@ function HomeGeral() {
 
     const [modal, setModal] = useState(false)
     const [grupos, setGrupos] = useState<GrupoUsuario[]>([])
+    const [modalRemover, setModalRemover] = useState<number | null>(null)
+    const [atualizarDados, setAtualizarDados] = useState(0);
 
     const { token, loading, usuario } = useAuth()
 
@@ -56,7 +60,21 @@ function HomeGeral() {
 
         }
 
-    }, [token, grupos, modal, loading])
+    }, [token, grupos, modal, loading, atualizarDados])
+
+    const removerGrupo = async (idGrupo: number) => {
+        try {
+            await grupoService.removerGrupo(idGrupo || -1, token || "")
+
+            setAtualizarDados(prev => prev + 1)
+            setModalRemover(null)
+
+        } catch (error: any) {
+            alert(error)
+
+        }
+
+    }
 
     return (
         <>
@@ -83,13 +101,26 @@ function HomeGeral() {
                                 texto={'Acesso total ao painel financeiro, gestão de moradores e relatórios detalhados de despesas mensais.'}
                                 onClick={() => {
                                     if (grupo.isAdmin) {
-                                        navigate(`/home/admin/${grupo.idGrupo}`);
+                                        navigate(`/home/admin/${grupo.idGrupo}`)
                                     } else {
-                                        navigate(`/home/morador/${grupo.idGrupo}`);
+                                        navigate(`/home/morador/${grupo.idGrupo}`)
                                     }
                                 }}
+                                clickApagar={() => setModalRemover(grupo.idGrupo)}
                             />
                         ))}
+                        <ModalConfirmacao 
+                                texto={'Você tem certeza que quer expulsar esse morador?'}
+                                isOpen={modalRemover !== null} 
+                                onClose={() => setModalRemover(null)} 
+                                onClick={() => {
+                                    if (modalRemover !== null) {
+                                        removerGrupo(modalRemover)
+
+                                    }
+
+                                }}
+                            />
                     </div>
                 </div>
 

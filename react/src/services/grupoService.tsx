@@ -126,6 +126,71 @@ export const grupoService = {
         }
 
 
+    },
+
+    transferirAdmin: async (idGrupo: string, idNovoAdmin: number, token: string) => {
+        const res = await fetch(`http://localhost:5149/api/Grupo/${idGrupo}/TransferirAdmin/${idNovoAdmin}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`
+
+            }
+
+        })
+
+        if (!res.ok) {
+            throw new Error(`Erro ao trocar o admin: ${res.status}`)
+
+        }
+
+        return await res.json()
+
+    },
+
+    expulsarMorador: async (idGrupo: string, idMorador: number, token: string) => {
+        const res = await fetch(`http://localhost:5149/api/Grupo/${idGrupo}/Expulsar/${idMorador}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+
+            }
+
+        })
+
+        if (!res.ok) {
+            const erroBackend = await res.json().catch(() => ({})); 
+            
+            const textoDoErro = erroBackend.mensagem || `Erro ao expulsar morador: ${res.status}`;
+            
+            throw new Error(textoDoErro);
+
+        }
+
+        return await res.json()
+
+    },
+
+    removerGrupo: async (idGrupo: number, token: string) => {
+        const res = await fetch(`http://localhost:5149/api/Grupo/Deletar/${idGrupo}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+
+            }
+
+        })
+
+        if (!res.ok) {
+            const erroBackend = await res.json().catch(() => ({})); 
+            
+            const textoDoErro = erroBackend.mensagem || `Erro ao deletar grupo: ${res.status}`;
+            
+            throw new Error(textoDoErro);
+
+        }
+
+        return await res.json()
+
     }
 
 }

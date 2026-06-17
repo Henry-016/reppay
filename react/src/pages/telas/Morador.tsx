@@ -174,7 +174,7 @@ function Morador() {
 
     const sairDoGrupo = async () => {
         try {
-            await grupoService.sairDoGrupo(idGrupo, token)
+            await grupoService.sairDoGrupo(idGrupo || "", token || "")
             setAtualizarDados(prev => prev + 1)
             navigate('/home')
             

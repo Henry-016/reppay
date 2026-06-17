@@ -21,6 +21,13 @@
         border-top-left-radius: 0.75rem;
         flex-shrink: 0;
 
+        .apagar {
+            width: 1.625rem;
+            height: 1.625rem;
+            cursor: pointer;
+
+        }
+
         .admin {
             width: 8.339rem;
             height: 1.625rem;
@@ -50,6 +57,11 @@
             }
 
         }
+
+    }
+
+    .imagemAdmin {
+        justify-content: space-between;
 
     }
 
