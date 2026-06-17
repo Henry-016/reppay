@@ -21,16 +21,21 @@ function HomeGeral() {
     const [modal, setModal] = useState(false)
     const [grupos, setGrupos] = useState<GrupoUsuario[]>([])
 
-    const { token } = useAuth()
-    const { usuario } = useAuth()
+    const { token, loading, usuario } = useAuth()
 
     const nome = usuario?.nome
 
     const navigate = useNavigate()
 
     useEffect(() => {
+        
+        if (loading) return
 
-        if (!token) return;
+        if (!token) {
+            navigate('/login')
+            return
+
+        }
 
         const carregarGrupos = async () => {
             try {
@@ -45,7 +50,13 @@ function HomeGeral() {
     
         carregarGrupos()
 
-    }, [token, grupos, modal]);
+        if (!token) {
+            navigate('/login')
+            return
+
+        }
+
+    }, [token, grupos, modal, loading])
 
     return (
         <>
