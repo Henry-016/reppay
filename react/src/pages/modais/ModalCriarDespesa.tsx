@@ -46,7 +46,7 @@ function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
         
         const buscarMoradores = async () => {
             try {
-                const dados = await grupoService.buscarMoradores(idGrupo, token)
+                const dados = await grupoService.buscarMoradores(idGrupo || "", token || "")
                 setMoradores(dados || [])
             } catch (err) {
                 console.error("Erro ao buscar moradores:", err)

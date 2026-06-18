@@ -85,11 +85,11 @@ function Admin() {
 
     const { idGrupo } = useParams<{ idGrupo: string }>()
     
-    const [atualizarDados, setAtualizarDados] = useState(0)
+    const [atualizarDados, setAtualizarDados] = useState<number>(0)
     const [grupo, setGrupo] = useState<DadosGrupo | null>(null)
     const [totalReceber, setTotalReceber] = useState<number>(0)
     const [minhaDivida, setMinhaDivida] = useState<number>(0)
-    const [modal, setModal] = useState(false)
+    const [modal, setModal] = useState<boolean>(false)
     const [proximaConta, setProximaConta] = useState<ProximaConta>()
     const [abaAtiva, setAbaAtiva] = useState<number>(1);
     const [inadimplentes, setInadimplentes] = useState<Inadimplentes[]>([])
