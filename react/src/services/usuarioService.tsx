@@ -47,6 +47,24 @@ export const usuarioService = {
             throw new Error("Falha ao Deslogar:")
         }
 
+    },
+
+    meuPerfil: async (token: string) => {
+        const res = await fetch('http://localhost:5149/api/Usuario/MeuPerfil', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+
+        })
+
+        if (!res.ok) {
+            throw new Error(`Erro ao buscar os dados do usuário: ${res.status}`)
+
+        }
+
+        return await res.json()
+
     }
 
 }
