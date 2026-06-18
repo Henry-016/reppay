@@ -48,6 +48,19 @@ namespace RepPay.API.Services
             _context.Grupos.Add(novoGrupo);
             _context.SaveChanges();
 
+            bool jaEMembro = _context.Pertences
+                .Any(p => p.IdUsuario == idAdmin && p.IdGrupo == novoGrupo.IdGrupo);
+
+            if (!jaEMembro)
+            {
+                _context.Pertences.Add(new Pertence
+                {
+                    IdUsuario = idAdmin,
+                    IdGrupo = novoGrupo.IdGrupo
+                });
+                _context.SaveChanges();
+            }
+
             return new GrupoCriadoResponseDTO
             {
                 Mensagem = "República criada com sucesso!",
@@ -145,7 +158,7 @@ namespace RepPay.API.Services
                     IdUsuario = p.IdUsuario,
                     Nome = p.IdUsuarioNavigation.Nome,
                     Email = p.IdUsuarioNavigation.Email,
-                    // FotoPerfil = p.IdUsuarioNavigation.FotoPerfil,
+                    FotoPerfil = p.IdUsuarioNavigation.FotoPerfil,
                     IsAdmin = p.IdUsuario == grupo.IdAdmin,
 
                     TotalDevido = _context.Parcelas
@@ -300,6 +313,7 @@ namespace RepPay.API.Services
         public string DeletarGrupo(int idLogado, int idGrupo)
         {
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
+
             if (grupo == null)
             {
                 throw new KeyNotFoundException("Grupo não encontrado.");
@@ -310,24 +324,17 @@ namespace RepPay.API.Services
                 throw new UnauthorizedAccessException("Apenas o administrador pode encerrar a república.");
             }
 
-            int quantidadeMoradores = _context.Pertences.Count(p => p.IdGrupo == idGrupo);
+            bool temOutrosMoradores = _context.Pertences
+                .Any(p => p.IdGrupo == idGrupo && p.IdUsuario != idLogado);
 
-            if (quantidadeMoradores > 1)
+            if (temOutrosMoradores)
             {
                 throw new Exception("Não é possível encerrar a república enquanto houver outros moradores nela. Peça para que saiam voluntariamente ou remova-os primeiro.");
             }
 
             grupo.Ativo = false;
-
-            try
-            {
-                _context.SaveChanges();
-                return "República encerrada com sucesso! Todas as despesas atreladas foram arquivadas.";
-            }
-            catch (Exception)
-            {
-                throw new Exception("Não é possível encerrar a república no momento. Existem despesas com parcelas pendentes ou em análise. Quite todas as contas primeiro.");
-            }
+            _context.SaveChanges();
+            return "República encerrada com sucesso! Todas as despesas atreladas foram arquivadas.";
         }
     }
 }

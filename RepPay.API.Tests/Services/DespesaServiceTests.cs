@@ -117,6 +117,8 @@ namespace RepPay.API.Tests.Services
             Assert.Contains("Apenas o administrador pode lançar despesas", excecao.Message);
         }
 
+
+
         [Fact]
         public void CadastrarDespesa_DeveDispararExcecao_QuandoListaDeMoradoresForVazia()
         {
@@ -166,6 +168,38 @@ namespace RepPay.API.Tests.Services
 
             var excecao = Assert.Throws<Exception>(() => service.CadastrarDespesa(admin.IdUsuario, request));
             Assert.Contains("não pertencem a esta república", excecao.Message);
+        }
+
+        [Fact]
+        public void CadastrarDespesa_DeveDispararExcecao_QuandoGrupoEstiverInativo()
+        {
+            var context = CriarContextoEmMemoria();
+            var admin = new Usuario { Nome = "Admin", Email = "admin@ufal.com", Senha = "123", Ativo = true };
+            context.Usuarios.Add(admin);
+            context.SaveChanges();
+
+            var grupo = new Grupo
+            {
+                Nome = "República Encerrada",
+                IdAdmin = admin.IdUsuario,
+                Ativo = false,
+                CodigoAcesso = "12345678"
+            };
+            context.Grupos.Add(grupo);
+            context.SaveChanges();
+
+            var service = new DespesaService(context);
+            var request = new DespesaRequestDTO
+            {
+                Nome = "Conta",
+                Valor = 100,
+                Vencimento = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(5)),
+                IdGrupo = grupo.IdGrupo,
+                MoradoresIds = new List<int> { admin.IdUsuario }
+            };
+
+            var excecao = Assert.Throws<Exception>(() => service.CadastrarDespesa(admin.IdUsuario, request));
+            Assert.Contains("república encerrada", excecao.Message);
         }
 
         // ==========================================
@@ -248,6 +282,37 @@ namespace RepPay.API.Tests.Services
             var service = new DespesaService(context);
 
             Assert.Throws<KeyNotFoundException>(() => service.PagarParcela(1, 9999));
+        }
+
+        [Fact]
+        public void PagarParcela_DeveDispararExcecao_QuandoParcelaJaEstiverEmAnalise()
+        {
+            var context = CriarContextoEmMemoria();
+            var morador = new Usuario { Nome = "Morador", Email = "m@ufal.com", Senha = "123", Ativo = true };
+            context.Usuarios.Add(morador);
+            context.SaveChanges();
+
+            var despesa = new Despesa { Nome = "Internet", Valor = 100, Status = StatusDespesa.ATIVA, Ativo = true };
+            context.Despesas.Add(despesa);
+            context.SaveChanges();
+
+            var parcela = new Parcela
+            {
+                IdDespesa = despesa.IdDespesa,
+                IdUsuario = morador.IdUsuario,
+                Valor = 100,
+                Status = StatusParcela.EM_ANALISE,
+                DataPagamento = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1))
+            };
+            context.Parcelas.Add(parcela);
+            context.SaveChanges();
+
+            var dataOriginal = parcela.DataPagamento;
+            var service = new DespesaService(context);
+
+            var excecao = Assert.Throws<Exception>(() => service.PagarParcela(morador.IdUsuario, parcela.IdParcela));
+            Assert.Contains("já foi sinalizado", excecao.Message);
+            Assert.Equal(dataOriginal, parcela.DataPagamento);
         }
 
         // ==========================================
@@ -506,6 +571,23 @@ namespace RepPay.API.Tests.Services
             var request = new DespesaRequestDTO { Nome = "X", Valor = 1, IdGrupo = grupo.IdGrupo, MoradoresIds = new List<int>() };
 
             Assert.Throws<KeyNotFoundException>(() => service.EditarDespesa(admin.IdUsuario, 9999, request));
+        }
+
+        public void EditarDespesa_DeveDispararExcecao_QuandoPossuirParcelaPaga()
+        {
+            var (context, admin, morador, grupo, despesa) = CriarCenarioCompleto(StatusParcela.PAGO);
+            var service = new DespesaService(context);
+            var request = new DespesaRequestDTO
+            {
+                Nome = "Tentativa",
+                Valor = 999,
+                Vencimento = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(10)),
+                IdGrupo = grupo.IdGrupo,
+                MoradoresIds = new List<int> { morador.IdUsuario }
+            };
+
+            var excecao = Assert.Throws<Exception>(() => service.EditarDespesa(admin.IdUsuario, despesa.IdDespesa, request));
+            Assert.Contains("parcelas pagas ou em análise", excecao.Message);
         }
 
         // ==========================================

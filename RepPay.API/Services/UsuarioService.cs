@@ -241,8 +241,7 @@ namespace RepPay.API.Services
                 return;
             }
 
-            Random random = new Random();
-            string codigo = random.Next(100000, 999999).ToString();
+            string codigo = RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
 
             var novoCodigo = new CodigoRecuperacao
             {

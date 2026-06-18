@@ -41,6 +41,7 @@ namespace RepPay.API.Tests.Services
             Assert.NotNull(resultado.CodigoAcesso);
             Assert.Equal(8, resultado.CodigoAcesso.Length);
             Assert.True(context.Grupos.Any(g => g.Nome == "República das Flores" && g.IdAdmin == admin.IdUsuario));
+            Assert.True(context.Pertences.Any(p => p.IdUsuario == admin.IdUsuario && p.IdGrupo == context.Grupos.First().IdGrupo));
         }
 
         // ==========================================
