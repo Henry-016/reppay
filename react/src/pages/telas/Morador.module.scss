@@ -1,0 +1,262 @@
+.tela_morador {
+    background-color: var(--cor-fundo-escuro);
+    min-width: 100vw;
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+    
+    .sideBar {
+        width: 20vw;
+        background-color: #171F33;
+        border: 0.063rem solid #3B494C;
+        padding-top: 2.813rem;
+        padding-bottom: 1.75rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        flex-shrink: 0;
+
+        .sideBarUp {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+
+            h2 {
+                font-size: 1.5rem;
+                color: #C3F5FF;
+                font-weight: bold;
+
+            }
+
+            button {
+                height: 2.625rem;
+                border: none;
+                cursor: pointer;
+                font-size: 0.875rem;
+                font-weight: bold;
+                display: flex;
+                justify-content: flex-start;
+                align-items: center;
+                padding-left: 1rem;
+                gap: 0.813rem;
+
+            }
+
+            .ativado {
+                border-radius: 0.5rem;
+                background-color: #3E495D;
+                color: #C3F5FF;
+
+            }
+
+        }
+
+        .sideBarBottom {
+            width: 100%;
+            border-top: 0.063rem solid #3B494C;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            button {
+                height: 2.625rem;
+                border: none;
+                cursor: pointer;
+                font-size: 0.875rem;
+                font-weight: bold;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 0.813rem;
+                background: none;
+                color: var(--cor-texto-simples);
+
+            }
+
+        }
+
+    }
+
+    .principal {
+        width: 80vw;
+        overflow-y: auto;
+        height: 100%;
+        overflow-x: hidden;
+        overflow-y: auto;
+
+        &::-webkit-scrollbar {
+            height: 0.375rem; 
+            position: absolute;
+            
+        }
+        &::-webkit-scrollbar-track {
+
+        }
+        &::-webkit-scrollbar-thumb {
+            background-color: #3B494C;
+            border-radius: 0.5rem;
+            border: 0.125rem solid transparent;
+            background-clip: content-box;
+
+        }
+
+        .conteudo {
+            padding: 0rem 2.5rem;
+
+            .containerInformacaoPrincipal {
+                display: flex;
+                width: 100%;
+                justify-content: space-evenly;
+                padding: 2.5rem 0rem;
+                gap: 1rem;
+
+                .containerDevedor {
+                    background-color: #222A3D;
+                    padding: 2.5rem;
+                    width: 40%;
+                    border-radius: 0.75rem;
+                    border: 0.125rem solid #ffffff;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-start;
+                    justify-content: center;
+
+                    p {
+                        color: var(--cor-texto-simples);
+                        font-size: 0.875rem;
+                        font-weight: bold;
+
+                    }
+
+                    h2 {
+                        color: var(--cor-azul-claro);
+                        font-size: 2.5rem;
+
+                    }
+
+
+                }
+
+                .containerVencimento {
+                    background-color: #222A3D;
+                    padding: 2.5rem;
+                    width: 40%;
+                    border-radius: 0.75rem;
+                    border: 0.125rem solid #ffffff;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-start;
+                    justify-content: center;
+
+                    .proximoVencimento {
+                        display: flex;
+                        justify-content: space-between;
+                        width: 100%;
+                        align-items: center;
+
+                        p {
+                            font-size: 0.875rem;
+                            color: var(--cor-texto-simples)
+
+                        }
+
+                        .calendario {
+                            width: 1.125rem;
+                            height: 1.25rem;
+
+                        }
+
+                    }
+
+                    .existe {
+                        font-size: 2rem;
+                        color: #ffffff;
+
+                    }
+
+                    .naoExiste {
+                        font-size: 1rem;
+                        text-align: start;
+                        color: var(--cor-azul-claro)
+
+                    }
+
+                    p {
+                        font-size: 1rem;
+                        color: #FFB4AB;
+
+                    }
+
+                    
+                }
+
+            }
+            
+            .opcoes {
+                display: flex;
+                justify-content: flex-start;
+                gap: 2.125rem;
+                border-bottom: 0.063rem solid #3B494C;
+
+                .opcao {
+                    display: flex;
+                    border: none;
+                    cursor: pointer;
+                    background: none;
+                    height: 2rem;
+                    color: var(--cor-texto-simples);
+                    font-size: 0.875rem;
+                    font-weight: 600;
+
+                }
+
+                .ativo {
+                    border-bottom: 0.25rem solid #C3F5FF;
+                    color: #C3F5FF;
+
+                }
+
+            }
+
+            .containerDespesas {
+                display: flex;
+                flex-direction: column;
+                padding: 1rem 0rem;
+                align-items: flex-start;
+
+                .detalhesConta {
+                    font-size: 0.75rem;
+                    color: var(--cor-texto-simples);
+                    margin-bottom: 1rem;
+
+                }
+
+                .contas {
+                    display: flex;
+                    flex-direction: column;
+                    width: 100%;
+                    gap: 0.5rem;
+
+                }
+
+                .vazio {
+                    display: flex;
+                    width: 100%;
+                    height: 4rem;
+
+                    p {
+                        color: var(--cor-texto-simples)
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    }
+
+}

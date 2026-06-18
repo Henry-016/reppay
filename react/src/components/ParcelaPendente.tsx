@@ -1,4 +1,5 @@
 import styles from './ParcelaPendente.module.scss'
+import { utilitarios } from '../services/utilitariosService'
 
 interface ComponentProps {
     icone: string
@@ -10,8 +11,6 @@ interface ComponentProps {
     mostrarBotao: boolean
 
 }
-
-
 
 function ComponenteEscolha( {icone, vencimento, nomeDespesa,nomeMorador, valor, mostrarBotao, onClick}: ComponentProps ) {
 
@@ -27,7 +26,7 @@ function ComponenteEscolha( {icone, vencimento, nomeDespesa,nomeMorador, valor, 
                     </div>
                 </div>
                 <div className={styles.containerEsquerda}>
-                    <h2>R$ {valor}</h2>
+                    <h2>{utilitarios.formatarValor(valor)}</h2>
                     {mostrarBotao && (
                     <button onClick={onClick}>Pagar</button>
                     )}

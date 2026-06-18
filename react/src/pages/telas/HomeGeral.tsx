@@ -5,6 +5,10 @@ import { useState, useEffect } from 'react'
 import Modal_EscolhaCriarEntrar from './../modais/Modal_EscolhaCriarEntrar'
 import CardGrupo from './../../components/CardGrupo'
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from './../../context/AuthContext'
+import { grupoService } from '../../services/grupoService'
+import ModalConfirmacao from '../modais/ModalConfirmacao'
+
 
 interface GrupoUsuario {
     idGrupo: number;
@@ -18,33 +22,59 @@ function HomeGeral() {
 
     const [modal, setModal] = useState(false)
     const [grupos, setGrupos] = useState<GrupoUsuario[]>([])
+    const [modalRemover, setModalRemover] = useState<number | null>(null)
+    const [atualizarDados, setAtualizarDados] = useState(0);
 
-    const nome = localStorage.getItem('nomeUsuario')
+    const { token, loading, usuario } = useAuth()
+
+    const nome = usuario?.nome
 
     const navigate = useNavigate()
 
     useEffect(() => {
-        const buscarGrupos = async () => {
-            const token = localStorage.getItem('token')
+        
+        if (loading) return
+
+        if (!token) {
+            navigate('/login')
+            return
+
+        }
+
+        const carregarGrupos = async () => {
             try {
-                const resposta = await fetch('http://localhost:5149/api/Grupo/Meus', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+                const dados = await grupoService.buscarGrupos(token)
+                setGrupos(dados)
 
-                if (resposta.ok) {
-                    const dados = await resposta.json();
-                    setGrupos(dados)
-                }
             } catch (error) {
-                console.error(error)
-            }
-        };
+                console.error("Erro ao carregar grupos:", error)
 
-        buscarGrupos();
-    }, [grupos]);
+            }
+        }
+    
+        carregarGrupos()
+
+        if (!token) {
+            navigate('/login')
+            return
+
+        }
+
+    }, [token, grupos, modal, loading, atualizarDados])
+
+    const removerGrupo = async (idGrupo: number) => {
+        try {
+            await grupoService.removerGrupo(idGrupo || -1, token || "")
+
+            setAtualizarDados(prev => prev + 1)
+            setModalRemover(null)
+
+        } catch (error: any) {
+            alert(error)
+
+        }
+
+    }
 
     return (
         <>
@@ -71,13 +101,26 @@ function HomeGeral() {
                                 texto={'Acesso total ao painel financeiro, gestão de moradores e relatórios detalhados de despesas mensais.'}
                                 onClick={() => {
                                     if (grupo.isAdmin) {
-                                        navigate(`/home/admin/${grupo.idGrupo}`);
+                                        navigate(`/home/admin/${grupo.idGrupo}`)
                                     } else {
-                                        navigate(`/morador/${grupo.idGrupo}`);
+                                        navigate(`/home/morador/${grupo.idGrupo}`)
                                     }
                                 }}
+                                clickApagar={() => setModalRemover(grupo.idGrupo)}
                             />
                         ))}
+                        <ModalConfirmacao 
+                                texto={'Você tem certeza que quer expulsar esse morador?'}
+                                isOpen={modalRemover !== null} 
+                                onClose={() => setModalRemover(null)} 
+                                onClick={() => {
+                                    if (modalRemover !== null) {
+                                        removerGrupo(modalRemover)
+
+                                    }
+
+                                }}
+                            />
                     </div>
                 </div>
 

@@ -4,13 +4,13 @@ import { utilitarios } from '../services/utilitariosService'
 interface ComponentProps {
     icone: string
     nomeDespesa: string
-    nomeMorador: string
     valor: number
-    dataPago: string
+    vencimento: string
+    onClick: () => void
 
 }
 
-function ComponenteEscolha( {icone, dataPago, nomeDespesa,nomeMorador, valor}: ComponentProps ) {
+function ParcelaPendenteIndividual( {icone, vencimento, nomeDespesa, valor, onClick}: ComponentProps ) {
 
     return (
         <>
@@ -18,13 +18,13 @@ function ComponenteEscolha( {icone, dataPago, nomeDespesa,nomeMorador, valor}: C
                 <div className={styles.containerDireita}>
                     <img src={icone} className={styles.icone}/>
                     <div className={styles.containerNome}>
-                        <h2>{nomeMorador}</h2>
-                        <p>{nomeDespesa}</p>
-                        <p>Data de Pagamento: {dataPago}</p>
+                        <h2>{nomeDespesa}</h2>
+                        <p>Data de Vencimento: {vencimento}</p>
                     </div>
                 </div>
                 <div className={styles.containerEsquerda}>
                     <h2>{utilitarios.formatarValor(valor)}</h2>
+                    <button onClick={onClick}>Pagar</button>
                 </div>   
             </section>
         
@@ -34,4 +34,4 @@ function ComponenteEscolha( {icone, dataPago, nomeDespesa,nomeMorador, valor}: C
 
 }
 
-export default ComponenteEscolha;
+export default ParcelaPendenteIndividual;

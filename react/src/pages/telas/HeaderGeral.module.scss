@@ -22,14 +22,20 @@
         justify-self: end;
         display: flex;
         align-items: center;
+        position: relative;
 
-        
+        .containerIcone {
+            display: flex;
+            flex-direction: column;
+            
+        }
 
     }
 
     .user_icon {
         width: 2.5rem;
         height: 2.5rem;
+        cursor: pointer;
 
     }
 
