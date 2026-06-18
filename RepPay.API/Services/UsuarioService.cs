@@ -46,6 +46,11 @@ namespace RepPay.API.Services
 
         public void CriarUsuario(UsuarioRequestDTO novoUsuarioDTO)
         {
+            if (string.IsNullOrWhiteSpace(novoUsuarioDTO.Senha))
+            {
+                throw new Exception("A senha é obrigatória e não pode estar vazia!");
+            }
+
             if (_context.Usuarios.Any(u => u.Email.ToLower() == novoUsuarioDTO.Email.ToLower()))
             {
                 throw new Exception("Este e-mail já está cadastrado no sistema!");
@@ -236,8 +241,7 @@ namespace RepPay.API.Services
                 return;
             }
 
-            Random random = new Random();
-            string codigo = random.Next(100000, 999999).ToString();
+            string codigo = RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
 
             var novoCodigo = new CodigoRecuperacao
             {

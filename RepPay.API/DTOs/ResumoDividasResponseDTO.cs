@@ -1,6 +1,6 @@
 namespace RepPay.API.DTOs
 {
-    public class ResumoDividasDTO
+    public class ResumoDividasResponseDTO
     {
         public decimal TotalDevido { get; set; }
         public List<MinhaDividaResponseDTO> ListaDividas { get; set; } = new();

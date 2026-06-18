@@ -1,4 +1,4 @@
-using RepPay.API.DTOs;
+﻿using RepPay.API.DTOs;
 using RepPay.API.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -22,12 +22,17 @@ namespace RepPay.API.Services
 
             if (grupo == null || grupo.IdAdmin != idLogado)
             {
-                throw new UnauthorizedAccessException("Acesso negado. Apenas o administrador pode lan�ar despesas.");
+                throw new UnauthorizedAccessException("Acesso negado. Apenas o administrador pode lançar despesas.");
+            }
+
+            if (!grupo.Ativo)
+            {
+                throw new Exception("Não é possível lançar despesas em uma república encerrada.");
             }
 
             if (request.MoradoresIds == null || request.MoradoresIds.Count == 0)
             {
-                throw new Exception("� necess�rio selecionar pelo menos um morador para dividir esta conta.");
+                throw new Exception("É necessário selecionar pelo menos um morador para dividir esta conta.");
             }
 
             var moradoresValidos = _context.Pertences
@@ -37,7 +42,7 @@ namespace RepPay.API.Services
 
             if (moradoresValidos.Count != request.MoradoresIds.Count)
             {
-                throw new Exception("Um ou mais moradores informados n�o existem ou n�o pertencem a esta rep�blica.");
+                throw new Exception("Um ou mais moradores informados não existem ou não pertencem a esta república.");
             }
 
             var novaDespesa = new Despesa
@@ -66,13 +71,14 @@ namespace RepPay.API.Services
             _context.Despesas.Add(novaDespesa);
             _context.SaveChanges();
 
-            return "Despesa lan�ada e rateio gerado com sucesso!";
+            return "Despesa lançada e rateio gerado com sucesso!";
         }
 
-        public ResumoDividasDTO GetMinhasDividas(int idLogado, int idGrupo)
+        public ResumoDividasResponseDTO GetMinhasDividas(int idLogado, int idGrupo)
         {
             var dividas = _context.Parcelas
                 .Include(p => p.IdDespesaNavigation)
+                .ThenInclude(d => d.IdGrupoNavigation)
                 .Where(p => p.IdUsuario == idLogado && p.IdDespesaNavigation.IdGrupo == idGrupo
                          && p.IdDespesaNavigation.Ativo == true && p.IdDespesaNavigation.IdGrupoNavigation.Ativo == true
                          && (p.Status == StatusParcela.PENDENTE || p.Status == StatusParcela.ATRASADO))
@@ -88,7 +94,7 @@ namespace RepPay.API.Services
                 .OrderBy(p => p.Vencimento)
                 .ToList();
 
-            return new ResumoDividasDTO
+            return new ResumoDividasResponseDTO
             {
                 TotalDevido = dividas.Sum(d => d.Valor),
                 ListaDividas = dividas
@@ -101,7 +107,7 @@ namespace RepPay.API.Services
 
             if (grupo == null)
             {
-                throw new KeyNotFoundException("Grupo n�o encontrado.");
+                throw new KeyNotFoundException("Grupo não encontrado.");
             }
 
             if (grupo.IdAdmin != idLogado)
@@ -141,24 +147,29 @@ namespace RepPay.API.Services
 
             if (parcela == null)
             {
-                throw new KeyNotFoundException("Parcela n�o encontrada.");
+                throw new KeyNotFoundException("Parcela não encontrada.");
             }
 
             if (parcela.IdUsuario != idLogado)
             {
-                throw new UnauthorizedAccessException("N�o tem permiss�o para alterar uma d�vida que n�o lhe pertence!");
+                throw new UnauthorizedAccessException("Não tem permissão para alterar uma dívida que não lhe pertence!");
             }
 
             if (parcela.Status == StatusParcela.PAGO)
             {
-                throw new Exception("Esta parcela j� se encontra paga.");
+                throw new Exception("Esta parcela já se encontra paga.");
+            }
+
+            if (parcela.Status == StatusParcela.EM_ANALISE)
+            {
+                throw new Exception("Este pagamento já foi sinalizado e está aguardando validação do administrador.");
             }
 
             parcela.Status = StatusParcela.EM_ANALISE;
             parcela.DataPagamento = DateOnly.FromDateTime(DateTime.UtcNow);
             _context.SaveChanges();
 
-            return "Pagamento sinalizado! Aguardando valida��o do administrador.";
+            return "Pagamento sinalizado! Aguardando validação do administrador.";
         }
 
         public string DesfazerPagamento(int idLogado, int idParcela)
@@ -167,24 +178,24 @@ namespace RepPay.API.Services
 
             if (parcela == null)
             {
-                throw new KeyNotFoundException("Parcela n�o encontrada.");
+                throw new KeyNotFoundException("Parcela não encontrada.");
             }
 
             if (parcela.IdUsuario != idLogado)
             {
-                throw new UnauthorizedAccessException("N�o tem permiss�o para alterar uma d�vida que n�o lhe pertence!");
+                throw new UnauthorizedAccessException("Não tem permissão para alterar uma dívida que não lhe pertence!");
             }
 
             if (parcela.Status != StatusParcela.EM_ANALISE)
             {
-                throw new Exception("S� � poss�vel desfazer pagamentos que ainda est�o em an�lise.");
+                throw new Exception("Só é possível desfazer pagamentos que ainda estão em análise.");
             }
 
             parcela.DataPagamento = null;
             parcela.Status = StatusParcela.PENDENTE;
             _context.SaveChanges();
 
-            return "Sinaliza��o de pagamento desfeita com sucesso.";
+            return "Sinalização de pagamento desfeita com sucesso.";
         }
 
         public string ValidarPagamento(int idLogado, int idParcela, ValidarPagamentoRequestDTO request)
@@ -196,7 +207,7 @@ namespace RepPay.API.Services
 
             if (parcela == null)
             {
-                throw new KeyNotFoundException("Parcela n�o encontrada.");
+                throw new KeyNotFoundException("Parcela não encontrada.");
             }
 
             if (parcela.IdDespesaNavigation.IdGrupoNavigation.IdAdmin != idLogado)
@@ -206,7 +217,7 @@ namespace RepPay.API.Services
 
             if (parcela.Status != StatusParcela.EM_ANALISE)
             {
-                throw new Exception("Esta parcela n�o est� aguardando valida��o.");
+                throw new Exception("Esta parcela não está aguardando validação.");
             }
 
             if (request.Aprovado)
@@ -228,7 +239,7 @@ namespace RepPay.API.Services
             }
 
             _context.SaveChanges();
-            return request.Aprovado ? "Pagamento aprovado com sucesso! A parcela foi quitada." : "Pagamento rejeitado. A d�vida voltou para o morador.";
+            return request.Aprovado ? "Pagamento aprovado com sucesso! A parcela foi quitada." : "Pagamento rejeitado. A dívida voltou para o morador.";
         }
 
         public List<HistoricoPagoResponseDTO> GetMeuHistoricoPago(int idLogado, int idGrupo)
@@ -256,12 +267,12 @@ namespace RepPay.API.Services
 
             if (grupo == null)
             {
-                throw new KeyNotFoundException("Grupo n�o encontrado.");
+                throw new KeyNotFoundException("Grupo não encontrado.");
             }
 
             if (grupo.IdAdmin != idLogado)
             {
-                throw new UnauthorizedAccessException("Apenas o administrador pode ver o hist�rico financeiro global.");
+                throw new UnauthorizedAccessException("Apenas o administrador pode ver o histórico financeiro global.");
             }
 
             return _context.Parcelas
@@ -307,12 +318,12 @@ namespace RepPay.API.Services
 
             if (grupo == null)
             {
-                throw new KeyNotFoundException("Grupo n�o encontrado.");
+                throw new KeyNotFoundException("Grupo não encontrado.");
             }
 
             if (grupo.IdAdmin != idLogado)
             {
-                throw new UnauthorizedAccessException("Apenas o administrador pode ver as valida��es pendentes.");
+                throw new UnauthorizedAccessException("Apenas o administrador pode ver as validações pendentes.");
             }
 
             return _context.Parcelas
@@ -341,35 +352,36 @@ namespace RepPay.API.Services
 
             if (parcela == null)
             {
-                throw new KeyNotFoundException("Parcela n�o encontrada.");
+                throw new KeyNotFoundException("Parcela não encontrada.");
             }
 
             if (parcela.IdDespesaNavigation.IdGrupoNavigation.IdAdmin != idLogado)
             {
-                throw new UnauthorizedAccessException("Acesso negado. Apenas o administrador da rep�blica pode quitar d�vidas administrativamente.");
+                throw new UnauthorizedAccessException("Acesso negado. Apenas o administrador da república pode quitar dívidas administrativamente.");
             }
 
             if (parcela.Status == StatusParcela.PAGO)
             {
-                throw new Exception("Esta parcela j� est� paga e n�o precisa de interven��o.");
+                throw new Exception("Esta parcela já está paga e não precisa de intervenção.");
             }
 
             parcela.Status = StatusParcela.PAGO;
             parcela.DataPagamento = DateOnly.FromDateTime(DateTime.UtcNow);
             _context.SaveChanges();
 
-            return "D�vida quitada administrativamente com sucesso! O hist�rico do morador foi limpo para esta conta.";
+            return "Dívida quitada administrativamente com sucesso! O histórico do morador foi limpo para esta conta.";
         }
 
         public string EditarDespesa(int idLogado, int idDespesa, DespesaRequestDTO request)
         {
             var despesa = _context.Despesas
                 .Include(d => d.IdGrupoNavigation)
+                .Include(d => d.Parcelas)
                 .FirstOrDefault(d => d.IdDespesa == idDespesa);
 
             if (despesa == null)
             {
-                throw new KeyNotFoundException("Despesa n�o encontrada.");
+                throw new KeyNotFoundException("Despesa não encontrada.");
             }
 
             if (despesa.IdGrupoNavigation.IdAdmin != idLogado)
@@ -377,36 +389,46 @@ namespace RepPay.API.Services
                 throw new UnauthorizedAccessException("Apenas o administrador pode editar despesas.");
             }
 
+            bool temParcelaBloqueante = despesa.Parcelas.Any(p =>
+                p.Status == StatusParcela.PAGO || p.Status == StatusParcela.EM_ANALISE);
+
+            if (temParcelaBloqueante)
+            {
+                throw new Exception("Não é permitido alterar o valor ou o vencimento de uma despesa que já possui parcelas pagas ou em análise.");
+            }
+
             despesa.Nome = request.Nome;
             despesa.Valor = request.Valor;
             despesa.Vencimento = request.Vencimento;
             despesa.Icone = request.Icone;
 
-            try
-            {
-                _context.SaveChanges();
-                return "Despesa atualizada com sucesso!";
-            }
-            catch (Exception)
-            {
-                throw new Exception("N�o � permitido alterar o valor ou o vencimento de uma despesa que j� possui parcelas pagas ou em an�lise.");
-            }
+            _context.SaveChanges();
+            return "Despesa atualizada com sucesso!";
         }
 
         public string DeletarDespesa(int idLogado, int idDespesa)
         {
             var despesa = _context.Despesas
                 .Include(d => d.IdGrupoNavigation)
+                .Include(d => d.Parcelas)
                 .FirstOrDefault(d => d.IdDespesa == idDespesa);
 
             if (despesa == null)
             {
-                throw new KeyNotFoundException("Despesa n�o encontrada.");
+                throw new KeyNotFoundException("Despesa não encontrada.");
             }
 
             if (despesa.IdGrupoNavigation.IdAdmin != idLogado)
             {
                 throw new UnauthorizedAccessException("Apenas o administrador pode apagar despesas.");
+            }
+
+            bool temParcelaPagaOuEmAnalise = despesa.Parcelas.Any(p =>
+                p.Status == StatusParcela.PAGO || p.Status == StatusParcela.EM_ANALISE);
+
+            if (temParcelaPagaOuEmAnalise)
+            {
+                throw new Exception("Não é possível deletar uma despesa que ainda possui parcelas pagas.");
             }
 
             despesa.Ativo = false;
@@ -418,7 +440,7 @@ namespace RepPay.API.Services
             }
             catch (Exception)
             {
-                throw new Exception("N�o � poss�vel deletar uma despesa que ainda possui parcelas pagas!");
+                throw new Exception("Não é possível deletar uma despesa que ainda possui parcelas pagas!");
             }
         }
     }
