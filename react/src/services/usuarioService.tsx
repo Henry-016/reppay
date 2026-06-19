@@ -38,6 +38,44 @@ export const usuarioService = {
 
     },
 
+    validarEmail: async (email: string) => {
+        const res = await fetch('http://localhost:5149/api/Usuario/EsqueciSenha', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+
+            body: JSON.stringify({ Email: email }) 
+        });
+
+        if (!res.ok) {
+            const erroBackend = await res.json().catch(() => ({}));
+            throw new Error(erroBackend.mensagem || "Erro ao solicitar a recuperação.");
+        }
+
+        return true
+
+    },
+
+    validarCodigo: async (email: string) => {
+        const res = await fetch('http://localhost:5149/api/Usuario/EsqueciSenha', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+
+            body: JSON.stringify({ Email: email }) 
+        });
+
+        if (!res.ok) {
+            const erroBackend = await res.json().catch(() => ({}));
+            throw new Error(erroBackend.mensagem || "Erro ao solicitar a recuperação.");
+        }
+
+        return true
+        
+    },
+
     logOut: async (refreshToken: string, token: string) => {
         const res = await fetch('http://localhost:5149/api/Usuario/Logout', {
         method: 'POST', 

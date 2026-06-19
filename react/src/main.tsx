@@ -7,6 +7,7 @@ import Login from './pages/telas/Login.js'
 import HomeGeral from './pages/telas/HomeGeral'
 import Admin from './pages/telas/Admin.js'
 import Morador from './pages/telas/Morador'
+import ValidarEmail from './pages/telas/ValidarEmail';
 
 createRoot(document.getElementById('root')!).render(
   <AuthProvider>
@@ -14,10 +15,12 @@ createRoot(document.getElementById('root')!).render(
         <Routes>
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/validarEmail" element={<ValidarEmail />} />
           <Route path='/home' element={<HomeGeral />} />
           <Route path="/home/admin/:idGrupo" element={<Admin />} />
           <Route path="/home/morador/:idGrupo" element={<Morador />} />
           <Route path="/" element={<Navigate to="/login" replace />} />
+          
         </Routes>
       </BrowserRouter>
   </AuthProvider>
