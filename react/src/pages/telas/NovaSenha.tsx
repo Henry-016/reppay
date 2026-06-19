@@ -1,16 +1,19 @@
 import { useState} from 'react'
-import styles from './ValidarCodigo.module.scss'
+import styles from './NovaSenha.module.scss'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { usuarioService } from '../../services/usuarioService'
 import back from './../../assets/arrow_back.svg'
 
-function ValidarCodigo() {
-    const [codigo, setCodigo] = useState('')
+function NovaSenha() {
+    const [senha, setSenha] = useState('')
+    const [confirmarSenha, setConfirmarSenha] = useState('')
     const [erro, setErro] = useState('')
+    
     const navigate = useNavigate()
     const location = useLocation()
-
-    const email = location.state?.email
+    
+    const email = location.state?.email;
+    const codigo = location.state?.codigo
 
     if (!email) {
         navigate('/verificarEmail')
@@ -18,18 +21,29 @@ function ValidarCodigo() {
 
     }
 
-    const validar = async (e: React.SubmitEvent) => {
+    const salvarNovaSenha = async (e: React.SubmitEvent) => {
         e.preventDefault()
 
-        if (!codigo) {
-            setErro('Por favor, preencha o email.')
+        if (senha.length < 8) {
+            setErro('A senha deve ter no mínimo 8 caracteres.')
             return
+        }
 
+        if (senha !== confirmarSenha) {
+            setErro('As senhas não coincidem!')
+            return
         }
 
         try {
-            await usuarioService.validarCodigo(email, codigo)
-            navigate('/novaSenha', { state: { email: email, codigo: codigo } })
+
+            const dadosReset = {
+                Email: email,
+                Codigo: codigo,
+                NovaSenha: senha
+            }
+
+            await usuarioService.resetarSenha(dadosReset)
+            navigate('/login')
             
         } catch (erro: any) {
             console.error(erro);
@@ -42,27 +56,36 @@ function ValidarCodigo() {
 
   return (
     <>
-        <section className={styles.tela_validar_codigo}>
+        <section className={styles.tela_nova_senha}>
             <div className={styles.inputs}>
                 <h1 className={styles.reppay}>RepPay</h1>
                 {erro && <div className={styles.caixaErro}>{erro}</div>}
                 <div className={styles.caixaInputsFundo}>
                     <div className={styles.caixaInputs}>
                         <h2>Recuperar Senha</h2>
-                        <p>Insira o código enviado para seu email.</p>
+                        <p>Insira sua nova senha</p>
                         
-                        <form onSubmit={validar}>
+                        <form onSubmit={salvarNovaSenha}>
                             <div className={styles.inputContainer}>
-                                <p className={styles.textoInput}>Código</p>
-                                <input type="text"
-                                    value={codigo}
-                                    onChange={(e) => setCodigo(e.target.value)}
-                                    placeholder='XXXXXX'
+                                <p className={styles.textoInput}>Confirmar Senha</p>
+                                <input type="password"
+                                    value={senha}
+                                    onChange={(e) => setSenha(e.target.value)}
+                                    placeholder='********'
+                                    className={styles.input}
+                                    onFocus={() => setErro('')}/>
+                            </div>
+                            <div className={styles.inputContainer}>
+                                <p className={styles.textoInput}>Confirmar Senha</p>
+                                <input type="password"
+                                    value={confirmarSenha}
+                                    onChange={(e) => setConfirmarSenha(e.target.value)}
+                                    placeholder='********'
                                     className={styles.input}
                                     onFocus={() => setErro('')}/>
                             </div>
                             
-                            <button type="submit" className={styles.enviar}>Verificar Código</button>
+                            <button type="submit" className={styles.enviar}>Salvar Senha</button>
                         </form>
                             <button type="button" onClick={() => navigate('/login')} className={styles.voltar}>
                                 <img src={back}/>
@@ -85,4 +108,4 @@ function ValidarCodigo() {
   )
 }
 
-export default ValidarCodigo
+export default NovaSenha

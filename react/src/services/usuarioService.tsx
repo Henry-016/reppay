@@ -75,6 +75,26 @@ export const usuarioService = {
         return true
     },
 
+    resetarSenha: async (dadosReset: any) => {
+        const res = await fetch('http://localhost:5149/api/Usuario/ResetarSenha', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dadosReset)
+
+        })
+
+        if (!res.ok) {
+            const erroBackend = await res.json().catch(() => ({}));
+            throw new Error(erroBackend.mensagem || "Erro ao redefinir a senha.")
+            
+        }
+
+        return true
+
+    },
+
     logOut: async (refreshToken: string, token: string) => {
         const res = await fetch('http://localhost:5149/api/Usuario/Logout', {
         method: 'POST', 
