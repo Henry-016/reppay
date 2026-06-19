@@ -18,5 +18,6 @@ namespace RepPay.API.Services
         string QuitarDividaAdmin(int idLogado, int idParcela);
         string EditarDespesa(int idLogado, int idDespesa, DespesaRequestDTO request);
         string DeletarDespesa(int idLogado, int idDespesa);
+        List<DespesaGerenciamentoResponseDTO> GetDespesasParaGerenciamento(int idLogado, int idGrupo);
     }
 }

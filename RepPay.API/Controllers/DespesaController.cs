@@ -307,5 +307,38 @@ namespace RepPay.API.Controllers
             catch (UnauthorizedAccessException ex) { return StatusCode(403, new { mensagem = ex.Message }); }
             catch (Exception ex) { return BadRequest(new { mensagem = ex.Message }); }
         }
+
+        [HttpGet("gerenciamento/grupo/{idGrupo}")]
+        [Authorize] 
+        public IActionResult GetDespesasParaGerenciamento(int idGrupo)
+        {
+            try
+            {
+                var claimId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier) ?? User.FindFirst("id");
+
+                if (claimId == null)
+                {
+                    return Unauthorized(new { erro = "Token inválido ou não contém a identificação do usuário." });
+                }
+
+                int idLogado = int.Parse(claimId.Value);
+
+                var despesas = _despesaService.GetDespesasParaGerenciamento(idLogado, idGrupo);
+
+                return Ok(despesas);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { erro = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { erro = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { erro = ex.Message });
+            }
+        }
     }
 }
