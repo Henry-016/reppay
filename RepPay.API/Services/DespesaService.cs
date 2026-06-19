@@ -448,5 +448,35 @@ namespace RepPay.API.Services
                 throw new Exception("Não é possível deletar uma despesa que ainda possui parcelas pagas!");
             }
         }
+
+        public List<DespesaGerenciamentoResponseDTO> GetDespesasParaGerenciamento(int idLogado, int idGrupo)
+        {
+            var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
+
+            if (grupo == null)
+            {
+                throw new KeyNotFoundException("Grupo não encontrado.");
+            }
+
+            if (grupo.IdAdmin != idLogado)
+            {
+                throw new UnauthorizedAccessException("Apenas o administrador pode acessar a lista de gerenciamento de despesas.");
+            }
+
+            return _context.Despesas
+                .Include(d => d.Parcelas)
+                .Where(d => d.IdGrupo == idGrupo && d.Ativo == true)
+                .Where(d => !d.Parcelas.Any(p => p.Status == StatusParcela.PAGO || p.Status == StatusParcela.EM_ANALISE))
+                .Select(d => new DespesaGerenciamentoResponseDTO
+                {
+                    IdDespesa = d.IdDespesa,
+                    Nome = d.Nome,
+                    ValorTotal = d.Valor,
+                    Vencimento = d.Vencimento,
+                    Icone = d.Icone
+                })
+                .OrderBy(d => d.Vencimento)
+                .ToList();
+        }
     }
 }
