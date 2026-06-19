@@ -28,7 +28,10 @@ export const usuarioService = {
         const dados = await res.json()
 
         if (!res.ok) {
-            throw new Error(dados.mensagem || 'Erro ao realizar login. Verifique os seus dados.')
+            const erroBackend = await res.json().catch(() => ({}));
+        
+            throw new Error(erroBackend.mensagem || "Falha ao realizar o login. Verifique seus dados.")
+
         }
 
         return dados
@@ -60,6 +63,46 @@ export const usuarioService = {
 
         if (!res.ok) {
             throw new Error(`Erro ao buscar os dados do usuário: ${res.status}`)
+
+        }
+
+        return await res.json()
+
+    },
+
+    atualizar: async (token: string, dados: any) => {
+        const res = await fetch(`http://localhost:5149/api/Usuario/Atualizar`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(dados)
+
+        })
+
+        if (!res.ok) {
+            const erroBackend = await res.json().catch(() => ({})); 
+            throw new Error(erroBackend.mensagem || "Erro ao atualizar os dados do perfil.")
+
+        }
+
+        return true
+
+    },
+
+    excluirConta: async (token: string) => {
+        const res = await fetch('http://localhost:5149/api/Usuario/Deletar', {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+
+        })
+
+        if (!res.ok) {
+            const erroBackend = await res.json().catch(() => ({})); 
+            throw new Error(erroBackend.mensagem || "Erro ao deletar Usuário.")
 
         }
 

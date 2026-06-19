@@ -8,14 +8,24 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from './../../context/AuthContext'
 import { grupoService } from '../../services/grupoService'
 import ModalConfirmacao from '../modais/ModalConfirmacao'
+import { usuarioService } from '../../services/usuarioService'
 
 
 interface GrupoUsuario {
-    idGrupo: number;
-    nome: string;
-    codigoAcesso: string;
-    imagemBanner: string | null;
-    isAdmin: boolean;
+    idGrupo: number
+    nome: string
+    codigoAcesso: string
+    imagemBanner: string | null
+    isAdmin: boolean
+
+}
+
+interface Usuario {
+    idUsuario: number
+    nome: string
+    email: string
+    fotoDePerfil: string
+
 }
 
 function HomeGeral() {
@@ -23,9 +33,10 @@ function HomeGeral() {
     const [modal, setModal] = useState(false)
     const [grupos, setGrupos] = useState<GrupoUsuario[]>([])
     const [modalRemover, setModalRemover] = useState<number | null>(null)
-    const [atualizarDados, setAtualizarDados] = useState(0);
+    const [atualizarDados, setAtualizarDados] = useState(0)
+    const [usuario, setUsuario] = useState<Usuario>()
 
-    const { token, loading, usuario } = useAuth()
+    const { token, loading } = useAuth()
 
     const nome = usuario?.nome
 
@@ -45,6 +56,8 @@ function HomeGeral() {
             try {
                 const dados = await grupoService.buscarGrupos(token)
                 setGrupos(dados)
+                const dadosUsuario = await usuarioService.meuPerfil(token)
+                setUsuario(dadosUsuario)
 
             } catch (error) {
                 console.error("Erro ao carregar grupos:", error)
@@ -60,7 +73,7 @@ function HomeGeral() {
 
         }
 
-    }, [token, grupos, modal, loading, atualizarDados])
+    }, [token, modal, loading, atualizarDados, usuario])
 
     const removerGrupo = async (idGrupo: number) => {
         try {
@@ -79,7 +92,7 @@ function HomeGeral() {
     return (
         <>
             <section className={styles.tela_home_geral}>
-                <HeaderGeral nome={nome || 'Usuário'}/>
+                <HeaderGeral nome={nome || 'Usuário'} icone={usuario?.fotoDePerfil || null}/>
                 <div className={styles.conteudo}>
                     <div className={styles.titulos}>
                         <h2>Bem-vindo de volta, {nome}!</h2>

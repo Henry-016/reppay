@@ -1,0 +1,148 @@
+.tela_modal_MeusDados {
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    min-width: 100%; 
+    min-height: 100%; 
+    background-color: rgba(0, 0, 0, 0.7); 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    z-index: 50;
+    padding: 1rem 0rem;
+
+    .modal {
+        width: 32rem;
+        max-height: 90vh;
+        border-radius: 0.75rem;
+        border: 0.063rem solid #3B494C;
+        background-color: #131B2E;
+        overflow-x: hidden;
+        overflow-y: auto;
+
+        &::-webkit-scrollbar {
+            height: 0.375rem; 
+            position: absolute;
+            border-left: 0.063rem solid #ffffff;
+            
+        }
+        &::-webkit-scrollbar-track {
+            background: transparent;
+
+        }
+        &::-webkit-scrollbar-thumb {
+            background-color: #3B494C;
+            border-radius: 0.5rem;
+            border: 0.125rem solid transparent;
+            background-clip: content-box;
+
+        }
+
+        .header {
+            width: 100%;
+            padding: 1.625rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #171F33;
+            border-top-left-radius: 0.75rem;
+
+            h2 {
+                font-size: 1.5rem;
+                color: var(--cor-titulo);
+
+            }
+
+            .x {
+                width: 0.875rem;
+                height: 0.875rem;
+                cursor: pointer;
+
+            }
+
+        }
+
+        .conteudo {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem;
+            gap: 1rem;
+
+            .mensagemErro {
+                color: red;
+
+            }
+
+            .icon {
+                width: 5rem;
+                height: 5rem;
+                border-radius: 13rem;
+
+            }
+
+            form { 
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+                
+                .inputContainer {
+                    width: 23.375rem;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-start;
+        
+                    p {
+                        font-size: 0.875rem;
+                        color: var(--cor-texto-simples)
+        
+                    }
+        
+                    input {
+                        border-radius: 0.5rem;
+                        height: 3.063rem;
+                        width: 23.375rem;
+                        padding: 0.5rem;
+                        border: 0.063rem solid #ffffff;
+                        background-color: #131B2E;
+                        color: #ffffff;
+        
+                    }
+        
+                }
+
+                button {
+                    background-color: var(--cor-azul-claro);
+                    border: none;
+                    cursor: pointer;
+                    width: 23.875rem;
+                    height: 3rem;
+                    font-size: 1rem;
+                    color: #00626E;
+                    border-radius: 0.5rem;
+                    font-weight: bold;
+                    margin-top: 1rem;
+        
+                }
+
+            }
+
+            .apagar {
+                display: flex;
+                justify-content: center;
+                gap: 0.5rem;
+                cursor: pointer;
+
+                p {
+                    color: #FFB4AB;
+
+                }
+
+            }
+
+        }
+
+    }
+
+}

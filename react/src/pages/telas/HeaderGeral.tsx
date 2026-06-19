@@ -2,13 +2,14 @@ import styles from './HeaderGeral.module.scss'
 import iconeUsuario from '../../assets/user_icon.svg'
 import { useState, useEffect, useRef } from 'react'
 import ModalPerfil from '../modais/ModalPerfil'
+
 interface ModalProps {
     nome: string
-    imagem?: string
+    icone?: string
 
 }
 
-function HeaderGeral( {nome, imagem}: ModalProps ) {
+function HeaderGeral( {nome, icone}: ModalProps ) {
 
     const [modalAberto, setModalAberto] = useState(false)
 
@@ -35,7 +36,7 @@ function HeaderGeral( {nome, imagem}: ModalProps ) {
                 <div className={styles.usuario} ref={menuRef}>
                     <p className={styles.nome}>{nome}</p>
                     <div className={styles.containerIcone}>
-                        <img className={styles.user_icon} src={iconeUsuario} onClick={() => setModalAberto(!modalAberto)} />
+                        <img className={styles.user_icon} src={icone || iconeUsuario} onClick={() => setModalAberto(!modalAberto)} />
                         {modalAberto && (
                         <ModalPerfil />
                         )}

@@ -21,6 +21,7 @@ import { useAuth } from './../../context/AuthContext'
 import { grupoService } from './../../services/grupoService'
 import { despesaService } from './../../services/despesaService'
 import { utilitarios } from '../../services/utilitariosService'
+import { usuarioService } from '../../services/usuarioService'
 
 interface DadosGrupo {
     idGrupo: number
@@ -28,6 +29,14 @@ interface DadosGrupo {
     codigoAcesso: string
     imagemBanner: string | null
     isAdmin: boolean
+}
+
+interface Usuario {
+    idUsuario: number
+    nome: string
+    email: string
+    fotoDePerfil: string
+
 }
 
 interface ProximaConta {
@@ -103,8 +112,9 @@ function Admin() {
     const [modalSair, setModalSair] = useState<boolean>(false)
     const [modalTrocar, setModalTrocar] = useState<number | null>(null)
     const [modalExpulsar, setModalExpulsar] = useState<number | null>(null)
+    const [usuario, setUsuario] = useState<Usuario>()
     
-    const { usuario, loading } = useAuth()
+    const { loading } = useAuth()
     const nome = usuario?.nome
     const { token } = useAuth()
 
@@ -132,6 +142,9 @@ function Admin() {
             }
             
             setGrupo(dadosGrupo)
+
+            const dadosUsuario = await usuarioService.meuPerfil(token)
+            setUsuario(dadosUsuario)
 
             const [dadosInadimplentes, dadosMinhasDividas, dadosProximaConta, dadosAnalises, dadosHistorico, dadosMoradores] = await Promise.all([
                 despesaService.buscarInadimplentes(idGrupo, token),
@@ -256,7 +269,7 @@ function Admin() {
 
                 </div>
                 <div className={styles.principal}>
-                    <HeaderGrupo nome={nome || 'Usuário'} tipo={grupo?.isAdmin ? 'ADMINISTRADOR' : 'MORADOR'} nome_grupo={grupo?.nome || 'Republica'} />
+                    <HeaderGrupo nome={nome || 'Usuário'} tipo={grupo?.isAdmin ? 'ADMINISTRADOR' : 'MORADOR'} nome_grupo={grupo?.nome || 'Republica'} icone={usuario?.fotoDePerfil || null}/>
                     {pagina === 1 && 
                         <div className={styles.conteudo}>
                         <div className={styles.despesasRepublica}>

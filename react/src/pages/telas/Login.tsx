@@ -28,7 +28,7 @@ function Login() {
         try {
             const dados = await usuarioService.login(email, senha)
 
-            setAuth(dados.token, { id: dados.idUsuario, nome: dados.nome }, dados.refreshToken)
+            setAuth(dados.token, dados.refreshToken)
             navigate('/home') 
 
         } catch (error) {

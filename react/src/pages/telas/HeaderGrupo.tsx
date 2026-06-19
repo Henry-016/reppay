@@ -4,14 +4,14 @@ import { useState, useEffect, useRef } from 'react'
 import ModalPerfil from '../modais/ModalPerfil'
 
 interface ModalProps {
-    nome: string;
-    imagem?: string;
-    tipo: string;
-    nome_grupo: string;
+    nome: string
+    icone?: string
+    tipo: string
+    nome_grupo: string
 
 }
 
-function HeaderGrupo( {nome, tipo, nome_grupo}: ModalProps ) {
+function HeaderGrupo( {nome, tipo, nome_grupo, icone}: ModalProps ) {
 
     const [modalAberto, setModalAberto] = useState(false)
 
@@ -41,7 +41,7 @@ function HeaderGrupo( {nome, tipo, nome_grupo}: ModalProps ) {
                         <p className={styles.tipo}>{tipo}</p>
                     </div>
                     <div className={styles.containerIcone}>
-                        <img className={styles.user_icon} src={iconeUsuario} onClick={() => setModalAberto(!modalAberto)}/>
+                        <img className={styles.user_icon} src={icone || iconeUsuario} onClick={() => setModalAberto(!modalAberto)}/>
                         {modalAberto && (
                         <ModalPerfil />
                         )}
