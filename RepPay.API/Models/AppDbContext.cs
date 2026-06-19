@@ -128,18 +128,23 @@ public partial class AppDbContext : DbContext
             entity.HasIndex(e => e.Email, "usuario_email_key").IsUnique();
 
             entity.Property(e => e.IdUsuario).HasColumnName("id_usuario");
+
             entity.Property(e => e.Ativo).HasColumnName("ativo").HasDefaultValue(true);
+
             entity.Property(e => e.Email)
                 .HasMaxLength(254)
                 .HasColumnName("email");
+
             entity.Property(e => e.Nome)
                 .HasMaxLength(100)
                 .HasColumnName("nome");
+
             entity.Property(e => e.Senha)
                 .HasMaxLength(255)
                 .HasColumnName("senha");
 
- 
+            entity.Property(e => e.FotoPerfil)
+                .HasColumnName("foto_perfil");
         });
 
         modelBuilder.Entity<CodigoRecuperacao>(entity =>
