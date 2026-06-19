@@ -17,6 +17,7 @@ import ModalConfirmacao from '../modais/ModalConfirmacao'
 import ModalSucesso from '../modais/ModalSucesso'
 import desfazer from './../../assets/desfazer.svg'
 import { utilitarios } from '../../services/utilitariosService'
+import { usuarioService } from '../../services/usuarioService'
 
 interface DadosGrupo {
     idGrupo: number
@@ -24,6 +25,14 @@ interface DadosGrupo {
     codigoAcesso: string
     imagemBanner: string | null
     isAdmin: boolean
+
+}
+
+interface Usuario {
+    idUsuario: number
+    nome: string
+    email: string
+    fotoDePerfil: string
 
 }
 
@@ -83,8 +92,9 @@ function Morador() {
     const [parcelaParaDesfazer, setParcelaParaDesfazer] = useState<number | null>(null)
     const [modalAviso, setModalAviso] = useState<boolean>(false)
     const [modalSair, setModalSair] = useState<boolean>(false)
+    const [usuario, setUsuario] = useState<Usuario>()
 
-    const { usuario, loading } = useAuth()
+    const { loading } = useAuth()
     const nome = usuario?.nome
 
     const { idGrupo } = useParams<{ idGrupo: string }>()
@@ -117,6 +127,9 @@ function Morador() {
                 }
                 
                 setGrupo(dadosGrupo)
+
+                const dadosUsuario = await usuarioService.meuPerfil(token)
+                setUsuario(dadosUsuario)
                     
                     const [dadosMinhasDividas, dadosProximaConta, dadosAnalises, dadosHistorico] = await Promise.all([
                     despesaService.buscarMinhasDividas(idGrupo, token),
@@ -209,7 +222,7 @@ function Morador() {
 
                 </div>
                 <div className={styles.principal}>
-                    <HeaderGrupo nome={nome || 'Usuário'} tipo={grupo?.isAdmin ? 'ADMINISTRADOR' : 'MORADOR'} nome_grupo={grupo?.nome || 'Republica'} />
+                    <HeaderGrupo nome={nome || 'Usuário'} tipo={grupo?.isAdmin ? 'ADMINISTRADOR' : 'MORADOR'} nome_grupo={grupo?.nome || 'Republica'} icone={usuario?.fotoDePerfil || null} />
                     <div className={styles.conteudo}>
                         <div className={styles.containerInformacaoPrincipal}>
                             <div className={styles.containerDevedor}>

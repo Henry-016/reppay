@@ -1,43 +1,35 @@
 import { createContext, useState, useContext, useEffect, type ReactNode } from 'react';
 
-interface Usuario {
-    id: string;
-    nome: string;
-}
-
 const AuthContext = createContext({
     token: null as string | null,
-    usuario: null as Usuario | null,
-    setAuth: (token: string | null, usuario: Usuario | null, refreshToken?: string) => {},
+    setAuth: (token: string | null, refreshToken?: string) => {},
     logout: () => {}, 
     loading: true
-    
-})
+});
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [token, setToken] = useState<string | null>(null);
-    const [usuario, setUsuario] = useState<Usuario | null>(null)
+    const [token, setToken] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
 
     const logout = () => {
         setToken(null)
-        setUsuario(null)
-        localStorage.removeItem('token')
         localStorage.removeItem('refreshToken')
-        localStorage.removeItem('usuario')
     }
 
-    const setAuth = (novoToken: string | null, novoUsuario: Usuario | null, novoRefreshToken?: string) => {
-        setToken(novoToken);
-        setUsuario(novoUsuario);
-        if (novoRefreshToken) localStorage.setItem('refreshToken', novoRefreshToken)
-        if (novoUsuario) localStorage.setItem('usuario', JSON.stringify(novoUsuario))
+    const setAuth = (novoToken: string | null, novoRefreshToken?: string) => {
+        setToken(novoToken)
+
+        if (novoRefreshToken) {
+            localStorage.setItem('refreshToken', novoRefreshToken)
+
+        }
+
     }
 
     useEffect(() => {
         const restaurarSessao = async () => {
             const savedRefreshToken = localStorage.getItem('refreshToken')
-            const savedUsuario = localStorage.getItem('usuario')
+            
             if (!savedRefreshToken) {
                 setLoading(false)
                 return
@@ -51,26 +43,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 });
 
                 if (res.ok) {
-                    const dados = await res.json();
-                    setAuth(dados.token, savedUsuario ? JSON.parse(savedUsuario) : null, dados.refreshToken)
+                    const dados = await res.json()
+                    setAuth(dados.token, dados.refreshToken)
+
                 } else {
                     localStorage.removeItem('refreshToken')
+
                 }
+
             } catch (err) {
                 console.error(err)
+
             } finally {
                 setLoading(false)
+
             }
 
         }
+        
         restaurarSessao()
     }, [])
 
     return (
-        <AuthContext.Provider value={{ token, loading, usuario, logout, setAuth }}>
+        <AuthContext.Provider value={{ token, loading, logout, setAuth }}>
             {children}
         </AuthContext.Provider>
-    );
-};
+    )
+}
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => useContext(AuthContext)
