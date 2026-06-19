@@ -47,9 +47,9 @@ function Cadastro() {
             await usuarioService.cadastrar(dadosDoUsuario);
             setModal(true)
             
-        } catch (erro: any) {
-            console.error(erro);
-            alert(erro.message || 'Erro ao conectar com o servidor.')
+        } catch (error: any) {
+            console.error(error)
+            setErro(error)
 
         }
     }  

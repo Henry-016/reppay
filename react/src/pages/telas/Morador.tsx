@@ -222,7 +222,7 @@ function Morador() {
 
                 </div>
                 <div className={styles.principal}>
-                    <HeaderGrupo nome={nome || 'Usuário'} tipo={grupo?.isAdmin ? 'ADMINISTRADOR' : 'MORADOR'} nome_grupo={grupo?.nome || 'Republica'} icone={usuario?.fotoDePerfil || null} />
+                    <HeaderGrupo nome={nome || 'Usuário'} tipo={grupo?.isAdmin ? 'ADMINISTRADOR' : 'MORADOR'} nome_grupo={grupo?.nome || 'Republica'} icone={usuario?.fotoDePerfil ?? undefined} />
                     <div className={styles.conteudo}>
                         <div className={styles.containerInformacaoPrincipal}>
                             <div className={styles.containerDevedor}>
