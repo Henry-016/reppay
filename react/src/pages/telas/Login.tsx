@@ -60,7 +60,7 @@ function Login() {
                             <div className={styles.inputContainer}>
                                 <div className={styles.senhaContainer}>
                                     <p className={styles.textoInput}> Senha</p>
-                                    <button className={styles.esqueceu} type='button'>esqueceu?</button>
+                                    <button className={styles.esqueceu} type='button' onClick={() => navigate('/validarEmail')}>esqueceu?</button>
                                 </div>
                                 <input type="password"
                                     value={senha}
