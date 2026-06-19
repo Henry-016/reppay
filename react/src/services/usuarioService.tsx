@@ -11,6 +11,7 @@ export const usuarioService = {
         if (!res.ok) {
             const erroData = await res.json().catch(() => ({}));
             throw new Error(erroData.mensagem || "Falha ao realizar o cadastro.")
+            
         }
 
         return await res.json()

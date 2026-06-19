@@ -127,8 +127,8 @@ function Admin() {
     const [usuario, setUsuario] = useState<Usuario>()
     const [parcelaQuitar, setParcelaQuitar] = useState<number | null>(null)
     const [despesasPendentes, setDespesasPendentes] = useState<DespesasPendentes[]>([])
-    const [modalEditar, setModalEditar] = useState<number>(null)
-    const [despesaApagar, setDespesaApagar] = useState<number>(null)
+    const [modalEditar, setModalEditar] = useState<number | null>(null)
+    const [despesaApagar, setDespesaApagar] = useState<number | null>(null)
     
     const { loading } = useAuth()
     const nome = usuario?.nome
@@ -275,7 +275,7 @@ function Admin() {
 
     const apagarDespesa = async (id: number) => {
         try {
-            await despesaService.deletarDespesa(id, token)
+            await despesaService.deletarDespesa(id, token || "")
 
             setAtualizarDados(prev => prev + 1)
             setDespesaApagar(null)
@@ -319,7 +319,7 @@ function Admin() {
 
                 </div>
                 <div className={styles.principal}>
-                    <HeaderGrupo nome={nome || 'Usuário'} tipo={grupo?.isAdmin ? 'ADMINISTRADOR' : 'MORADOR'} nome_grupo={grupo?.nome || 'Republica'} icone={usuario?.fotoDePerfil || null}/>
+                    <HeaderGrupo nome={nome || 'Usuário'} tipo={grupo?.isAdmin ? 'ADMINISTRADOR' : 'MORADOR'} nome_grupo={grupo?.nome || 'Republica'} icone={usuario?.fotoDePerfil ?? undefined}/>
                     {pagina === 1 && 
                         <div className={styles.conteudo}>
                         <div className={styles.despesasRepublica}>

@@ -32,8 +32,8 @@ function Login() {
             navigate('/home') 
 
         } catch (error) {
-            console.error('Erro na requisição:', error);
-            setErro('Não foi possível ligar ao servidor. Tente novamente mais tarde.');
+            console.error('Erro na requisição:', error)
+            setErro('error')
         }
     }
 

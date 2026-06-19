@@ -28,7 +28,7 @@ function ModalMeusDados({isOpen, onClose}: ModalProps) {
     const { token, loading, logout } = useAuth()
     const navigate = useNavigate()
 
-    const [usuario, setUsuario] = useState<Usuario>()
+    const [, setUsuario] = useState<Usuario>()
     const [nome, setNome] = useState("")
     const [link, setLink] = useState("")
     const [email, setEmail] = useState("")
@@ -93,7 +93,7 @@ function ModalMeusDados({isOpen, onClose}: ModalProps) {
 
         } catch (error) {
             console.error("Erro ao salvar:", error)
-            alert(error.message)
+            alert(error instanceof Error ? error.message : 'Erro desconhecido')
 
         }
 
@@ -132,7 +132,7 @@ function ModalMeusDados({isOpen, onClose}: ModalProps) {
 
     const excluirConta = async () => {
         try {
-            await usuarioService.excluirConta(token)
+            await usuarioService.excluirConta(token || "")
             fecharELimpar()
             Deslogar()
 

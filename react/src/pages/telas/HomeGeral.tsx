@@ -92,7 +92,7 @@ function HomeGeral() {
     return (
         <>
             <section className={styles.tela_home_geral}>
-                <HeaderGeral nome={nome || 'Usuário'} icone={usuario?.fotoDePerfil || null}/>
+                <HeaderGeral nome={nome || 'Usuário'} icone={usuario?.fotoDePerfil ?? undefined}/>
                 <div className={styles.conteudo}>
                     <div className={styles.titulos}>
                         <h2>Bem-vindo de volta, {nome}!</h2>

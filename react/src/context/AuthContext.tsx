@@ -2,7 +2,7 @@ import { createContext, useState, useContext, useEffect, type ReactNode } from '
 
 const AuthContext = createContext({
     token: null as string | null,
-    setAuth: (token: string | null, refreshToken?: string) => {},
+    setAuth: (_token: string | null, _refreshToken?: string) => {},
     logout: () => {}, 
     loading: true
 });
