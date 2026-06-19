@@ -25,6 +25,8 @@ function ValidarEmail() {
 
         try {
             await usuarioService.validarEmail(email)
+
+            navigate('/validarCodigo', { state: { email } })
             
         } catch (erro: any) {
             console.error(erro);
