@@ -108,7 +108,7 @@ namespace RepPay.API.Controllers
         }
 
         [HttpPut("Atualizar")]
-        public IActionResult AtualizarUsuario([FromBody] UsuarioRequestDTO usuarioAtualizado)
+        public IActionResult AtualizarUsuario([FromBody] UsuarioAtualizarRequestDTO usuarioAtualizado)
         {
             int? idLogado = ObterIdUsuarioLogado();
 

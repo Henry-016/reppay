@@ -30,6 +30,11 @@ namespace RepPay.API.Services
                 throw new Exception("Não é possível lançar despesas em uma república encerrada.");
             }
 
+            if (request.Vencimento < DateOnly.FromDateTime(DateTime.UtcNow))
+            {
+                throw new Exception("A data de vencimento não pode ser no passado.");
+            }
+
             if (request.MoradoresIds == null || request.MoradoresIds.Count == 0)
             {
                 throw new Exception("É necessário selecionar pelo menos um morador para dividir esta conta.");
@@ -220,7 +225,7 @@ namespace RepPay.API.Services
                 throw new Exception("Esta parcela não está aguardando validação.");
             }
 
-            if (request.Aprovado)
+            if (request.Aprovado == true)
             {
                 parcela.Status = StatusParcela.PAGO;
             }
@@ -239,7 +244,7 @@ namespace RepPay.API.Services
             }
 
             _context.SaveChanges();
-            return request.Aprovado ? "Pagamento aprovado com sucesso! A parcela foi quitada." : "Pagamento rejeitado. A dívida voltou para o morador.";
+            return request.Aprovado == true ? "Pagamento aprovado com sucesso! A parcela foi quitada." : "Pagamento rejeitado. A dívida voltou para o morador.";
         }
 
         public List<HistoricoPagoResponseDTO> GetMeuHistoricoPago(int idLogado, int idGrupo)

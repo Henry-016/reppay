@@ -6,9 +6,10 @@ namespace RepPay.API.DTOs
     {
         [Required(ErrorMessage = "O e-mail é obrigatório.")]
         [EmailAddress(ErrorMessage = "O formato do e-mail é inválido.")]
-        public string Email { get; set; }
+        [StringLength(254, ErrorMessage = "O e-mail informado é muito longo.")]
+        public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "A senha é obrigatória.")]
-        public string Senha { get; set; }
+        public string Senha { get; set; } = string.Empty;
     }
 }

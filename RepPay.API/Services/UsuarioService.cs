@@ -165,6 +165,7 @@ namespace RepPay.API.Services
                 .Select(u => new UsuarioResponseDTO
                 {
                     IdUsuario = u.IdUsuario,
+                    FotoDePerfil = u.FotoPerfil,
                     Nome = u.Nome,
                     Email = u.Email
                 }).FirstOrDefault();
@@ -177,7 +178,7 @@ namespace RepPay.API.Services
             return usuario;
         }
 
-        public void AtualizarUsuario(int idLogado, UsuarioRequestDTO usuarioAtualizado)
+        public void AtualizarUsuario(int idLogado, UsuarioAtualizarRequestDTO usuarioAtualizado)
         {
             var usuario = _context.Usuarios.FirstOrDefault(u => u.IdUsuario == idLogado);
 
@@ -193,6 +194,7 @@ namespace RepPay.API.Services
                 throw new Exception("Este e-mail já está sendo utilizado por outra conta.");
             }
 
+            usuario.FotoPerfil = usuarioAtualizado.FotoDePerfil;
             usuario.Nome = usuarioAtualizado.Nome;
             usuario.Email = usuarioAtualizado.Email;
 

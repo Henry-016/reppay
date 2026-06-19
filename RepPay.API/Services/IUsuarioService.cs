@@ -11,7 +11,7 @@ namespace RepPay.API.Services
         TokenResponseDTO RenovacaoToken(RefreshTokenRequestDTO request);
 
         UsuarioResponseDTO GetMeuPerfil(int idLogado);
-        void AtualizarUsuario(int idLogado, UsuarioRequestDTO usuarioAtualizado);
+        void AtualizarUsuario(int idLogado, UsuarioAtualizarRequestDTO usuarioAtualizado);
         void DeletarUsuario(int idLogado);
 
         void EsqueciSenha(EsqueciSenhaRequestDTO request);
