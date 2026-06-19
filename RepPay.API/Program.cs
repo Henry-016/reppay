@@ -51,6 +51,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var jwtKey = builder.Configuration["Jwt:Key"];
+
 if (string.IsNullOrEmpty(jwtKey))
 {
     throw new Exception("ALERTA CRÍTICO: A chave do JWT não foi encontrada nas configurações!");
@@ -86,7 +87,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseStaticFiles();
+// app.UseStaticFiles();
 
 app.UseCors(options =>
     options.AllowAnyOrigin()
@@ -99,6 +100,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapFallbackToFile("index.html");
+// app.MapFallbackToFile("index.html");
 
 app.Run();
