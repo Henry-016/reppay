@@ -136,6 +136,7 @@ namespace RepPay.API.Tests.Services
             {
                 Nome = "Conta",
                 Valor = 100,
+                Vencimento = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(5)),
                 IdGrupo = grupo.IdGrupo,
                 MoradoresIds = new List<int>()
             };
@@ -162,6 +163,7 @@ namespace RepPay.API.Tests.Services
             {
                 Nome = "Conta",
                 Valor = 100,
+                Vencimento = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(5)),
                 IdGrupo = grupo.IdGrupo,
                 MoradoresIds = new List<int> { forasteiro.IdUsuario }
             };

@@ -233,7 +233,7 @@ namespace RepPay.API.Tests.Services
             context.SaveChanges();
 
             var service = new UsuarioService(context, CriarConfiguracaoMock());
-            var request = new UsuarioRequestDTO { Nome = "Novo Nome", Email = "novo@ufal.com", Senha = "" };
+            var request = new UsuarioAtualizarRequestDTO { Nome = "Novo Nome", Email = "novo@ufal.com", Senha = "" };
 
             service.AtualizarUsuario(usuario.IdUsuario, request);
 
@@ -253,7 +253,7 @@ namespace RepPay.API.Tests.Services
             context.SaveChanges();
 
             var service = new UsuarioService(context, CriarConfiguracaoMock());
-            var request = new UsuarioRequestDTO { Nome = "User 2", Email = "user1@ufal.com", Senha = "" };
+            var request = new UsuarioAtualizarRequestDTO { Nome = "User 2", Email = "user1@ufal.com", Senha = "" };
 
             var excecao = Assert.Throws<Exception>(() => service.AtualizarUsuario(usuarioLogado.IdUsuario, request));
             Assert.Equal("Este e-mail já está sendo utilizado por outra conta.", excecao.Message);
@@ -264,7 +264,7 @@ namespace RepPay.API.Tests.Services
         {
             var context = CriarContextoEmMemoria();
             var service = new UsuarioService(context, CriarConfiguracaoMock());
-            var request = new UsuarioRequestDTO { Nome = "Fantasma", Email = "fantasma@ufal.com", Senha = "" };
+            var request = new UsuarioAtualizarRequestDTO { Nome = "Fantasma", Email = "fantasma@ufal.com", Senha = "" };
 
             var excecao = Assert.Throws<Exception>(() => service.AtualizarUsuario(9999, request));
             Assert.Equal("Usuário não encontrado.", excecao.Message);
@@ -280,7 +280,7 @@ namespace RepPay.API.Tests.Services
             context.SaveChanges();
 
             var service = new UsuarioService(context, CriarConfiguracaoMock());
-            var request = new UsuarioRequestDTO { Nome = "Teste", Email = "teste@ufal.com", Senha = "senhaNova" };
+            var request = new UsuarioAtualizarRequestDTO { Nome = "Teste", Email = "teste@ufal.com", Senha = "senhaNova" };
 
             service.AtualizarUsuario(usuario.IdUsuario, request);
 
