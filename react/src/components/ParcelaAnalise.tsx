@@ -14,7 +14,7 @@ interface ComponentProps {
 
 }
 
-function ComponenteEscolha( {icone, nomeDespesa,nomeMorador, valor, dataSinalizacao, onClick, onCancel}: ComponentProps ) {
+function ParcelaAnalise( {icone, nomeDespesa,nomeMorador, valor, dataSinalizacao, onClick, onCancel}: ComponentProps ) {
 
     return (
         <>
@@ -42,4 +42,4 @@ function ComponenteEscolha( {icone, nomeDespesa,nomeMorador, valor, dataSinaliza
 
 }
 
-export default ComponenteEscolha;
+export default ParcelaAnalise;

@@ -10,7 +10,7 @@ interface ComponentProps {
 
 }
 
-function ComponenteEscolha( {icone, dataPago, nomeDespesa,nomeMorador, valor}: ComponentProps ) {
+function ParcelaPago( {icone, dataPago, nomeDespesa,nomeMorador, valor}: ComponentProps ) {
 
     return (
         <>
@@ -34,4 +34,4 @@ function ComponenteEscolha( {icone, dataPago, nomeDespesa,nomeMorador, valor}: C
 
 }
 
-export default ComponenteEscolha;
+export default ParcelaPago;

@@ -220,6 +220,68 @@ export const despesaService = {
 
         }
 
+    },
+
+    buscarDespesasPendentes: async (idGrupo: string, token: string) => {
+        const res = await fetch(`http://localhost:5149/api/Despesa/gerenciamento/grupo/${idGrupo}`, { 
+            headers: { 
+                'Authorization': `Bearer ${token}` 
+
+            } 
+    
+        })
+
+        if (!res.ok) {
+            throw new Error(`Erro ao buscar minhas despesas pendentes: ${res.status}`)
+
+        }
+
+        const dados = await res.json()
+
+        return dados
+
+    },
+
+    editarDespesa: async (idDespesa: number, dados: any, token: string) => {
+        const res = await fetch(`http://localhost:5149/api/Despesa/Editar/${idDespesa}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+
+            body: JSON.stringify(dados)
+
+        })
+
+        if (!res.ok) {
+            const erroBackend = await res.json().catch(() => ({}))
+            throw new Error(erroBackend.mensagem || "Erro ao editar a despesa.")
+
+        }
+
+        return await res.json()
+
+    },
+
+    deletarDespesa: async (idDespesa: number, token: string) => {
+        const res = await fetch(`http://localhost:5149/api/Despesa/Deletar/${idDespesa}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+
+            }
+
+        })
+
+        if (!res.ok) {
+            const erroBackend = await res.json().catch(() => ({}))
+            throw new Error(erroBackend.mensagem || "Erro ao tentar excluir a despesa.")
+
+        }
+
+        return await res.json()
+
     }
 
 }
