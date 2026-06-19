@@ -1,4 +1,4 @@
-import styles from './ParcelaPendente.module.scss'
+import styles from './ParcelaPendenteIndividual.module.scss'
 import { utilitarios } from '../services/utilitariosService'
 
 interface ComponentProps {
