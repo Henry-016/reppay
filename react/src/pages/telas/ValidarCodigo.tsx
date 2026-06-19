@@ -1,30 +1,34 @@
 import { useState} from 'react'
 import styles from './ValidarCodigo.module.scss'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { usuarioService } from '../../services/usuarioService'
 import back from './../../assets/arrow_back.svg'
 
 function ValidarCodigo() {
-    const [email, setCodigo] = useState('')
+    const [codigo, setCodigo] = useState('')
     const [erro, setErro] = useState('')
     const navigate = useNavigate()
+    const location = useLocation()
+
+    const email = location.state?.email
+
+    if (!email) {
+        navigate('/verificarEmail')
+        return
+
+    }
 
     const validar = async (e: React.SubmitEvent) => {
         e.preventDefault()
-        if (!email) {
+
+        if (!codigo) {
             setErro('Por favor, preencha o email.')
             return
 
         }
 
-        if (!email.includes('@') || !email.includes('.')) {
-            setErro('Por favor, insira um e-mail válido.')
-            return
-        
-        }
-
         try {
-            await usuarioService.validarEmail(email)
+            await usuarioService.validarCodigo(email, codigo)
             
         } catch (erro: any) {
             console.error(erro);
@@ -44,20 +48,20 @@ function ValidarCodigo() {
                 <div className={styles.caixaInputsFundo}>
                     <div className={styles.caixaInputs}>
                         <h2>Recuperar Senha</h2>
-                        <p>Insira seu e-mail para receber as instruções de recuperação.</p>
+                        <p>Insira o código enviado para seu email.</p>
                         
                         <form onSubmit={validar}>
                             <div className={styles.inputContainer}>
-                                <p className={styles.textoInput}>Email</p>
+                                <p className={styles.textoInput}>Código</p>
                                 <input type="text"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    placeholder='voce@exemplo.com'
+                                    value={codigo}
+                                    onChange={(e) => setCodigo(e.target.value)}
+                                    placeholder='XXXXXX'
                                     className={styles.input}
                                     onFocus={() => setErro('')}/>
                             </div>
                             
-                            <button type="submit" className={styles.enviar}>Enviar Link de Recuperação</button>
+                            <button type="submit" className={styles.enviar}>Verificar Código</button>
                         </form>
                             <button type="button" onClick={() => navigate('/login')} className={styles.voltar}>
                                 <img src={back}/>
