@@ -13,7 +13,7 @@ interface ComponentProps {
 
 }
 
-function ComponenteEscolha( {icone, vencimento, nomeDespesa,nomeMorador, valor, mostrarBotao, onClick, onQuitar}: ComponentProps ) {
+function ParcelaPendente( {icone, vencimento, nomeDespesa,nomeMorador, valor, mostrarBotao, onClick, onQuitar}: ComponentProps ) {
 
     return (
         <>
@@ -42,4 +42,4 @@ function ComponenteEscolha( {icone, vencimento, nomeDespesa,nomeMorador, valor, 
 
 }
 
-export default ComponenteEscolha;
+export default ParcelaPendente;

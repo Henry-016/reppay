@@ -7,6 +7,8 @@ import dashboard_ativado from './../../assets/dashboard_ativado.svg'
 import moradores_desativado from './../../assets/moradores_desativado.svg'
 import dashboard_desativado from './../../assets/dashboard_desativado.svg'
 import moradores_ativado from './../../assets/moradores_ativado.svg'
+import RS_desativado from './../../assets/RS_desativado.svg'
+import RS_ativado from './../../assets/RS_ativado.svg'
 import back from './../../assets/arrow_back.svg'
 import sair from './../../assets/sair.svg'
 import add from './../../assets/add.svg'
@@ -22,6 +24,7 @@ import { grupoService } from './../../services/grupoService'
 import { despesaService } from './../../services/despesaService'
 import { utilitarios } from '../../services/utilitariosService'
 import { usuarioService } from '../../services/usuarioService'
+import DespesaPendente from '../../components/DespesaPendente'
 
 interface DadosGrupo {
     idGrupo: number
@@ -88,6 +91,15 @@ interface Pago {
 
 }
 
+interface DespesasPendentes {
+    idDespesa: number
+    nome: string
+    valorTotal: number
+    vencimento: string
+    icone: string
+
+}
+
 function Admin() {
     
     const navigate = useNavigate()
@@ -114,6 +126,9 @@ function Admin() {
     const [modalExpulsar, setModalExpulsar] = useState<number | null>(null)
     const [usuario, setUsuario] = useState<Usuario>()
     const [parcelaQuitar, setParcelaQuitar] = useState<number | null>(null)
+    const [despesasPendentes, setDespesasPendentes] = useState<DespesasPendentes[]>([])
+    const [modalEditar, setModalEditar] = useState<number>(null)
+    const [despesaApagar, setDespesaApagar] = useState<number>(null)
     
     const { loading } = useAuth()
     const nome = usuario?.nome
@@ -147,13 +162,14 @@ function Admin() {
             const dadosUsuario = await usuarioService.meuPerfil(token)
             setUsuario(dadosUsuario)
 
-            const [dadosInadimplentes, dadosMinhasDividas, dadosProximaConta, dadosAnalises, dadosHistorico, dadosMoradores] = await Promise.all([
+            const [dadosInadimplentes, dadosMinhasDividas, dadosProximaConta, dadosAnalises, dadosHistorico, dadosMoradores, dadosDespesasPendendes] = await Promise.all([
                 despesaService.buscarInadimplentes(idGrupo, token),
                 despesaService.buscarMinhasDividas(idGrupo, token),
                 grupoService.buscarProximaConta(idGrupo, token),
                 despesaService.buscarAnalises(idGrupo, token),
                 despesaService.buscarHistorico(idGrupo, token),
-                grupoService.buscarMoradores(idGrupo, token)
+                grupoService.buscarMoradores(idGrupo, token),
+                despesaService.buscarDespesasPendentes(idGrupo, token)
             ])
 
             setInadimplentes(dadosInadimplentes.listaInadimplentes)
@@ -163,6 +179,7 @@ function Admin() {
             setProximaConta(dadosProximaConta)
             setEmAnalise(dadosAnalises.listaAnalises)
             setHistoricoPago(dadosHistorico.listaHistorico)
+            setDespesasPendentes(dadosDespesasPendendes)
 
         }
 
@@ -256,6 +273,20 @@ function Admin() {
 
     }
 
+    const apagarDespesa = async (id: number) => {
+        try {
+            await despesaService.deletarDespesa(id, token)
+
+            setAtualizarDados(prev => prev + 1)
+            setDespesaApagar(null)
+
+        } catch (error: any) {
+            alert(error)
+
+        }
+
+    }
+
     return (
         <>
             <section className={styles.tela_admin}>
@@ -269,6 +300,10 @@ function Admin() {
                         <button onClick={() => setPagina(2)}className={`${pagina === 2 ? styles.ativado : styles.desativado}`}>
                             <img src={pagina === 2 ? moradores_ativado : moradores_desativado}/>
                             Moradores
+                        </button>
+                        <button onClick={() => setPagina(3)}className={`${pagina === 3 ? styles.ativado : styles.desativado}`}>
+                            <img src={pagina === 3 ? RS_ativado : RS_desativado}/>
+                            Pendentes
                         </button>
                     </div>
                     <div className={styles.sideBarBottom}>
@@ -529,6 +564,36 @@ function Admin() {
 
                         </div>}
 
+                    {pagina === 3 &&
+                        <div className={styles.despesasPendentes}>
+                            <h2 className={styles.tituloDespesasPendentes}>Despesas Pendentes</h2>
+                            <div className={styles.containerDespesasPendentes}>
+                            {despesasPendentes.map((despesa) => (
+                                    <DespesaPendente
+                                        key={despesa.idDespesa}
+                                        nomeDespesa={despesa.nome}
+                                        valor={despesa.valorTotal}
+                                        dataVencimento={despesa.vencimento} 
+                                        onApagar={() => setDespesaApagar(despesa.idDespesa)}
+                                        onEditar={() => {}}
+                                        icone={despesa.icone}
+                                                       
+                                    />
+                                ))}
+                            </div>
+                            <ModalConfirmacao 
+                                texto={'Você tem certeza que quer apagar esta despesa?'}
+                                isOpen={despesaApagar !== null} 
+                                onClose={() => setDespesaApagar(null)} 
+                                onClick={() => {
+                                    if (despesaApagar !== null) {
+                                        apagarDespesa(despesaApagar)
+
+                                    }
+
+                                }}
+                            />
+                        </div>}
                 </div>
                 <ModalCriarDespesa isOpen={modal} onClose={() => setModal(false)} />
 
