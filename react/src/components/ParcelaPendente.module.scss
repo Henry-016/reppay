@@ -56,11 +56,21 @@
             width: 6rem;
             height: 2.625rem;
             border-radius: 0.5rem;
-            border: 0.063rem solid var(--cor-azul-claro);
             background: none;
             cursor: pointer;
-            color: var(--cor-azul-claro);
             font-size: 1rem;
+
+        }
+
+        .pagar {
+            color: var(--cor-azul-claro);
+            border: 0.063rem solid var(--cor-azul-claro);
+
+        }
+
+        .quitar {
+            color: rgb(47, 255, 50);
+            border: 0.063rem solid rgb(47, 255, 50);
 
         }
 

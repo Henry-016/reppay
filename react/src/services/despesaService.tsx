@@ -122,8 +122,6 @@ export const despesaService = {
 
         }
 
-
-
     },
 
     validarPagamento: async (id: number, decisao: boolean, token: string) => {
@@ -201,11 +199,27 @@ export const despesaService = {
     
         if (!res.ok) {
             
-            throw new Error(resData.mensagem || "Erro ao desfazer a sinalização de pagamento.");
+            throw new Error(resData.mensagem || "Erro ao desfazer a sinalização de pagamento.")
         }
     
         
-        return resData.mensagem;
+        return resData.mensagem
+    },
+
+    quitarParcela: async (idParcela: number, token: string) => {
+        const res = await fetch(`http://localhost:5149/api/Despesa/QuitarDividaAdministrativamente/${idParcela}`, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${token}` 
+            }
+
+        })
+
+        if (!res.ok) {
+            throw new Error(`Erro ao Sinalizar o Pagamento: ${res.status}`)
+
+        }
+
     }
 
 }

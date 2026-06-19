@@ -113,6 +113,7 @@ function Admin() {
     const [modalTrocar, setModalTrocar] = useState<number | null>(null)
     const [modalExpulsar, setModalExpulsar] = useState<number | null>(null)
     const [usuario, setUsuario] = useState<Usuario>()
+    const [parcelaQuitar, setParcelaQuitar] = useState<number | null>(null)
     
     const { loading } = useAuth()
     const nome = usuario?.nome
@@ -177,6 +178,20 @@ function Admin() {
             setParcelaParaConfirmar(null)
         } catch (error) {
             console.error("Falha ao sinalizar:", error)
+
+        }
+
+    }
+
+    const quitarParcela = async (id: number) => {
+        try {
+            await despesaService.quitarParcela(id, token || '')
+
+            setAtualizarDados(prev => prev + 1)
+            alert("Parcela quitada com sucesso!")
+            setParcelaQuitar(null)
+        } catch (error) {
+            console.error("Falha ao quitar:", error)
 
         }
 
@@ -324,6 +339,7 @@ function Admin() {
                                                 nomeMorador={parcela.nomeMorador}
                                                 valor={parcela.valor} onClick={() => setParcelaParaConfirmar(parcela.idParcela)}
                                                 mostrarBotao={eminhadivida}
+                                                onQuitar={() => setParcelaQuitar(parcela.idParcela)}
                                             />
                                         )})}
                                 </div>
@@ -416,7 +432,7 @@ function Admin() {
                                 onClose={() => setParcelaParaRejeitar(null)} 
                                 onClick={() => {
                                     if (parcelaParaRejeitar !== null) {
-                                        validarPagamento(parcelaParaRejeitar, false);
+                                        validarPagamento(parcelaParaRejeitar, false)
                                     }
                                 }}
                             />
@@ -425,6 +441,16 @@ function Admin() {
                                 isOpen={modalSair} 
                                 onClose={() => setModalSair(false)} 
                                 onClick={sairDoGrupo}
+                            />
+                            <ModalConfirmacao 
+                                texto={'Você tem certeza que deseja quitar essa parcela, se fizer isso o efeito será irreversivel!'}
+                                isOpen={parcelaQuitar !== null} 
+                                onClose={() => setParcelaQuitar(null)} 
+                                onClick={ () => {
+                                    if (parcelaQuitar !== null) {
+                                        quitarParcela(parcelaQuitar)
+                                    }
+                                }}
                             />
 
                         </div>}

@@ -9,10 +9,11 @@ interface ComponentProps {
     vencimento: string
     onClick: () => void
     mostrarBotao: boolean
+    onQuitar: () => void
 
 }
 
-function ComponenteEscolha( {icone, vencimento, nomeDespesa,nomeMorador, valor, mostrarBotao, onClick}: ComponentProps ) {
+function ComponenteEscolha( {icone, vencimento, nomeDespesa,nomeMorador, valor, mostrarBotao, onClick, onQuitar}: ComponentProps ) {
 
     return (
         <>
@@ -27,8 +28,10 @@ function ComponenteEscolha( {icone, vencimento, nomeDespesa,nomeMorador, valor, 
                 </div>
                 <div className={styles.containerEsquerda}>
                     <h2>{utilitarios.formatarValor(valor)}</h2>
-                    {mostrarBotao && (
-                    <button onClick={onClick}>Pagar</button>
+                    {mostrarBotao ? (
+                    <button className={styles.pagar} onClick={onClick}>Pagar</button>
+                    ) : (
+                    <button className={styles.quitar} onClick={onQuitar}>Quitar</button>
                     )}
                 </div>   
             </section>
