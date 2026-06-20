@@ -329,7 +329,10 @@ namespace RepPay.API.Services
 
             if (!temDespesas)
             {
-                var pertences = _context.Pertences.Where(p => p.IdGrupo == idGrupo).ToList();
+                var pertences = _context.Pertences
+                    .Where(p => p.IdGrupo == idGrupo && p.IdUsuario != idLogado)
+                    .ToList();
+
                 if (pertences.Any())
                 {
                     _context.Pertences.RemoveRange(pertences);
