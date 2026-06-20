@@ -1,5 +1,8 @@
 import styles from './Morador.module.scss'
 import dashboard_ativado from './../../assets/dashboard_ativado.svg'
+import moradores_desativado from './../../assets/moradores_desativado.svg'
+import dashboard_desativado from './../../assets/dashboard_desativado.svg'
+import moradores_ativado from './../../assets/moradores_ativado.svg'
 import sair from './../../assets/sair.svg'
 import back from './../../assets/arrow_back.svg'
 import HeaderGrupo from './HeaderGrupo'
@@ -18,6 +21,8 @@ import ModalSucesso from '../modais/ModalSucesso'
 import desfazer from './../../assets/desfazer.svg'
 import { utilitarios } from '../../services/utilitariosService'
 import { usuarioService } from '../../services/usuarioService'
+import MoradorComponente from '../../components/MoradorComponente'
+import key from './../../assets/key.svg'
 
 interface DadosGrupo {
     idGrupo: number
@@ -76,6 +81,16 @@ interface Pago {
 
 }
 
+interface Moradores {
+    idUsuario: number
+    nome: string
+    isAdmin: boolean
+    email: string 
+    totalDevido: number
+    fotoPerfil: string
+
+}
+
 function Morador() {
 
     const navigate = useNavigate()
@@ -93,6 +108,8 @@ function Morador() {
     const [modalAviso, setModalAviso] = useState<boolean>(false)
     const [modalSair, setModalSair] = useState<boolean>(false)
     const [usuario, setUsuario] = useState<Usuario>()
+    const [pagina, setPagina] = useState<number>(1)
+    const [moradores, setMoradores] = useState<Moradores[]>([])
 
     const { loading } = useAuth()
     const nome = usuario?.nome
@@ -131,11 +148,12 @@ function Morador() {
                 const dadosUsuario = await usuarioService.meuPerfil(token)
                 setUsuario(dadosUsuario)
                     
-                    const [dadosMinhasDividas, dadosProximaConta, dadosAnalises, dadosHistorico] = await Promise.all([
+                    const [dadosMinhasDividas, dadosProximaConta, dadosAnalises, dadosHistorico, dadosMoradores] = await Promise.all([
                     despesaService.buscarMinhasDividas(idGrupo, token),
                     grupoService.buscarProximaConta(idGrupo, token),
                     despesaService.buscarAnalisesIndividuais(idGrupo, token),
-                    despesaService.buscarHistoricoIndividuais(idGrupo, token)
+                    despesaService.buscarHistoricoIndividuais(idGrupo, token),
+                    grupoService.buscarMoradores(idGrupo, token)
                 ])
 
                     setMinhaDivida(dadosMinhasDividas.totalDevido)
@@ -143,6 +161,7 @@ function Morador() {
                     setPendentes(dadosMinhasDividas.listaDividas)
                     setEmAnalise(dadosAnalises.listaAnalises)
                     setHistoricoPago(dadosHistorico)
+                    setMoradores(dadosMoradores)
 
             }
 
@@ -204,9 +223,13 @@ function Morador() {
                 <div className={styles.sideBar}>
                     <div className={styles.sideBarUp}>
                         <h2>RepPay</h2>
-                        <button className={styles.ativado}>
-                            <img src={dashboard_ativado} />
+                        <button onClick={() => setPagina(1)}className={`${pagina === 1 ? styles.ativado : styles.desativado}`}>
+                            <img src={pagina === 1 ? dashboard_ativado : dashboard_desativado}/>
                             Dashboard
+                        </button>
+                        <button onClick={() => setPagina(2)}className={`${pagina === 2 ? styles.ativado : styles.desativado}`}>
+                            <img src={pagina === 2 ? moradores_ativado : moradores_desativado}/>
+                            Moradores
                         </button>
                     </div>
                     <div className={styles.sideBarBottom}>
@@ -223,6 +246,7 @@ function Morador() {
                 </div>
                 <div className={styles.principal}>
                     <HeaderGrupo nome={nome || 'Usuário'} tipo={grupo?.isAdmin ? 'ADMINISTRADOR' : 'MORADOR'} nome_grupo={grupo?.nome || 'Republica'} icone={usuario?.fotoDePerfil ?? undefined} />
+                    {pagina === 1 && 
                     <div className={styles.conteudo}>
                         <div className={styles.containerInformacaoPrincipal}>
                             <div className={styles.containerDevedor}>
@@ -357,7 +381,50 @@ function Morador() {
 
                             <ModalSucesso isOpen={modalAviso} onClose={() => setModalAviso(false)} titulo={'Aguardando Validação!'} texto={'Essa despesa está aguardando a validaçãodo administrador responsável! Basta aguardar.'} imagem={desfazer} />
 
+                    </div>}
+                    {pagina === 2 && 
+                    <div className={styles.moradores}>
+                    <div className={styles.containerMoradores}>
+                        <div className={styles.containerMembrosDoGrupo}>
+                            <h2>Membros do Grupo</h2>
+                            <p>{moradores.length} Membros</p>
+                        </div>
+                        <div className={styles.colunasMoradores}>
+                            <p className={`${styles.coluna} ${styles.colunaMorador}`}>MORADOR</p>
+                            <p className={`${styles.coluna} ${styles.colunaCargo}`}>CARGO</p>
+                            <p className={`${styles.coluna} ${styles.colunaDivida}`}>DÍVIDA ATUAL</p>
+                        </div>
+                        <div className={styles.moradorComponente}>
+                            {moradores.map((morador) => (
+                            <MoradorComponente
+                                key={morador.idUsuario}
+                                nome={morador.nome}
+                                tipo={morador.isAdmin ? 'Admin' : 'Morador'}
+                                valor={morador.totalDevido}
+                                email={morador.email} 
+                                onClick={morador.isAdmin ? () => {} : () => {}}
+                                clickExpulsar={() => {}}
+                                isAdmin={grupo?.isAdmin}
+                                iconeUsuario={morador.fotoPerfil}
+                                                                  
+                            />
+                        ))}
+                        </div>
                     </div>
+                    <div className={styles.containerCodigo}>
+                        <div className={styles.containerChave}>
+                                <h2>CÓDIGO DE ACESSO</h2>
+                                <img src={key} className={styles.key} />
+                        </div>
+                        <div className={styles.codigoCopiar}>
+                            <h2>{grupo?.codigoAcesso || ''}</h2>
+                            <button onClick={() => utilitarios.copiarParaAreaDeTransferencia(grupo)} className={styles.copiar}>Copiar</button>
+                        </div>
+                        <p>Compartilhe este código para convidar novos moradores a este grupo.</p>
+                    </div>
+
+                </div>
+                    }
 
                 </div>
 

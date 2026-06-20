@@ -32,9 +32,16 @@ function Cadastro() {
             return
         }
 
+        if (senha.length < 8) {
+            setErro('A senha deve ter no mínimo 8 caracteres.')
+            return
+
+        }
+
         if (senha !== confirmarsenha) {
             setErro('As senhas não coincidem!')
             return
+            
         }
 
         const dadosDoUsuario = {

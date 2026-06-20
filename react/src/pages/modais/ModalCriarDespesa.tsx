@@ -6,7 +6,7 @@ import UsuarioSelecao from '../../components/usuarioSelecao'
 import ModalSucesso from './ModalSucesso'
 import { useAuth } from './../../context/AuthContext'
 import { grupoService } from './../../services/grupoService'
-import { despesaService } from '../../services/despesaService';
+import { despesaService } from '../../services/despesaService'
 
 interface ModalProps {
     isOpen: boolean
@@ -110,8 +110,8 @@ function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
     
             setModalValidado(true)
 
-        } catch (erro) {
-            alert('Erro ao conectar com o servidor. Verifique se o backend está rodando.')
+        } catch (error: any) {
+            setErro(error.message)
         }
 
 

@@ -23,7 +23,11 @@ function Login() {
             return;
         }
 
-        setErro('');
+        if (senha.length < 8) {
+            setErro('A senha deve ter no mínimo 8 caracteres.')
+            return
+
+        }
 
         try {
             const dados = await usuarioService.login(email, senha)
