@@ -11,8 +11,7 @@ services:
       POSTGRES_DB: reppay_db
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./01_criacao_tabelas.sql:/docker-entrypoint-initdb.d/01_criacao_tabelas.sql:ro
-      - ./03_triggers.sql:/docker-entrypoint-initdb.d/03_triggers.sql:ro
+      - ./scripts_sql:/docker-entrypoint-initdb.d:ro
 
   api:
     build: 
