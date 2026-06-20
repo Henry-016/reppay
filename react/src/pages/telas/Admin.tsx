@@ -25,6 +25,7 @@ import { despesaService } from './../../services/despesaService'
 import { utilitarios } from '../../services/utilitariosService'
 import { usuarioService } from '../../services/usuarioService'
 import DespesaPendente from '../../components/DespesaPendente'
+import ModalEditarDespesa from '../modais/ModalEditarDespesa'
 
 interface DadosGrupo {
     idGrupo: number
@@ -128,6 +129,7 @@ function Admin() {
     const [parcelaQuitar, setParcelaQuitar] = useState<number | null>(null)
     const [despesasPendentes, setDespesasPendentes] = useState<DespesasPendentes[]>([])
     const [despesaApagar, setDespesaApagar] = useState<number | null>(null)
+    const [despesaParaEditar, setDespesaParaEditar] = useState<DespesasPendentes | null>(null)
     
     const { loading } = useAuth()
     const nome = usuario?.nome
@@ -574,7 +576,7 @@ function Admin() {
                                         valor={despesa.valorTotal}
                                         dataVencimento={despesa.vencimento} 
                                         onApagar={() => setDespesaApagar(despesa.idDespesa)}
-                                        onEditar={() => {}}
+                                        onEditar={() => setDespesaParaEditar({idDespesa: despesa.idDespesa, nome: despesa.nome, valorTotal: despesa.valorTotal, icone: despesa.icone, vencimento: despesa.vencimento})}
                                         icone={despesa.icone}
                                                        
                                     />
@@ -595,6 +597,7 @@ function Admin() {
                         </div>}
                 </div>
                 <ModalCriarDespesa isOpen={modal} onClose={() => setModal(false)} />
+                <ModalEditarDespesa isOpen={despesaParaEditar !== null} onClose={() => setDespesaParaEditar(null)} idDespesa={despesaParaEditar?.idDespesa} nomeAtual={despesaParaEditar?.nome} valorAtual={despesaParaEditar?.valorTotal} iconeAtual={despesaParaEditar?.icone} vencimentoAtual={despesaParaEditar?.vencimento} /> 
 
             </section>
         </>

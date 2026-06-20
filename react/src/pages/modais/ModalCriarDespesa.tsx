@@ -6,7 +6,7 @@ import UsuarioSelecao from '../../components/UsuarioSelecao'
 import ModalSucesso from './ModalSucesso'
 import { useAuth } from './../../context/AuthContext'
 import { grupoService } from './../../services/grupoService'
-import { despesaService } from '../../services/despesaService';
+import { despesaService } from '../../services/despesaService'
 
 interface ModalProps {
     isOpen: boolean
