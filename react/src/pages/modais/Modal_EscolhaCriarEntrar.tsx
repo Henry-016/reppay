@@ -37,8 +37,8 @@ function Modal_EscolhaCriarEntrar( {isOpen, onClose}: ModalProps ) {
                     <ComponenteEscolha imagem={users} titulo='Entrar com Código' texto='Recebeu um convite? Insira o código enviado pelo seu administrador para acessar a casa.' button='Inserir Código' onClick={() => setEntrar(true)}/>
                 </div>
             </div>
-            <ModalCriar isOpen={criar} onClose={onClose} />
-            <ModalEntrar isOpen={entrar} onClose={onClose} />
+            <ModalCriar isOpen={criar} onClose={() => setCriar(false)} onFinish={onClose}/>
+            <ModalEntrar isOpen={entrar} onClose={() => setEntrar(false)} onFinish={onClose} />
         </section>
         
         </>

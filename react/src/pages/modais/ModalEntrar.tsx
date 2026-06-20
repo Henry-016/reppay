@@ -9,10 +9,11 @@ import { useAuth } from '../../context/AuthContext'
 interface ModalProps {
     isOpen: boolean
     onClose: () => void
+    onFinish: () => void
 
 }
 
-function ModalEntrar( {isOpen, onClose}: ModalProps ) {
+function ModalEntrar( {isOpen, onClose, onFinish}: ModalProps ) {
 
     const [codigo, setCodigo] = useState('')
     const [modal, setModal] = useState(false)
@@ -71,7 +72,7 @@ function ModalEntrar( {isOpen, onClose}: ModalProps ) {
                     </div>
                 </div>
 
-                <ModalSucesso isOpen={modal} onClose={onClose} titulo='Grupo Encontrado!' texto='Parabéns! Você agora faz parte do Grupo XXXXXX' />
+                <ModalSucesso isOpen={modal} onClose={onFinish} titulo='Grupo Encontrado!' texto='Parabéns! Você agora faz parte do Grupo XXXXXX' />
 
             </section>
         </>
