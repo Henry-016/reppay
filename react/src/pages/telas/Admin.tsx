@@ -58,6 +58,7 @@ interface Moradores {
     isAdmin: boolean
     email: string 
     totalDevido: number
+    fotoPerfil: string
 
 }
 
@@ -519,8 +520,8 @@ function Admin() {
                                         email={morador.email} 
                                         onClick={morador.isAdmin ? () => {} : () => setModalTrocar(morador.idUsuario)}
                                         clickExpulsar={() => setModalExpulsar(morador.idUsuario)}
-                                        isAdmin={grupo?.isAdmin}
-                                                                          
+                                        isAdmin={grupo?.isAdmin}  
+                                        iconeUsuario={morador.fotoPerfil}                           
                                     />
                                 ))}
                                 </div>

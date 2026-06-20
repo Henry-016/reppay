@@ -11,16 +11,17 @@ interface ComponentProps {
     onClick: () => void
     clickExpulsar: () => void
     isAdmin: boolean | undefined
+    iconeUsuario: string
 
 }
 
-function MoradorComponente( {nome, email, tipo, valor, onClick, clickExpulsar, isAdmin}: ComponentProps ) {
+function MoradorComponente( {nome, email, tipo, valor, onClick, clickExpulsar, isAdmin, iconeUsuario}: ComponentProps ) {
 
     return (
         <>
             <section className={styles.componente_morador}>
                 <div className={styles.informacoesMorador}>
-                    <img src={icone} className={styles.icone} />
+                    <img src={iconeUsuario || icone} className={styles.icone} />
                     <div className={styles.informacoes}>
                         <h2>{nome}</h2>
                         <p>{email}</p>

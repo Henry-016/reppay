@@ -87,6 +87,7 @@ interface Moradores {
     isAdmin: boolean
     email: string 
     totalDevido: number
+    fotoPerfil: string
 
 }
 
@@ -404,6 +405,7 @@ function Morador() {
                                 onClick={morador.isAdmin ? () => {} : () => {}}
                                 clickExpulsar={() => {}}
                                 isAdmin={grupo?.isAdmin}
+                                iconeUsuario={morador.fotoPerfil}
                                                                   
                             />
                         ))}
