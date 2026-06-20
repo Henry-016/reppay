@@ -2,7 +2,7 @@ import styles from './ModalCriarDespesa.module.scss'
 import x from './../../assets/x.svg'
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom';
-import UsuarioSelecao from '../../components/UsuarioSelecao.teste'
+import UsuarioSelecao from '../../components/UsuarioSelecao'
 import ModalSucesso from './ModalSucesso'
 import { useAuth } from './../../context/AuthContext'
 import { grupoService } from './../../services/grupoService'
