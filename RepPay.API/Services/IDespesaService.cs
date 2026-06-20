@@ -16,7 +16,7 @@ namespace RepPay.API.Services
         List<AnaliseMoradorDTO> GetMinhasAnalises(int idLogado, int idGrupo);
         List<AnaliseAdminDTO> GetAnalisesPendentesGrupo(int idLogado, int idGrupo);
         string QuitarDividaAdmin(int idLogado, int idParcela);
-        string EditarDespesa(int idLogado, int idDespesa, DespesaRequestDTO request);
+        string EditarDespesa(int idLogado, int idDespesa, EditarDespesaRequestDTO request);
         string DeletarDespesa(int idLogado, int idDespesa);
         List<DespesaGerenciamentoResponseDTO> GetDespesasParaGerenciamento(int idLogado, int idGrupo);
     }
