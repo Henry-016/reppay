@@ -1,4 +1,4 @@
-using System.Net;
+Ôªøusing System.Net;
 using System.Net.Mail;
 using Microsoft.Extensions.Configuration;
 
@@ -20,7 +20,7 @@ namespace RepPay.API.Services
 
             if (string.IsNullOrEmpty(emailRemetente) || string.IsNullOrEmpty(senhaApp))
             {
-                throw new Exception("As credenciais de e-mail n„o foram configuradas no servidor.");
+                throw new Exception("As credenciais de e-mail n√£o foram configuradas no servidor.");
             }
 
             var clienteSmtp = new SmtpClient("smtp.gmail.com")
@@ -33,13 +33,13 @@ namespace RepPay.API.Services
             var mensagem = new MailMessage
             {
                 From = new MailAddress(emailRemetente, "Equipe RepPay"),
-                Subject = "CÛdigo de RecuperaÁ„o de Senha",
+                Subject = "C√≥digo de Recupera√ß√£o de Senha",
                 Body = $@"
                     <div style='font-family: Arial; padding: 20px; color: #333;'>
-                        <h2>Ol·!</h2>
-                        <p>Recebemos um pedido de recuperaÁ„o de senha para a sua conta.</p>
-                        <p>Seu cÛdigo de seguranÁa È: <h1 style='color: #00bcd4;'>{codigo}</h1></p>
-                        <p>Se n„o foi vocÍ, apenas ignore este e-mail.</p>
+                        <h2>Ol√°!</h2>
+                        <p>Recebemos um pedido de recupera√ß√£o de senha para a sua conta.</p>
+                        <p>Seu c√≥digo de seguran√ßa √©: <h1 style='color: #00bcd4;'>{codigo}</h1></p>
+                        <p>Se n√£o foi voc√™, apenas ignore este e-mail.</p>
                     </div>",
                 IsBodyHtml = true
             };
