@@ -41,21 +41,29 @@ function ModalEntrar( {isOpen, onClose, onFinish}: ModalProps ) {
         }
     }
 
-    const fecharELimpar = () => {
-        setCodigo('');
-        setErro('');
-        setModal(false);
-        onClose();
-    };
+    const fecharELimpar_x = () => {
+        setCodigo('')
+        setErro('')
+        setModal(false)
+        onClose()
+    }
 
-    if (!isOpen) return null;
+    const fecharELimpar = () => {
+        setCodigo('')
+        setErro('')
+        setModal(false)
+        onClose()
+        onFinish()
+    }
+
+    if (!isOpen) return null
 
     return (
         <>
             <section className={styles.tela_modal_entrar}>
                 <div className={styles.modal}>
                     <div className={styles.imagemContainer}>
-                        <img onClick={fecharELimpar} src={x} className={styles.x}/>
+                        <img onClick={fecharELimpar_x} src={x} className={styles.x}/>
                     </div>
                     <img src={imagem} className={styles.imagem}/>
                     {erro && <div className={styles.mensagemErro}>{erro}</div>}
@@ -72,7 +80,7 @@ function ModalEntrar( {isOpen, onClose, onFinish}: ModalProps ) {
                     </div>
                 </div>
 
-                <ModalSucesso isOpen={modal} onClose={onFinish} titulo='Grupo Encontrado!' texto='Parabéns! Você agora faz parte do Grupo XXXXXX' />
+                <ModalSucesso isOpen={modal} onClose={fecharELimpar} titulo='Grupo Encontrado!' texto='Parabéns! Você agora faz parte do Grupo XXXXXX' />
 
             </section>
         </>
