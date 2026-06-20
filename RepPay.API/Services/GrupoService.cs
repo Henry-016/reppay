@@ -327,14 +327,28 @@ namespace RepPay.API.Services
             bool temOutrosMoradores = _context.Pertences
                 .Any(p => p.IdGrupo == idGrupo && p.IdUsuario != idLogado);
 
-            if (temOutrosMoradores)
+            bool temDespesas = _context.Despesas
+                .Any(d => d.IdGrupo == idGrupo);
+
+            if (temOutrosMoradores && temDespesas)
             {
-                throw new Exception("Não é possível encerrar a república enquanto houver outros moradores nela. Peça para que saiam voluntariamente ou remova-os primeiro.");
+                throw new Exception("Não é possível encerrar a república. Como existem despesas registradas, você precisa remover os outros moradores primeiro para prestação de contas.");
             }
 
             grupo.Ativo = false;
+
+            if (temOutrosMoradores)
+            {
+                var pertences = _context.Pertences.Where(p => p.IdGrupo == idGrupo).ToList();
+                foreach (var pertence in pertences)
+                {
+                    _context.Pertences.Remove(pertence);
+                }
+            }
+
             _context.SaveChanges();
-            return "República encerrada com sucesso! Todas as despesas atreladas foram arquivadas.";
+
+            return "República encerrada com sucesso!";
         }
     }
 }

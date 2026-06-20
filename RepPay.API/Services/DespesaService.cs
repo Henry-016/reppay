@@ -377,7 +377,7 @@ namespace RepPay.API.Services
             return "Dívida quitada administrativamente com sucesso! O histórico do morador foi limpo para esta conta.";
         }
 
-        public string EditarDespesa(int idLogado, int idDespesa, DespesaRequestDTO request)
+        public string EditarDespesa(int idLogado, int idDespesa, EditarDespesaRequestDTO request)
         {
             var despesa = _context.Despesas
                 .Include(d => d.IdGrupoNavigation)
