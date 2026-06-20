@@ -475,12 +475,6 @@ function Admin() {
                                 }}
                             />
                             <ModalConfirmacao 
-                                texto={'Você tem certeza que deseja sair deste grupo, se fizer isso o efeito será irreversivel!'}
-                                isOpen={modalSair} 
-                                onClose={() => setModalSair(false)} 
-                                onClick={sairDoGrupo}
-                            />
-                            <ModalConfirmacao 
                                 texto={'Você tem certeza que deseja quitar essa parcela, se fizer isso o efeito será irreversivel!'}
                                 isOpen={parcelaQuitar !== null} 
                                 onClose={() => setParcelaQuitar(null)} 
@@ -601,6 +595,12 @@ function Admin() {
                 </div>
                 <ModalCriarDespesa isOpen={modal} onClose={() => setModal(false)} />
                 <ModalEditarDespesa isOpen={despesaParaEditar !== null} onClose={() => setDespesaParaEditar(null)} idDespesa={despesaParaEditar?.idDespesa} nomeAtual={despesaParaEditar?.nome} valorAtual={despesaParaEditar?.valorTotal} iconeAtual={despesaParaEditar?.icone} vencimentoAtual={despesaParaEditar?.vencimento} /> 
+                <ModalConfirmacao 
+                    texto={'Você tem certeza que deseja sair deste grupo, se fizer isso o efeito será irreversivel!'}
+                    isOpen={modalSair} 
+                    onClose={() => setModalSair(false)} 
+                    onClick={sairDoGrupo}
+                />
 
             </section>
         </>

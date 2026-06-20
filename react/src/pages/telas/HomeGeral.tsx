@@ -73,7 +73,7 @@ function HomeGeral() {
 
         }
 
-    }, [token, modal, loading, atualizarDados, usuario])
+    }, [token, modal, loading, atualizarDados])
 
     const removerGrupo = async (idGrupo: number) => {
         try {
@@ -123,7 +123,7 @@ function HomeGeral() {
                             />
                         ))}
                         <ModalConfirmacao 
-                                texto={'Você tem certeza que quer expulsar esse morador?'}
+                                texto={'Você tem certeza que quer excluir este grupo?'}
                                 isOpen={modalRemover !== null} 
                                 onClose={() => setModalRemover(null)} 
                                 onClick={() => {
