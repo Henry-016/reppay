@@ -73,7 +73,7 @@ function HomeGeral() {
 
         }
 
-    }, [token, modal, loading, atualizarDados, usuario])
+    }, [token, modal, loading, atualizarDados])
 
     const removerGrupo = async (idGrupo: number) => {
         try {
