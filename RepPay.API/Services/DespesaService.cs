@@ -379,6 +379,16 @@ namespace RepPay.API.Services
 
         public string EditarDespesa(int idLogado, int idDespesa, EditarDespesaRequestDTO request)
         {
+            if (request.Valor <= 0)
+            {
+                throw new ArgumentException("O valor da despesa deve ser maior que zero.");
+            }
+
+            if (request.Vencimento < DateOnly.FromDateTime(DateTime.Today))
+            {
+                throw new ArgumentException("O novo vencimento não pode ser uma data que já passou.");
+            }
+
             var despesa = _context.Despesas
                 .Include(d => d.IdGrupoNavigation)
                 .Include(d => d.Parcelas)
@@ -410,7 +420,6 @@ namespace RepPay.API.Services
                 if (totalParcelas > 0)
                 {
                     decimal valorBaseParcela = Math.Round(request.Valor / totalParcelas, 2);
-
                     decimal diferencaCentavos = request.Valor - (valorBaseParcela * totalParcelas);
 
                     for (int i = 0; i < totalParcelas; i++)
@@ -428,6 +437,7 @@ namespace RepPay.API.Services
             despesa.Icone = request.Icone;
 
             _context.SaveChanges();
+
             return "Despesa atualizada com sucesso!";
         }
 
