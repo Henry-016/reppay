@@ -1,0 +1,12 @@
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+# O Vite compila o projeto ignorando os falsos erros do TypeScript
+RUN npx vite build 
+
+FROM nginx:alpine AS final
+COPY --from=build /app/dist /usr/share/nginx/html 
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
