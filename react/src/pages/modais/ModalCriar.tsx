@@ -44,11 +44,20 @@ function ModalCriar( {isOpen, onClose, onFinish}: ModalProps ) {
         }
     }
 
+    const fecharELimpar_x = () => {
+        setNome('')
+        setLink('')
+        setErro('')
+        onClose()
+
+    }
+
     const fecharELimpar = () => {
         setNome('')
         setLink('')
         setErro('')
         onClose()
+        onFinish()
 
     }
 
@@ -59,7 +68,7 @@ function ModalCriar( {isOpen, onClose, onFinish}: ModalProps ) {
             <section className={styles.tela_modal_criar}>
                 <div className={styles.modal}>
                     <div className={styles.imagemContainer}>
-                        <img onClick={fecharELimpar} src={x} className={styles.x}/>
+                        <img onClick={fecharELimpar_x} src={x} className={styles.x}/>
                     </div>
                     {erro && <div className={styles.mensagemErro}>{erro}</div>}
                     <h2>Criar Nova República</h2>
@@ -80,7 +89,7 @@ function ModalCriar( {isOpen, onClose, onFinish}: ModalProps ) {
                     </div>
                 </div>
 
-                <ModalSucesso isOpen={modal} onClose={onFinish} titulo='Grupo Criado!' texto='O grupo foi criado com sucesso e você se tornou o administrador dele.' />
+                <ModalSucesso isOpen={modal} onClose={fecharELimpar} titulo='Grupo Criado!' texto='O grupo foi criado com sucesso e você se tornou o administrador dele.' />
 
             </section>
         </>
