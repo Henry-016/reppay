@@ -418,7 +418,7 @@ function Morador() {
                             <h2>{grupo?.codigoAcesso || ''}</h2>
                             <button onClick={() => utilitarios.copiarParaAreaDeTransferencia(grupo)} className={styles.copiar}>Copiar</button>
                         </div>
-                        <p>Compartilhe este código para convidar novos moradores ao seu grupo.</p>
+                        <p>Compartilhe este código para convidar novos moradores a este grupo.</p>
                     </div>
 
                 </div>
