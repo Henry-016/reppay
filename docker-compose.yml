@@ -1,0 +1,58 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: reppay_postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: reppay
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: reppay_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./01_criacao_tabelas.sql:/docker-entrypoint-initdb.d/01_criacao_tabelas.sql:ro
+      - ./03_triggers.sql:/docker-entrypoint-initdb.d/03_triggers.sql:ro
+
+  api:
+    build: 
+      context: ./RepPay.API
+    container_name: reppay_api
+    restart: always
+    ports:
+      # O React procura a porta 5149. O container entrega o 8080.
+      - "5149:8080" 
+    depends_on:
+      - db
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=reppay_db;Username=reppay;Password=admin
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+
+  frontend:
+    build: 
+      context: ./react
+    container_name: reppay_frontend
+    restart: always
+    ports:
+      - "3000:80" 
+    depends_on:
+      - api
+    
+  frontend-dev:
+    build:
+      context: ./react
+      dockerfile: Dockerfile.dev  # Um ficheiro novo para dev
+    container_name: reppay_frontend_dev
+    volumes:
+      - ./react:/app           # Sincroniza a sua pasta do Windows com a do Linux
+      - /app/node_modules      # Protege os módulos instalados no Linux
+    ports:
+      - "5173:5173"            # Porta padrão do Vite
+    environment:
+      - CHOKIDAR_USEPOLLING=true # Necessário para o Windows detetar mudanças no Docker
+
+volumes:
+  pgdata:
+
+  
