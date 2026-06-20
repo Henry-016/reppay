@@ -15,11 +15,13 @@ namespace RepPay.API.Services
     {
         private readonly AppDbContext _context;
         private readonly IConfiguration _config;
+        private readonly EmailService _emailService;
 
-        public UsuarioService(AppDbContext context, IConfiguration config)
+        public UsuarioService(AppDbContext context, IConfiguration config, EmailService emailService)
         {
             _context = context;
             _config = config;
+            _emailService = emailService;
         }
 
         private string GerarTokenJWT(Usuario usuario)
@@ -257,9 +259,7 @@ namespace RepPay.API.Services
             _context.CodigosRecuperacao.Add(novoCodigo);
             _context.SaveChanges();
 
-            Console.WriteLine("\n========================================================");
-            Console.WriteLine($"📧 MOCK EMAIL -> Para: {usuario.Email} | Código: {codigo}");
-            Console.WriteLine("========================================================\n");
+            _emailService.EnviarEmailRecuperacao(usuario.Email, codigo);
         }
 
         public void ValidarCodigo(ValidarCodigoRequestDTO request)

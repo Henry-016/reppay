@@ -18,6 +18,7 @@ builder.Services.AddHostedService<RepPay.API.Services.LimpezaDespesasService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IGrupoService, GrupoService>();
 builder.Services.AddScoped<IDespesaService, DespesaService>();
+builder.Services.AddScoped<EmailService>();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
