@@ -8,12 +8,13 @@ import { useAuth } from '../../context/AuthContext'
 interface ModalProps {
     isOpen: boolean
     onClose: () => void
+    onFinish: () => void
 
 }
 
 
 
-function ModalCriar( {isOpen, onClose}: ModalProps ) {
+function ModalCriar( {isOpen, onClose, onFinish}: ModalProps ) {
 
     const [nome, setNome] = useState('')
     const [link, setLink] = useState('')
@@ -79,7 +80,7 @@ function ModalCriar( {isOpen, onClose}: ModalProps ) {
                     </div>
                 </div>
 
-                <ModalSucesso isOpen={modal} onClose={onClose} titulo='Grupo Criado!' texto='O grupo foi criado com sucesso e você se tornou o administrador dele.' />
+                <ModalSucesso isOpen={modal} onClose={onFinish} titulo='Grupo Criado!' texto='O grupo foi criado com sucesso e você se tornou o administrador dele.' />
 
             </section>
         </>
