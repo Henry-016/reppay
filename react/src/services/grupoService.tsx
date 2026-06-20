@@ -33,15 +33,15 @@ export const grupoService = {
             body: JSON.stringify({
                 CodigoAcesso: codigo
             })
-        });
-
-        const dados = await res.json()
+        })
 
         if (!res.ok) {
-            throw new Error(dados.mensagem || 'Erro ao tentar entrar no grupo.')
+            const erroBackend = await res.json().catch(() => ({})); 
+            throw new Error(erroBackend.mensagem || "Erro ao entrar em grupo.")
+
         }
 
-        return dados
+        return await res.json()
 
     },
 
