@@ -26,17 +26,16 @@ function ModalEntrar( {isOpen, onClose}: ModalProps ) {
 
         if (!codigo) {
             setErro('Por favor, insira o código do grupo.')
-            return;
-        }
+            return
 
-        setErro('');
+        }
 
         try {
             await grupoService.entrarGrupo(codigo, token!)
             setModal(true);
             
-        } catch (erro: any) {
-            setErro(erro.message || 'Erro ao tentar entrar no grupo.')
+        } catch (error: any) {
+            setErro(error.message || 'Erro ao tentar entrar no grupo.')
             
         }
     }
