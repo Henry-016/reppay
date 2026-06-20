@@ -110,8 +110,8 @@ function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
     
             setModalValidado(true)
 
-        } catch (erro) {
-            alert('Erro ao conectar com o servidor. Verifique se o backend está rodando.')
+        } catch (error: any) {
+            setErro(error.message)
         }
 
 
