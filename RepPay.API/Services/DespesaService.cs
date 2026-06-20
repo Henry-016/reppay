@@ -402,6 +402,26 @@ namespace RepPay.API.Services
                 throw new Exception("Não é permitido alterar o valor ou o vencimento de uma despesa que já possui parcelas pagas ou em análise.");
             }
 
+            if (despesa.Valor != request.Valor)
+            {
+                var listaParcelas = despesa.Parcelas.ToList();
+                int totalParcelas = listaParcelas.Count;
+
+                if (totalParcelas > 0)
+                {
+                    decimal valorBaseParcela = Math.Round(request.Valor / totalParcelas, 2);
+
+                    decimal diferencaCentavos = request.Valor - (valorBaseParcela * totalParcelas);
+
+                    for (int i = 0; i < totalParcelas; i++)
+                    {
+                        listaParcelas[i].Valor = (i == totalParcelas - 1)
+                            ? valorBaseParcela + diferencaCentavos
+                            : valorBaseParcela;
+                    }
+                }
+            }
+
             despesa.Nome = request.Nome;
             despesa.Valor = request.Valor;
             despesa.Vencimento = request.Vencimento;
