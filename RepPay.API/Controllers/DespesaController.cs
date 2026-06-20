@@ -269,7 +269,7 @@ namespace RepPay.API.Controllers
         }
 
         [HttpPut("Editar/{idDespesa}")]
-        public IActionResult EditarDespesa(int idDespesa, [FromBody] DespesaRequestDTO request)
+        public IActionResult EditarDespesa(int idDespesa, [FromBody] EditarDespesaRequestDTO request)
         {
             int? idLogado = ObterIdUsuarioLogado();
 
