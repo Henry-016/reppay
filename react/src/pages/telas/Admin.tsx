@@ -187,7 +187,7 @@ function Admin() {
         }
 
         if (idGrupo) buscarDadosDoGrupo()
-    }, [idGrupo, modal, atualizarDados, loading, token])
+    }, [idGrupo, modal, atualizarDados, loading, token, despesaParaEditar])
 
     const sinalizarPagamento = async (id: number) => {
         try {
