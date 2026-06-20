@@ -36,9 +36,9 @@ function ModalCriar( {isOpen, onClose}: ModalProps ) {
             await grupoService.criarGrupo(nome, link, token!);
             setModal(true);
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Erro na requisição:', error)
-            setErro('Não foi possível conectar ao servidor.')
+            setErro(error.message)
 
         }
     }
