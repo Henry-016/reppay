@@ -326,29 +326,35 @@ namespace RepPay.API.Services
 
             bool temDespesas = _context.Despesas.Any(d => d.IdGrupo == idGrupo);
 
-            if (temDespesas)
+            if (!temDespesas)
             {
-                throw new Exception("Não é possível encerrar a república enquanto houver despesas registradas. Remova ou quite todas as contas primeiro.");
-            }
-
-            bool temOutrosMoradores = _context.Pertences
-                .Any(p => p.IdGrupo == idGrupo && p.IdUsuario != idLogado);
-
-            if (temOutrosMoradores)
-            {
-                var pertences = _context.Pertences
-                    .Where(p => p.IdGrupo == idGrupo && p.IdUsuario != idLogado)
-                    .ToList();
-
-                foreach (var pertence in pertences)
+                var pertences = _context.Pertences.Where(p => p.IdGrupo == idGrupo).ToList();
+                if (pertences.Any())
                 {
-                    _context.Pertences.Remove(pertence);
+                    _context.Pertences.RemoveRange(pertences);
+                }
+            }
+            else
+            {
+                int quantidadeMoradores = _context.Pertences.Count(p => p.IdGrupo == idGrupo);
+
+                if (quantidadeMoradores > 1)
+                {
+                    throw new Exception("Não é possível encerrar a república enquanto houver outros moradores nela. Peça para que saiam voluntariamente ou remova-os primeiro.");
                 }
             }
 
             grupo.Ativo = false;
-            _context.SaveChanges();
-            return "República encerrada com sucesso!";
+
+            try
+            {
+                _context.SaveChanges();
+                return "República encerrada com sucesso! Todas as despesas atreladas foram arquivadas.";
+            }
+            catch (Exception)
+            {
+                throw new Exception("Não é possível encerrar a república no momento. Existem despesas com parcelas pendentes ou em análise. Quite todas as contas primeiro.");
+            }
         }
     }
 }
