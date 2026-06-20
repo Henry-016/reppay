@@ -92,27 +92,12 @@
         flex-direction: column; 
         overflow: hidden;
 
-        &::-webkit-scrollbar {
-            height: 0.375rem; 
-            position: absolute;
-            
-        }
-        &::-webkit-scrollbar-track {
-
-        }
-        &::-webkit-scrollbar-thumb {
-            background-color: #3B494C;
-            border-radius: 0.5rem;
-            border: 0.125rem solid transparent;
-            background-clip: content-box;
-
-        }
-
         .conteudo {
             flex: 1; 
             overflow-y: auto;
             overflow-x: hidden;
             padding: 0rem 2.5rem;
+
             &::-webkit-scrollbar {
                 width: 1rem;
                 position: absolute;
@@ -319,9 +304,6 @@
                 position: absolute;
                 
             }
-            &::-webkit-scrollbar-track {
-    
-            }
             &::-webkit-scrollbar-thumb {
                 background-color: #3B494C;
                 border-radius: 0.5rem;
@@ -525,11 +507,27 @@
         }
 
         .despesasPendentes {
+            flex: 1;
             display: flex;
             flex-direction: column;
             padding: 2.5rem;
             width: 100%;
             gap: 1rem;
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            &::-webkit-scrollbar {
+                height: 0.375rem; 
+                position: absolute;
+                
+            }
+            &::-webkit-scrollbar-thumb {
+                background-color: #3B494C;
+                border-radius: 0.5rem;
+                border: 0.125rem solid transparent;
+                background-clip: content-box;
+    
+            }
 
             .tituloDespesasPendentes {
                 color: var(--cor-titulo);
