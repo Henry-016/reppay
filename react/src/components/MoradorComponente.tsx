@@ -10,10 +10,11 @@ interface ComponentProps {
     valor: number
     onClick: () => void
     clickExpulsar: () => void
+    isAdmin: boolean | undefined
 
 }
 
-function MoradorComponente( {nome, email, tipo, valor, onClick, clickExpulsar}: ComponentProps ) {
+function MoradorComponente( {nome, email, tipo, valor, onClick, clickExpulsar, isAdmin}: ComponentProps ) {
 
     return (
         <>
@@ -24,13 +25,13 @@ function MoradorComponente( {nome, email, tipo, valor, onClick, clickExpulsar}: 
                         <h2>{nome}</h2>
                         <p>{email}</p>
                     </div>
-                    {tipo === 'Morador' && 
+                    {(tipo === 'Morador' && isAdmin)  && 
                         <img src={expulsar} onClick={clickExpulsar} className={styles.expulsar}/>
                     
                     }
                 </div>
                 <div className={styles.informacoesCargo}>
-                    <p className={`${tipo === 'Admin' ? styles.admin : styles.morador}`} onClick={onClick}>{tipo}</p>
+                    <p className={`${tipo === 'Admin' ? styles.admin : styles.morador} ${isAdmin && tipo !== "Admin"? styles.userAdmin : ""}`} onClick={onClick}>{tipo}</p>
                 </div>
                 <div className={styles.informacoesDivida}>
                     <h2>{utilitarios.formatarValor(valor)}</h2>

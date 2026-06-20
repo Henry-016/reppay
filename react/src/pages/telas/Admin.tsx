@@ -33,6 +33,7 @@ interface DadosGrupo {
     codigoAcesso: string
     imagemBanner: string | null
     isAdmin: boolean
+
 }
 
 interface Usuario {
@@ -495,7 +496,7 @@ function Admin() {
                         <div className={styles.moradores}>
                             <div className={styles.moradoresTexto}>
                                 <h2 className={styles.gerenciamento}>Gerenciamento de Moradores</h2>
-                                <p className={styles.gerenciamentoP}>Controle de acesso e membros do grupo da república.</p>
+                                <p className={styles.gerenciamentoP}>Controle de acesso e membros do grupo.</p>
                                 
                             </div>
                             <div className={styles.containerMoradores}>
@@ -518,6 +519,7 @@ function Admin() {
                                         email={morador.email} 
                                         onClick={morador.isAdmin ? () => {} : () => setModalTrocar(morador.idUsuario)}
                                         clickExpulsar={() => setModalExpulsar(morador.idUsuario)}
+                                        isAdmin={grupo?.isAdmin}
                                                                           
                                     />
                                 ))}
