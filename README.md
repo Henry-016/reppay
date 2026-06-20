@@ -92,8 +92,6 @@ Com a stack rodando (`docker compose up -d db api frontend-dev`), siga os fluxos
    ```
 5. *Resultado:* O PostgreSQL nascerá do zero e executará as novas regras estruturais imediatamente.
 
-*(Dica de Apresentação: Mantenha um terminal rodando `docker compose logs -f api` em um monitor secundário para acompanhar possíveis erros de sintaxe no C# em tempo real).*
-
 ---
 
 ## 🔐 Variáveis de Ambiente & Segurança
