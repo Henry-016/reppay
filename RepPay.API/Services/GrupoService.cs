@@ -232,8 +232,9 @@ namespace RepPay.API.Services
             }
 
             bool moradorTemDividas = _context.Parcelas
-                .Include(p => p.IdDespesaNavigation)
-                .Any(p => p.IdUsuario == idMorador && p.IdDespesaNavigation.IdGrupo == idGrupo
+                .Any(p => p.IdUsuario == idMorador
+                       && p.IdDespesaNavigation.IdGrupo == idGrupo
+                       && p.IdDespesaNavigation.Ativo == true
                        && (p.Status == StatusParcela.PENDENTE || p.Status == StatusParcela.ATRASADO || p.Status == StatusParcela.EM_ANALISE));
 
             if (moradorTemDividas)
