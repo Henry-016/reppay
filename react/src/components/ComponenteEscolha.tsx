@@ -1,11 +1,11 @@
 import styles from './ComponenteEscolha.module.scss'
 
 interface ComponentProps {
-    imagem: string;
-    titulo: string;
-    texto: string;
-    button: string;
-    onClick: () => void;
+    imagem: string
+    titulo: string
+    texto: string
+    button: string
+    onClick: () => void
 
 }
 
