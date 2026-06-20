@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using RepPay.API.Models;
 
 namespace RepPay.API.Services
@@ -16,7 +16,7 @@ namespace RepPay.API.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Servi�o de limpeza de despesas antigas iniciado.");
+            _logger.LogInformation("Serviço de limpeza de despesas antigas iniciado.");
 
             while (!stoppingToken.IsCancellationRequested)
             {
