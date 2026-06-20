@@ -49,7 +49,7 @@ function Cadastro() {
             
         } catch (error: any) {
             console.error(error)
-            setErro(error)
+            setErro(error.message)
 
         }
     }  

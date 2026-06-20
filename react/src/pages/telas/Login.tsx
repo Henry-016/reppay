@@ -31,9 +31,9 @@ function Login() {
             setAuth(dados.token, dados.refreshToken)
             navigate('/home') 
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Erro na requisição:', error)
-            setErro('error')
+            setErro(error.message)
         }
     }
 

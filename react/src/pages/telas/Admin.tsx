@@ -127,7 +127,6 @@ function Admin() {
     const [usuario, setUsuario] = useState<Usuario>()
     const [parcelaQuitar, setParcelaQuitar] = useState<number | null>(null)
     const [despesasPendentes, setDespesasPendentes] = useState<DespesasPendentes[]>([])
-    const [modalEditar, setModalEditar] = useState<number | null>(null)
     const [despesaApagar, setDespesaApagar] = useState<number | null>(null)
     
     const { loading } = useAuth()
