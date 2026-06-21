@@ -44,10 +44,9 @@ function ModalSucesso( {isOpen, imagem, onClose, titulo, texto}: ModalProps ) {
                     e.preventDefault()
                     firstElement.focus()
                 }
+                
             }
-            if (e.key === 'Escape') {
-                onClose();
-            }
+
         }
 
         document.addEventListener('keydown', handleKeyDown)

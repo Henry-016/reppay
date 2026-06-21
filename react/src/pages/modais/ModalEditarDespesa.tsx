@@ -73,10 +73,9 @@ function ModalEditarDespesa( {isOpen, onClose, idDespesa, nomeAtual, valorAtual,
                     e.preventDefault()
                     firstElement.focus()
                 }
+                
             }
-            if (e.key === 'Escape') {
-                onClose();
-            }
+
         }
 
         document.addEventListener('keydown', handleKeyDown)
