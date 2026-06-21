@@ -73,13 +73,13 @@ Certifique-se de ter os seguintes programas instalados na sua máquina:
 
 **1. Clone o Repositório:**
 ```bash
-$ git clone [https://github.com/Henry-016/reppay.git](https://github.com/Henry-016/reppay.git)
-$ cd reppay
+git clone https://github.com/Henry-016/reppay.git
+cd reppay
 ```
 
 **2. Suba os containers (Modo de Desenvolvimento):** Execute o comando abaixo para construir a aplicação e iniciar os serviços com *Hot Reload* no Front-end:
 ```bash
-$ docker compose up -d db api frontend-dev
+docker compose up -d db api frontend-dev
 ```
 
 **3. Acessando as Aplicações:** Assim que a inicialização for concluída, você poderá acessar os serviços em:
