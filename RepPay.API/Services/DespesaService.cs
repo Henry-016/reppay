@@ -40,6 +40,11 @@ namespace RepPay.API.Services
                 throw new Exception("É necessário selecionar pelo menos um morador para dividir esta conta.");
             }
 
+            if (request.Valor <= 0)
+            {
+                throw new ArgumentException("O valor da despesa deve ser maior que zero.");
+            }
+
             var moradoresValidos = _context.Pertences
                 .Where(p => p.IdGrupo == request.IdGrupo && request.MoradoresIds.Contains(p.IdUsuario))
                 .Include(p => p.IdUsuarioNavigation)
@@ -65,14 +70,20 @@ namespace RepPay.API.Services
                 Parcelas = new List<Parcela>()
             };
 
-            decimal valorPorPessoa = Math.Round(request.Valor / request.MoradoresIds.Count, 2);
+            int totalMoradores = request.MoradoresIds.Count;
+            decimal valorBaseParcela = Math.Round(request.Valor / totalMoradores, 2);
+            decimal diferencaCentavos = request.Valor - (valorBaseParcela * totalMoradores);
 
-            foreach (var idMorador in request.MoradoresIds)
+            for (int i = 0; i < totalMoradores; i++)
             {
+                decimal valorParcela = (i == totalMoradores - 1)
+                    ? valorBaseParcela + diferencaCentavos
+                    : valorBaseParcela;
+
                 novaDespesa.Parcelas.Add(new Parcela
                 {
-                    IdUsuario = idMorador,
-                    Valor = valorPorPessoa,
+                    IdUsuario = request.MoradoresIds[i],
+                    Valor = valorParcela,
                     Status = StatusParcela.PENDENTE
                 });
             }
@@ -471,16 +482,9 @@ namespace RepPay.API.Services
             }
 
             despesa.Ativo = false;
+            _context.SaveChanges();
 
-            try
-            {
-                _context.SaveChanges();
-                return "Despesa arquivada com sucesso!";
-            }
-            catch (Exception)
-            {
-                throw new Exception("Não é possível deletar uma despesa que ainda possui parcelas pagas!");
-            }
+            return "Despesa arquivada com sucesso!";
         }
 
         public List<DespesaGerenciamentoResponseDTO> GetDespesasParaGerenciamento(int idLogado, int idGrupo)
