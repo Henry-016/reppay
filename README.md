@@ -39,6 +39,25 @@ Este projeto foi construído utilizando os seguintes frameworks, bibliotecas e f
 
 ---
 
+## ✨ Funcionalidades
+
+* **Gestão de Repúblicas:** Criação de grupos e administração de membros (moradores).
+* **Gestão Financeira:** Criação de despesas coletivas e rateio automático entre os participantes.
+* **Controle de Status:** Acompanhamento do ciclo de vida das parcelas (Pendente, Em Análise, Pago e Atrasado).
+* **Segurança e Validação:** Bloqueio inteligente de ações destrutivas (ex: exclusão de grupos com pendências financeiras ativas).
+* **Painel Administrativo:** Controle de acessos, expulsão de membros inadimplentes e encerramento de ciclos.
+
+---
+
+## 📚 Artefatos do Projeto
+
+Para fins de avaliação e registro do ciclo de vida do projeto, os artefatos produzidos nas fases anteriores (como a AB1) encontram-se isolados e organizados dentro da pasta `Artefatos/`. Nela constam:
+* Modelagem e Diagramas do Banco de Dados (DER).
+* Documentação de Requisitos e Regras de Negócio.
+* Outros documentos pertinentes à concepção do sistema.
+
+---
+
 ## 🚀 Começando (Getting Started)
 
 A maneira mais fácil e segura de rodar toda a stack (Front-end, Back-end, Banco de Dados e migrações) é utilizando o Docker Compose.
@@ -98,6 +117,35 @@ $ docker compose up -d db api frontend-dev
 
 ## ✍️ Autores
 
-* **[DANIEL MENDES DA SILVA]** - *Front-end*
-* **[ENRIQUE FERREIRA DA SILVA]** - *Back-end*
-* **[DAVISON GABRIEL MONTEIRO DE FARIAS]** - *Banco de dados*
+<table align="center">
+  <tr>
+    <td align="center">
+      <a href="https://github.com/danielmendes23">
+        <img src="https://github.com/danielmendes23.png" width="120px;" alt="Foto do Daniel"/><br>
+        <sub><b>Daniel Mendes</b></sub>
+      </a><br>
+      🎨 Front-end<br>
+      <a href="https://github.com/danielmendes23">
+        <img src="https://img.shields.io/badge/GitHub-100000?style=flat&logo=github&logoColor=white" alt="GitHub do Daniel">
+    </td>
+    <td align="center">
+      <a href="https://github.com/Henry-016">
+        <img src="https://github.com/Henry-016.png" width="120px;" alt="Foto do Enrique"/><br>
+        <sub><b>Enrique Ferreira</b></sub>
+      </a><br>
+      ⚙️ Back-end<br>
+      <a href="https://github.com/Henry-016">
+        <img src="https://img.shields.io/badge/GitHub-100000?style=flat&logo=github&logoColor=white" alt="GitHub do Enrique">
+    </td>
+    <td align="center">
+      <a href="https://github.com/Userkhan444">
+        <img src="https://github.com/Userkhan444.png" width="120px;" alt="Foto do Davison"/><br>
+        <sub><b>Davison Gabriel</b></sub>
+      </a><br>
+      🗄️ Banco de Dados<br>
+      <a href="https://github.com/Userkhan444">
+        <img src="https://img.shields.io/badge/GitHub-100000?style=flat&logo=github&logoColor=white" alt="GitHub do Davison">
+      </a>
+    </td>
+  </tr>
+</table>
