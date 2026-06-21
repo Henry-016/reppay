@@ -1,6 +1,6 @@
 import styles from './ModalEditarDespesa.module.scss'
 import x from './../../assets/x.svg'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import ModalSucesso from './ModalSucesso'
 import { useAuth } from './../../context/AuthContext'
 import { despesaService } from '../../services/despesaService';
@@ -30,6 +30,8 @@ function ModalEditarDespesa( {isOpen, onClose, idDespesa, nomeAtual, valorAtual,
 
     const { loading } = useAuth()
 
+    const modalRef = useRef<HTMLDivElement>(null)
+
     useEffect(() => {
 
         if (loading) return
@@ -43,7 +45,46 @@ function ModalEditarDespesa( {isOpen, onClose, idDespesa, nomeAtual, valorAtual,
         }
         
         atualizarDados()
-        console.log()
+
+        if (!isOpen) {
+            document.body.style.overflow = 'unset'
+            return;
+        }
+
+        document.body.style.overflow = 'hidden'
+
+        const focusableElements = modalRef.current?.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        ) as NodeListOf<HTMLElement>
+
+        if (!focusableElements || focusableElements.length === 0) return
+
+        const firstElement = focusableElements[0]
+        const lastElement = focusableElements[focusableElements.length - 1]
+
+        firstElement.focus()
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Tab') {
+                if (e.shiftKey && document.activeElement === firstElement) {
+                    e.preventDefault()
+                    lastElement.focus()
+                } else if (!e.shiftKey && document.activeElement === lastElement) {
+                    e.preventDefault()
+                    firstElement.focus()
+                }
+            }
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        }
+
+        document.addEventListener('keydown', handleKeyDown)
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+            document.body.style.overflow = 'unset'
+        } 
 
     }, [token, loading, isOpen, modalValidado])
 
@@ -112,7 +153,7 @@ function ModalEditarDespesa( {isOpen, onClose, idDespesa, nomeAtual, valorAtual,
     return (
         <>
             <section className={styles.tela_modal_editar_despesa}>
-                <div className={styles.modal}>
+                <div className={styles.modal} ref={modalRef}>
                     <div className={styles.imagemContainer}>
                         <img onClick={fecharELimpar} src={x} className={styles.x}/>
                     </div>

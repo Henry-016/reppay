@@ -1,6 +1,6 @@
 import styles from './ModalCriarDespesa.module.scss'
 import x from './../../assets/x.svg'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom';
 import UsuarioSelecao from '../../components/UsuarioSelecao'
 import ModalSucesso from './ModalSucesso'
@@ -40,6 +40,8 @@ function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
 
     const { loading } = useAuth()
 
+    const modalRef = useRef<HTMLDivElement>(null)
+
     useEffect(() => {
 
         if (loading) return
@@ -53,7 +55,46 @@ function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
             }
         }
         buscarMoradores()
-        
+
+        if (!isOpen) {
+            document.body.style.overflow = 'unset'
+            return;
+        }
+
+        document.body.style.overflow = 'hidden'
+
+        const focusableElements = modalRef.current?.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        ) as NodeListOf<HTMLElement>
+
+        if (!focusableElements || focusableElements.length === 0) return
+
+        const firstElement = focusableElements[0]
+        const lastElement = focusableElements[focusableElements.length - 1]
+
+        firstElement.focus()
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Tab') {
+                if (e.shiftKey && document.activeElement === firstElement) {
+                    e.preventDefault()
+                    lastElement.focus()
+                } else if (!e.shiftKey && document.activeElement === lastElement) {
+                    e.preventDefault()
+                    firstElement.focus()
+                }
+            }
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        }
+
+        document.addEventListener('keydown', handleKeyDown)
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+            document.body.style.overflow = 'unset'
+        } 
 
     }, [idGrupo, token, loading, isOpen])
 
@@ -133,7 +174,7 @@ function ModalCriarDespesa( {isOpen, onClose}: ModalProps ) {
     return (
         <>
             <section className={styles.tela_modal_criar_despesa}>
-                <div className={styles.modal}>
+                <div className={styles.modal} ref={modalRef}>
                     <div className={styles.imagemContainer}>
                         <img onClick={fecharELimpar} src={x} className={styles.x}/>
                     </div>

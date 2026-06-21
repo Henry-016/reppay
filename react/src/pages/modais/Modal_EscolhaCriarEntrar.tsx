@@ -6,7 +6,7 @@ import overlay from './../../assets/Overlay.svg'
 import ComponenteEscolha from './../../components/ComponenteEscolha'
 import casa from './../../assets/casa_criar.svg'
 import users from './../../assets/users_entrar.svg'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface ModalProps {
     isOpen: boolean;
@@ -19,12 +19,59 @@ function Modal_EscolhaCriarEntrar( {isOpen, onClose}: ModalProps ) {
     const [criar, setCriar] = useState(false)
     const [entrar, setEntrar] = useState(false)
 
+    const modalRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        if (!isOpen) {
+            document.body.style.overflow = 'unset'
+            return
+        }
+
+        document.body.style.overflow = 'hidden'
+
+        const focusableElements = modalRef.current?.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        ) as NodeListOf<HTMLElement>
+
+        if (!focusableElements || focusableElements.length === 0) return
+
+        const firstElement = focusableElements[0]
+        const lastElement = focusableElements[focusableElements.length - 1]
+
+        firstElement.focus()
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Tab') {
+                if (e.shiftKey && document.activeElement === firstElement) {
+                    e.preventDefault()
+                    lastElement.focus()
+                } else if (!e.shiftKey && document.activeElement === lastElement) {
+                    e.preventDefault()
+                    firstElement.focus()
+                }
+            }
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        }
+
+        document.addEventListener('keydown', handleKeyDown)
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+            document.body.style.overflow = 'unset'
+            
+        } 
+
+
+    }, [isOpen])
+
     if (!isOpen) return null;
 
     return (
         <>
         <section className={styles.tela_mece}>
-            <div className={styles.modal}>
+            <div className={styles.modal} ref={modalRef}>
                 <div className={styles.imagemContainer}>
                     <img onClick={onClose} src={x} className={styles.x}/>
                 </div>

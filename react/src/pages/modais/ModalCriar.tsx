@@ -1,6 +1,6 @@
 import styles from './ModalCriar.module.scss'
 import x from './../../assets/x.svg'
-import { useState} from 'react'
+import { useState, useEffect, useRef} from 'react'
 import ModalSucesso from './ModalSucesso'
 import { grupoService } from '../../services/grupoService'
 import { useAuth } from '../../context/AuthContext'
@@ -23,6 +23,53 @@ function ModalCriar( {isOpen, onClose, onFinish}: ModalProps ) {
     const [erro, setErro] = useState('')
 
     const { token } = useAuth()
+
+    const modalRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        if (!isOpen) {
+            document.body.style.overflow = 'unset'
+            return
+        }
+
+        document.body.style.overflow = 'hidden'
+
+        const focusableElements = modalRef.current?.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        ) as NodeListOf<HTMLElement>
+
+        if (!focusableElements || focusableElements.length === 0) return
+
+        const firstElement = focusableElements[0]
+        const lastElement = focusableElements[focusableElements.length - 1]
+
+        firstElement.focus()
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Tab') {
+                if (e.shiftKey && document.activeElement === firstElement) {
+                    e.preventDefault()
+                    lastElement.focus()
+                } else if (!e.shiftKey && document.activeElement === lastElement) {
+                    e.preventDefault()
+                    firstElement.focus()
+                }
+            }
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        }
+
+        document.addEventListener('keydown', handleKeyDown)
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+            document.body.style.overflow = 'unset'
+            
+        } 
+
+
+    }, [isOpen])
 
     const criarGrupo = async (e: React.SubmitEvent) => {
         e.preventDefault()
@@ -66,7 +113,7 @@ function ModalCriar( {isOpen, onClose, onFinish}: ModalProps ) {
     return (
         <>
             <section className={styles.tela_modal_criar}>
-                <div className={styles.modal}>
+                <div className={styles.modal} ref={modalRef}>
                     <div className={styles.imagemContainer}>
                         <img onClick={fecharELimpar_x} src={x} className={styles.x}/>
                     </div>

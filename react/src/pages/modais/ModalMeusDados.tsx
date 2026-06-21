@@ -1,6 +1,6 @@
 import styles from './ModalMeusDados.module.scss'
 import icon from './../../assets/user_icon.svg'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { usuarioService } from '../../services/usuarioService'
 import { useNavigate } from 'react-router-dom'
@@ -27,6 +27,7 @@ function ModalMeusDados({isOpen, onClose}: ModalProps) {
 
     const { token, loading, logout } = useAuth()
     const navigate = useNavigate()
+    const modalRef = useRef<HTMLDivElement>(null)
 
     const [, setUsuario] = useState<Usuario>()
     const [nome, setNome] = useState("")
@@ -65,6 +66,47 @@ function ModalMeusDados({isOpen, onClose}: ModalProps) {
             }
 
             buscarDadosUsuario()
+
+            if (!isOpen) {
+                document.body.style.overflow = 'unset'
+                return
+            }
+    
+            document.body.style.overflow = 'hidden'
+    
+            const focusableElements = modalRef.current?.querySelectorAll(
+                'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            ) as NodeListOf<HTMLElement>
+    
+            if (!focusableElements || focusableElements.length === 0) return
+    
+            const firstElement = focusableElements[0]
+            const lastElement = focusableElements[focusableElements.length - 1]
+    
+            firstElement.focus()
+    
+            const handleKeyDown = (e: KeyboardEvent) => {
+                if (e.key === 'Tab') {
+                    if (e.shiftKey && document.activeElement === firstElement) {
+                        e.preventDefault()
+                        lastElement.focus()
+                    } else if (!e.shiftKey && document.activeElement === lastElement) {
+                        e.preventDefault()
+                        firstElement.focus()
+                    }
+                }
+                if (e.key === 'Escape') {
+                    onClose();
+                }
+            }
+    
+            document.addEventListener('keydown', handleKeyDown)
+    
+            return () => {
+                document.removeEventListener('keydown', handleKeyDown);
+                document.body.style.overflow = 'unset'
+                
+            } 
     
     }, [token, loading, isOpen])
 
@@ -146,7 +188,7 @@ function ModalMeusDados({isOpen, onClose}: ModalProps) {
     return (
         <>
             <section className={styles.tela_modal_MeusDados}>
-                <div className={styles.modal}>
+                <div className={styles.modal} ref={modalRef}>
                     <div className={styles.header}>
                         <h2>Meus Dados</h2>
                         <img src={x} className={styles.x} onClick={fecharELimpar}/>
