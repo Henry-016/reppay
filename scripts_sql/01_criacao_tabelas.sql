@@ -3,9 +3,11 @@ CREATE TABLE usuario (
     foto_perfil text,
     nome VARCHAR(100) NOT NULL,
     senha VARCHAR(255) NOT NULL,
-    email VARCHAR(254) UNIQUE NOT NULL,
+    email VARCHAR(254) NOT NULL,
     ativo boolean not null default true
 );
+
+CREATE UNIQUE INDEX idx_usuario_email_ativo ON usuario (email) WHERE ativo = true;
 
 CREATE TABLE codigo_recuperacao (
     id_codigo SERIAL PRIMARY KEY,
