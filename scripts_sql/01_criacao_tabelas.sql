@@ -1,20 +1,3 @@
--- ==============================================================================
--- REPPAY - SCRIPT DE CRIAÇÃO DO BANCO DE DADOS 
--- ==============================================================================
-
--- 1. LIMPEZA TOTAL (Evita conflitos de recriação)
-DROP TABLE IF EXISTS parcela CASCADE;
-DROP TABLE IF EXISTS pertence CASCADE;
-DROP TABLE IF EXISTS despesa CASCADE;
-DROP TABLE IF EXISTS grupo CASCADE;
-DROP TABLE IF EXISTS codigo_recuperacao CASCADE;
-DROP TABLE IF EXISTS usuario CASCADE;
-
-
--- ==============================================================================
--- 2. CRIAÇÃO DAS TABELAS
--- ==============================================================================
-
 CREATE TABLE usuario (
     id_usuario SERIAL PRIMARY KEY,
     foto_perfil text,
@@ -93,12 +76,6 @@ CREATE TABLE refresh_token (
         ON DELETE CASCADE
 );
 
-
-
--- índices
-
-CREATE INDEX idx_parcela_despesa 
-ON parcela(id_despesa);
 
 CREATE INDEX idx_despesa_grupo
 ON despesa(id_grupo);
