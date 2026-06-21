@@ -345,7 +345,65 @@ namespace RepPay.API.Tests.Services
         }
 
         [Fact]
-        public void DeletarGrupo_DeveDispararExcecao_QuandoHouverOutrosMoradores()
+        public void DeletarGrupo_DeveDispararExcecao_QuandoMoradorPossuirDividaPendenteOuEmAnalise()
+        {
+            var context = CriarContextoEmMemoria();
+            var admin = new Usuario { Nome = "Admin", Email = "admin@ufal.com", Senha = "123", Ativo = true };
+            var outroMorador = new Usuario { Nome = "Morador", Email = "morador@ufal.com", Senha = "123", Ativo = true };
+            context.Usuarios.AddRange(admin, outroMorador);
+            context.SaveChanges();
+
+            var grupo = new Grupo { Nome = "República", IdAdmin = admin.IdUsuario, Ativo = true, CodigoAcesso = "12345678" };
+            context.Grupos.Add(grupo);
+            context.SaveChanges();
+
+            context.Pertences.Add(new Pertence { IdGrupo = grupo.IdGrupo, IdUsuario = admin.IdUsuario });
+            context.Pertences.Add(new Pertence { IdGrupo = grupo.IdGrupo, IdUsuario = outroMorador.IdUsuario });
+
+            var despesa = new Despesa { Nome = "Luz", IdGrupo = grupo.IdGrupo, Valor = 100, Vencimento = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(5)), Status = StatusDespesa.ATIVA, Ativo = true };
+            context.Despesas.Add(despesa);
+            context.SaveChanges();
+
+            context.Parcelas.Add(new Parcela { IdUsuario = outroMorador.IdUsuario, IdDespesa = despesa.IdDespesa, Valor = 100, Status = StatusParcela.PENDENTE });
+            context.SaveChanges();
+
+            var service = new GrupoService(context);
+
+            var excecao = Assert.Throws<InvalidOperationException>(() => service.DeletarGrupo(admin.IdUsuario, grupo.IdGrupo));
+            Assert.Contains("parcelas pendentes, atrasadas ou em análise", excecao.Message);
+        }
+
+        [Fact]
+        public void DeletarGrupo_DeveDispararExcecao_QuandoMoradorPossuirHistoricoPago()
+        {
+            var context = CriarContextoEmMemoria();
+            var admin = new Usuario { Nome = "Admin", Email = "admin@ufal.com", Senha = "123", Ativo = true };
+            var outroMorador = new Usuario { Nome = "Morador", Email = "morador@ufal.com", Senha = "123", Ativo = true };
+            context.Usuarios.AddRange(admin, outroMorador);
+            context.SaveChanges();
+
+            var grupo = new Grupo { Nome = "República", IdAdmin = admin.IdUsuario, Ativo = true, CodigoAcesso = "12345678" };
+            context.Grupos.Add(grupo);
+            context.SaveChanges();
+
+            context.Pertences.Add(new Pertence { IdGrupo = grupo.IdGrupo, IdUsuario = admin.IdUsuario });
+            context.Pertences.Add(new Pertence { IdGrupo = grupo.IdGrupo, IdUsuario = outroMorador.IdUsuario });
+
+            var despesa = new Despesa { Nome = "Água", IdGrupo = grupo.IdGrupo, Valor = 50, Vencimento = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(5)), Status = StatusDespesa.ATIVA, Ativo = true };
+            context.Despesas.Add(despesa);
+            context.SaveChanges();
+
+            context.Parcelas.Add(new Parcela { IdUsuario = outroMorador.IdUsuario, IdDespesa = despesa.IdDespesa, Valor = 50, Status = StatusParcela.PAGO });
+            context.SaveChanges();
+
+            var service = new GrupoService(context);
+
+            var excecao = Assert.Throws<InvalidOperationException>(() => service.DeletarGrupo(admin.IdUsuario, grupo.IdGrupo));
+            Assert.Contains("histórico financeiro pago", excecao.Message);
+        }
+
+        [Fact]
+        public void DeletarGrupo_DeveRemoverMoradoresAutomaticamente_QuandoNaoHouverDividaOuHistoricoPago()
         {
             var context = CriarContextoEmMemoria();
             var admin = new Usuario { Nome = "Admin", Email = "admin@ufal.com", Senha = "123", Ativo = true };
@@ -362,9 +420,11 @@ namespace RepPay.API.Tests.Services
             context.SaveChanges();
 
             var service = new GrupoService(context);
+            var mensagem = service.DeletarGrupo(admin.IdUsuario, grupo.IdGrupo);
 
-            var excecao = Assert.Throws<Exception>(() => service.DeletarGrupo(admin.IdUsuario, grupo.IdGrupo));
-            Assert.Contains("Não é possível encerrar a república enquanto houver outros moradores", excecao.Message);
+            Assert.Contains("encerrada com sucesso", mensagem);
+            Assert.False(context.Grupos.First().Ativo);
+            Assert.False(context.Pertences.Any(p => p.IdUsuario == outroMorador.IdUsuario && p.IdGrupo == grupo.IdGrupo));
         }
 
         [Fact]

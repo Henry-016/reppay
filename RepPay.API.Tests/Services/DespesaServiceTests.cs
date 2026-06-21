@@ -95,6 +95,73 @@ namespace RepPay.API.Tests.Services
         }
 
         [Fact]
+        public void CadastrarDespesa_DeveDistribuirCentavosRestantes_QuandoDivisaoNaoForExata()
+        {
+            var context = CriarContextoEmMemoria();
+            var admin = new Usuario { Nome = "Admin", Email = "admin@ufal.com", Senha = "123", Ativo = true };
+            var morador1 = new Usuario { Nome = "Morador 1", Email = "m1@ufal.com", Senha = "123", Ativo = true };
+            var morador2 = new Usuario { Nome = "Morador 2", Email = "m2@ufal.com", Senha = "123", Ativo = true };
+            context.Usuarios.AddRange(admin, morador1, morador2);
+            context.SaveChanges();
+
+            var grupo = new Grupo { Nome = "República", IdAdmin = admin.IdUsuario, Ativo = true, CodigoAcesso = "12345678" };
+            context.Grupos.Add(grupo);
+            context.SaveChanges();
+
+            context.Pertences.Add(new Pertence { IdGrupo = grupo.IdGrupo, IdUsuario = admin.IdUsuario });
+            context.Pertences.Add(new Pertence { IdGrupo = grupo.IdGrupo, IdUsuario = morador1.IdUsuario });
+            context.Pertences.Add(new Pertence { IdGrupo = grupo.IdGrupo, IdUsuario = morador2.IdUsuario });
+            context.SaveChanges();
+
+            var service = new DespesaService(context);
+            var request = new DespesaRequestDTO
+            {
+                Nome = "Conta de Internet",
+                Valor = 100.00m,
+                Vencimento = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(5)),
+                IdGrupo = grupo.IdGrupo,
+                MoradoresIds = new List<int> { admin.IdUsuario, morador1.IdUsuario, morador2.IdUsuario }
+            };
+
+            service.CadastrarDespesa(admin.IdUsuario, request);
+
+            var parcelas = context.Despesas.Include(d => d.Parcelas).First().Parcelas.ToList();
+
+            Assert.Equal(100.00m, parcelas.Sum(p => p.Valor));
+            Assert.Equal(33.33m, parcelas[0].Valor);
+            Assert.Equal(33.33m, parcelas[1].Valor);
+            Assert.Equal(33.34m, parcelas[2].Valor);
+        }
+
+        [Fact]
+        public void CadastrarDespesa_DeveDispararExcecao_QuandoValorForZeroOuNegativo()
+        {
+            var context = CriarContextoEmMemoria();
+            var admin = new Usuario { Nome = "Admin", Email = "admin@ufal.com", Senha = "123", Ativo = true };
+            context.Usuarios.Add(admin);
+            context.SaveChanges();
+
+            var grupo = new Grupo { Nome = "República", IdAdmin = admin.IdUsuario, Ativo = true, CodigoAcesso = "12345678" };
+            context.Grupos.Add(grupo);
+            context.SaveChanges();
+
+            context.Pertences.Add(new Pertence { IdGrupo = grupo.IdGrupo, IdUsuario = admin.IdUsuario });
+            context.SaveChanges();
+
+            var service = new DespesaService(context);
+            var request = new DespesaRequestDTO
+            {
+                Nome = "Conta Inválida",
+                Valor = 0,
+                Vencimento = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(5)),
+                IdGrupo = grupo.IdGrupo,
+                MoradoresIds = new List<int> { admin.IdUsuario }
+            };
+
+            Assert.Throws<ArgumentException>(() => service.CadastrarDespesa(admin.IdUsuario, request));
+        }
+
+        [Fact]
         public void CadastrarDespesa_DeveDispararExcecao_QuandoNaoAdminTentarLancar()
         {
             var context = CriarContextoEmMemoria();
@@ -540,13 +607,11 @@ namespace RepPay.API.Tests.Services
         {
             var (context, admin, morador, grupo, despesa) = CriarCenarioCompleto(StatusParcela.PENDENTE);
             var service = new DespesaService(context);
-            var request = new DespesaRequestDTO
+            var request = new EditarDespesaRequestDTO
             {
                 Nome = "Conta Atualizada",
                 Valor = 200,
-                Vencimento = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(10)),
-                IdGrupo = grupo.IdGrupo,
-                MoradoresIds = new List<int> { morador.IdUsuario }
+                Vencimento = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(10))
             };
 
             var mensagem = service.EditarDespesa(admin.IdUsuario, despesa.IdDespesa, request);
@@ -560,7 +625,12 @@ namespace RepPay.API.Tests.Services
         {
             var (context, admin, morador, grupo, despesa) = CriarCenarioCompleto(StatusParcela.PENDENTE);
             var service = new DespesaService(context);
-            var request = new DespesaRequestDTO { Nome = "Hack", Valor = 1, IdGrupo = grupo.IdGrupo, MoradoresIds = new List<int>() };
+            var request = new EditarDespesaRequestDTO
+            {
+                Nome = "Hack",
+                Valor = 1,
+                Vencimento = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(10))
+            };
 
             Assert.Throws<UnauthorizedAccessException>(() => service.EditarDespesa(morador.IdUsuario, despesa.IdDespesa, request));
         }
@@ -570,26 +640,45 @@ namespace RepPay.API.Tests.Services
         {
             var (context, admin, _, grupo, _) = CriarCenarioCompleto();
             var service = new DespesaService(context);
-            var request = new DespesaRequestDTO { Nome = "X", Valor = 1, IdGrupo = grupo.IdGrupo, MoradoresIds = new List<int>() };
+            var request = new EditarDespesaRequestDTO
+            {
+                Nome = "X",
+                Valor = 1,
+                Vencimento = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(10))
+            };
 
             Assert.Throws<KeyNotFoundException>(() => service.EditarDespesa(admin.IdUsuario, 9999, request));
         }
 
+        [Fact]
         public void EditarDespesa_DeveDispararExcecao_QuandoPossuirParcelaPaga()
         {
             var (context, admin, morador, grupo, despesa) = CriarCenarioCompleto(StatusParcela.PAGO);
             var service = new DespesaService(context);
-            var request = new DespesaRequestDTO
+            var request = new EditarDespesaRequestDTO
             {
                 Nome = "Tentativa",
                 Valor = 999,
-                Vencimento = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(10)),
-                IdGrupo = grupo.IdGrupo,
-                MoradoresIds = new List<int> { morador.IdUsuario }
+                Vencimento = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(10))
             };
 
             var excecao = Assert.Throws<Exception>(() => service.EditarDespesa(admin.IdUsuario, despesa.IdDespesa, request));
             Assert.Contains("parcelas pagas ou em análise", excecao.Message);
+        }
+
+        [Fact]
+        public void EditarDespesa_DeveDispararExcecao_QuandoValorForZeroOuNegativo()
+        {
+            var (context, admin, morador, grupo, despesa) = CriarCenarioCompleto(StatusParcela.PENDENTE);
+            var service = new DespesaService(context);
+            var request = new EditarDespesaRequestDTO
+            {
+                Nome = "Conta Inválida",
+                Valor = 0,
+                Vencimento = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(10))
+            };
+
+            Assert.Throws<ArgumentException>(() => service.EditarDespesa(admin.IdUsuario, despesa.IdDespesa, request));
         }
 
         // ==========================================

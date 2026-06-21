@@ -1,4 +1,4 @@
-using Xunit;
+Ôªøusing Xunit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using RepPay.API.Models;
@@ -28,16 +28,22 @@ namespace RepPay.API.Tests.Services
             return new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         }
 
+        private UsuarioService CriarService(AppDbContext context)
+        {
+            var config = CriarConfiguracaoMock();
+            return new UsuarioService(context, config, new EmailService(config));
+        }
+
         // ==========================================
-        // 1. TESTES DE CRIA«√O DE USU¡RIO
+        // 1. TESTES DE CRIA√á√ÉO DE USU√ÅRIO
         // ==========================================
 
         [Fact]
         public void CriarUsuario_DeveSalvarUsuario_QuandoDadosForemValidos()
         {
             var context = CriarContextoEmMemoria();
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
-            var request = new UsuarioRequestDTO { Nome = "Jo„o", Email = "joao@ufal.com", Senha = "123" };
+            var service = CriarService(context);
+            var request = new UsuarioRequestDTO { Nome = "Jo√£o", Email = "joao@ufal.com", Senha = "123" };
 
             service.CriarUsuario(request);
 
@@ -53,26 +59,42 @@ namespace RepPay.API.Tests.Services
             context.Usuarios.Add(new Usuario { Nome = "Maria", Email = "maria@ufal.com", Senha = "123", Ativo = true });
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
             var request = new UsuarioRequestDTO { Nome = "Maria Nova", Email = "MARIA@UFAL.COM", Senha = "654" };
 
             var excecao = Assert.Throws<Exception>(() => service.CriarUsuario(request));
-            Assert.Equal("Este e-mail j· est· cadastrado no sistema!", excecao.Message);
+            Assert.Equal("Este e-mail j√° est√° cadastrado em uma conta ativa no sistema!", excecao.Message);
+        }
+
+        [Fact]
+        public void CriarUsuario_DevePermitir_QuandoEmailPertencerAContaInativa()
+        {
+            var context = CriarContextoEmMemoria();
+            context.Usuarios.Add(new Usuario { Nome = "Maria Antiga", Email = "maria@ufal.com", Senha = "123", Ativo = false });
+            context.SaveChanges();
+
+            var service = CriarService(context);
+            var request = new UsuarioRequestDTO { Nome = "Maria Nova", Email = "maria@ufal.com", Senha = "654" };
+
+            var exception = Record.Exception(() => service.CriarUsuario(request));
+
+            Assert.Null(exception);
+            Assert.Equal(2, context.Usuarios.Count(u => u.Email == "maria@ufal.com"));
         }
 
         [Fact]
         public void CriarUsuario_DeveDispararExcecao_QuandoSenhaForNula()
         {
             var context = CriarContextoEmMemoria();
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
-            var request = new UsuarioRequestDTO { Nome = "Jo„o", Email = "joao@ufal.com", Senha = null! };
+            var service = CriarService(context);
+            var request = new UsuarioRequestDTO { Nome = "Jo√£o", Email = "joao@ufal.com", Senha = null! };
 
             var excecao = Assert.Throws<Exception>(() => service.CriarUsuario(request));
-            Assert.Equal("A senha È obrigatÛria e n„o pode estar vazia!", excecao.Message);
+            Assert.Equal("A senha √© obrigat√≥ria e n√£o pode estar vazia!", excecao.Message);
         }
 
         // ==========================================
-        // 2. TESTES DE LOGIN E RENOVA«√O
+        // 2. TESTES DE LOGIN E RENOVA√á√ÉO
         // ==========================================
 
         [Fact]
@@ -82,7 +104,7 @@ namespace RepPay.API.Tests.Services
             context.Usuarios.Add(new Usuario { Nome = "Inativo", Email = "inativo@ufal.com", Senha = BCrypt.Net.BCrypt.HashPassword("123"), Ativo = false });
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
             var request = new LoginRequestDTO { Email = "inativo@ufal.com", Senha = "123" };
 
             Assert.Throws<UnauthorizedAccessException>(() => service.Login(request));
@@ -100,7 +122,7 @@ namespace RepPay.API.Tests.Services
             context.RefreshTokens.Add(new RefreshToken { TokenHash = "token_revogado", IdUsuario = usuario.IdUsuario, DataExpiracao = DateTime.UtcNow.AddDays(1), Revogado = true });
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
 
             Assert.Throws<UnauthorizedAccessException>(() => service.RenovacaoToken(new RefreshTokenRequestDTO { RefreshToken = "token_expirado" }));
             Assert.Throws<UnauthorizedAccessException>(() => service.RenovacaoToken(new RefreshTokenRequestDTO { RefreshToken = "token_revogado" }));
@@ -110,7 +132,7 @@ namespace RepPay.API.Tests.Services
         public void Login_DeveDispararExcecao_QuandoEmailNaoExistir()
         {
             var context = CriarContextoEmMemoria();
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
             var request = new LoginRequestDTO { Email = "fantasma@ufal.com", Senha = "qualquer" };
 
             Assert.Throws<UnauthorizedAccessException>(() => service.Login(request));
@@ -123,7 +145,7 @@ namespace RepPay.API.Tests.Services
             context.Usuarios.Add(new Usuario { Nome = "Carlos", Email = "carlos@ufal.com", Senha = BCrypt.Net.BCrypt.HashPassword("senhaCorreta"), Ativo = true });
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
             var request = new LoginRequestDTO { Email = "carlos@ufal.com", Senha = "senhaErrada" };
 
             Assert.Throws<UnauthorizedAccessException>(() => service.Login(request));
@@ -136,7 +158,7 @@ namespace RepPay.API.Tests.Services
             context.Usuarios.Add(new Usuario { Nome = "Carlos", Email = "carlos@ufal.com", Senha = BCrypt.Net.BCrypt.HashPassword("senhaCorreta"), Ativo = true });
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
             var request = new LoginRequestDTO { Email = "carlos@ufal.com", Senha = "senhaCorreta" };
 
             var resultado = service.Login(request);
@@ -151,12 +173,12 @@ namespace RepPay.API.Tests.Services
         public void RenovacaoToken_DeveDispararExcecao_QuandoTokenNaoExistir()
         {
             var context = CriarContextoEmMemoria();
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
 
             var excecao = Assert.Throws<UnauthorizedAccessException>(() =>
                 service.RenovacaoToken(new RefreshTokenRequestDTO { RefreshToken = "token_inexistente" }));
 
-            Assert.Contains("inv·lido ou inexistente", excecao.Message);
+            Assert.Contains("inv√°lido ou inexistente", excecao.Message);
         }
 
         [Fact]
@@ -176,7 +198,7 @@ namespace RepPay.API.Tests.Services
             });
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
 
             var excecao = Assert.Throws<UnauthorizedAccessException>(() =>
                 service.RenovacaoToken(new RefreshTokenRequestDTO { RefreshToken = "token_valido_usuario_inativo" }));
@@ -201,7 +223,7 @@ namespace RepPay.API.Tests.Services
             });
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
             service.LogOut(new RefreshTokenRequestDTO { RefreshToken = "token_ativo" });
 
             Assert.True(context.RefreshTokens.First().Revogado);
@@ -211,7 +233,7 @@ namespace RepPay.API.Tests.Services
         public void LogOut_NaoDeveDispararExcecao_QuandoTokenNaoExistir()
         {
             var context = CriarContextoEmMemoria();
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
 
             var exception = Record.Exception(() =>
                 service.LogOut(new RefreshTokenRequestDTO { RefreshToken = "token_fantasma" }));
@@ -220,7 +242,7 @@ namespace RepPay.API.Tests.Services
         }
 
         // ==========================================
-        // 3. TESTES DE ATUALIZA«√O E PERFIL
+        // 3. TESTES DE ATUALIZA√á√ÉO E PERFIL
         // ==========================================
 
         [Fact]
@@ -232,7 +254,7 @@ namespace RepPay.API.Tests.Services
             context.Usuarios.Add(usuario);
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
             var request = new UsuarioAtualizarRequestDTO { Nome = "Novo Nome", Email = "novo@ufal.com", Senha = "" };
 
             service.AtualizarUsuario(usuario.IdUsuario, request);
@@ -252,22 +274,22 @@ namespace RepPay.API.Tests.Services
             context.Usuarios.Add(usuarioLogado);
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
             var request = new UsuarioAtualizarRequestDTO { Nome = "User 2", Email = "user1@ufal.com", Senha = "" };
 
             var excecao = Assert.Throws<Exception>(() => service.AtualizarUsuario(usuarioLogado.IdUsuario, request));
-            Assert.Equal("Este e-mail j· est· sendo utilizado por outra conta.", excecao.Message);
+            Assert.Equal("Este e-mail j√° est√° sendo utilizado por outra conta.", excecao.Message);
         }
 
         [Fact]
         public void AtualizarUsuario_DeveDispararExcecao_QuandoUsuarioNaoExistir()
         {
             var context = CriarContextoEmMemoria();
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
             var request = new UsuarioAtualizarRequestDTO { Nome = "Fantasma", Email = "fantasma@ufal.com", Senha = "" };
 
             var excecao = Assert.Throws<Exception>(() => service.AtualizarUsuario(9999, request));
-            Assert.Equal("Usu·rio n„o encontrado.", excecao.Message);
+            Assert.Equal("Usu√°rio n√£o encontrado.", excecao.Message);
         }
 
         [Fact]
@@ -279,7 +301,7 @@ namespace RepPay.API.Tests.Services
             context.Usuarios.Add(usuario);
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
             var request = new UsuarioAtualizarRequestDTO { Nome = "Teste", Email = "teste@ufal.com", Senha = "senhaNova" };
 
             service.AtualizarUsuario(usuario.IdUsuario, request);
@@ -297,7 +319,7 @@ namespace RepPay.API.Tests.Services
             context.Usuarios.Add(usuario);
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
             var perfil = service.GetMeuPerfil(usuario.IdUsuario);
 
             Assert.Equal("Ana", perfil.Nome);
@@ -308,14 +330,14 @@ namespace RepPay.API.Tests.Services
         public void GetMeuPerfil_DeveDispararExcecao_QuandoUsuarioNaoExistir()
         {
             var context = CriarContextoEmMemoria();
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
 
             var excecao = Assert.Throws<Exception>(() => service.GetMeuPerfil(9999));
-            Assert.Equal("Usu·rio n„o encontrado.", excecao.Message);
+            Assert.Equal("Usu√°rio n√£o encontrado.", excecao.Message);
         }
 
         // ==========================================
-        // 4. TESTES DE EXCLUS√O (AS REGRAS DE NEG”CIO MAIS PESADAS)
+        // 4. TESTES DE EXCLUS√ÉO (AS REGRAS DE NEG√ìCIO MAIS PESADAS)
         // ==========================================
 
         [Fact]
@@ -326,13 +348,13 @@ namespace RepPay.API.Tests.Services
             context.Usuarios.Add(admin);
             context.SaveChanges();
 
-            context.Grupos.Add(new Grupo { Nome = "Rep˙blica", IdAdmin = admin.IdUsuario, Ativo = true, CodigoAcesso = "12345678" });
+            context.Grupos.Add(new Grupo { Nome = "Rep√∫blica", IdAdmin = admin.IdUsuario, Ativo = true, CodigoAcesso = "12345678" });
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
 
             var excecao = Assert.Throws<Exception>(() => service.DeletarUsuario(admin.IdUsuario));
-            Assert.Contains("administrador de uma rep˙blica ativa", excecao.Message);
+            Assert.Contains("administrador de uma rep√∫blica ativa", excecao.Message);
         }
 
         [Fact]
@@ -346,10 +368,10 @@ namespace RepPay.API.Tests.Services
             context.Parcelas.Add(new Parcela { IdUsuario = caloteiro.IdUsuario, Valor = 100, Status = StatusParcela.PENDENTE });
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
 
             var excecao = Assert.Throws<Exception>(() => service.DeletarUsuario(caloteiro.IdUsuario));
-            Assert.Contains("Quite todas as suas dÌvidas antes de excluir a conta", excecao.Message);
+            Assert.Contains("Quite todas as suas d√≠vidas antes de excluir a conta", excecao.Message);
         }
 
         [Fact]
@@ -360,7 +382,7 @@ namespace RepPay.API.Tests.Services
             context.Usuarios.Add(usuarioLimpo);
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
             service.DeletarUsuario(usuarioLimpo.IdUsuario);
 
             var usuarioDeletado = context.Usuarios.First();
@@ -378,10 +400,10 @@ namespace RepPay.API.Tests.Services
             context.Parcelas.Add(new Parcela { IdUsuario = usuario.IdUsuario, Valor = 50, Status = StatusParcela.ATRASADO });
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
 
             var excecao = Assert.Throws<Exception>(() => service.DeletarUsuario(usuario.IdUsuario));
-            Assert.Contains("Quite todas as suas dÌvidas antes de excluir a conta", excecao.Message);
+            Assert.Contains("Quite todas as suas d√≠vidas antes de excluir a conta", excecao.Message);
         }
 
         [Fact]
@@ -395,10 +417,10 @@ namespace RepPay.API.Tests.Services
             context.Parcelas.Add(new Parcela { IdUsuario = usuario.IdUsuario, Valor = 75, Status = StatusParcela.EM_ANALISE });
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
 
             var excecao = Assert.Throws<Exception>(() => service.DeletarUsuario(usuario.IdUsuario));
-            Assert.Contains("Quite todas as suas dÌvidas antes de excluir a conta", excecao.Message);
+            Assert.Contains("Quite todas as suas d√≠vidas antes de excluir a conta", excecao.Message);
         }
 
         [Fact]
@@ -409,17 +431,17 @@ namespace RepPay.API.Tests.Services
             context.Usuarios.Add(admin);
             context.SaveChanges();
 
-            context.Grupos.Add(new Grupo { Nome = "Rep˙blica Encerrada", IdAdmin = admin.IdUsuario, Ativo = false, CodigoAcesso = "INATIVO1" });
+            context.Grupos.Add(new Grupo { Nome = "Rep√∫blica Encerrada", IdAdmin = admin.IdUsuario, Ativo = false, CodigoAcesso = "INATIVO1" });
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
             service.DeletarUsuario(admin.IdUsuario);
 
             Assert.False(context.Usuarios.First().Ativo);
         }
 
         // ==========================================
-        // 5. TESTES DE RECUPERA«√O DE SENHA
+        // 5. TESTES DE RECUPERA√á√ÉO DE SENHA
         // ==========================================
 
         [Fact]
@@ -440,11 +462,11 @@ namespace RepPay.API.Tests.Services
             });
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
             var request = new ValidarCodigoRequestDTO { Email = "esqueci@ufal.com", Codigo = "654321" };
 
             var excecao = Assert.Throws<Exception>(() => service.ValidarCodigo(request));
-            Assert.Equal("Muitas tentativas falhas. Solicite um novo cÛdigo.", excecao.Message);
+            Assert.Equal("Muitas tentativas falhas. Solicite um novo c√≥digo.", excecao.Message);
         }
 
         [Fact]
@@ -466,11 +488,11 @@ namespace RepPay.API.Tests.Services
             context.CodigosRecuperacao.Add(codigoReal);
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
             var request = new ValidarCodigoRequestDTO { Email = "esqueci@ufal.com", Codigo = "999999" };
 
             var excecao = Assert.Throws<Exception>(() => service.ValidarCodigo(request));
-            Assert.Equal("CÛdigo incorreto.", excecao.Message);
+            Assert.Equal("C√≥digo incorreto.", excecao.Message);
             Assert.Equal(1, codigoReal.Tentativas);
         }
 
@@ -492,7 +514,7 @@ namespace RepPay.API.Tests.Services
             });
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
             var request = new ValidarCodigoRequestDTO { Email = "teste@ufal.com", Codigo = "123456" };
 
             var exception = Record.Exception(() => service.ValidarCodigo(request));
@@ -517,29 +539,29 @@ namespace RepPay.API.Tests.Services
             });
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
             var request = new ValidarCodigoRequestDTO { Email = "teste@ufal.com", Codigo = "123456" };
 
             var excecao = Assert.Throws<Exception>(() => service.ValidarCodigo(request));
-            Assert.Equal("Este cÛdigo expirou.", excecao.Message);
+            Assert.Equal("Este c√≥digo expirou.", excecao.Message);
         }
 
         [Fact]
         public void ValidarCodigo_DeveDispararExcecao_QuandoEmailNaoExistir()
         {
             var context = CriarContextoEmMemoria();
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
             var request = new ValidarCodigoRequestDTO { Email = "naoexiste@ufal.com", Codigo = "123456" };
 
             var excecao = Assert.Throws<Exception>(() => service.ValidarCodigo(request));
-            Assert.Equal("Dados inv·lidos.", excecao.Message);
+            Assert.Equal("Dados inv√°lidos.", excecao.Message);
         }
 
         [Fact]
         public void EsqueciSenha_NaoDeveDispararExcecao_QuandoEmailNaoExistir()
         {
             var context = CriarContextoEmMemoria();
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
 
             var exception = Record.Exception(() =>
                 service.EsqueciSenha(new EsqueciSenhaRequestDTO { Email = "naoexiste@ufal.com" }));
@@ -555,8 +577,9 @@ namespace RepPay.API.Tests.Services
             context.Usuarios.Add(usuario);
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
-            service.EsqueciSenha(new EsqueciSenhaRequestDTO { Email = "teste@ufal.com" });
+            var service = CriarService(context);
+
+            Record.Exception(() => service.EsqueciSenha(new EsqueciSenhaRequestDTO { Email = "teste@ufal.com" }));
 
             Assert.True(context.CodigosRecuperacao.Any(c => c.IdUsuario == usuario.IdUsuario));
         }
@@ -580,7 +603,7 @@ namespace RepPay.API.Tests.Services
             });
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
             service.ResetarSenha(new ResetarSenhaRequestDTO { Email = "teste@ufal.com", Codigo = "654321", NovaSenha = "senhaNova" });
 
             var usuarioAtualizado = context.Usuarios.First();
@@ -606,12 +629,12 @@ namespace RepPay.API.Tests.Services
             });
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
 
             var excecao = Assert.Throws<Exception>(() =>
                 service.ResetarSenha(new ResetarSenhaRequestDTO { Email = "teste@ufal.com", Codigo = "111111", NovaSenha = "nova" }));
 
-            Assert.Contains("Falha na validaÁ„o final", excecao.Message);
+            Assert.Contains("Falha na valida√ß√£o final", excecao.Message);
         }
 
         [Fact]
@@ -633,12 +656,12 @@ namespace RepPay.API.Tests.Services
             context.CodigosRecuperacao.Add(codigo);
             context.SaveChanges();
 
-            var service = new UsuarioService(context, CriarConfiguracaoMock());
+            var service = CriarService(context);
 
             var excecao = Assert.Throws<Exception>(() =>
                 service.ResetarSenha(new ResetarSenhaRequestDTO { Email = "teste@ufal.com", Codigo = "999999", NovaSenha = "nova" }));
 
-            Assert.Equal("CÛdigo incorreto.", excecao.Message);
+            Assert.Equal("C√≥digo incorreto.", excecao.Message);
             Assert.Equal(1, codigo.Tentativas);
         }
     }
