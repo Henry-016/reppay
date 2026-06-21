@@ -289,7 +289,8 @@ namespace RepPay.API.Tests.Services
             var request = new UsuarioAtualizarRequestDTO { Nome = "Fantasma", Email = "fantasma@ufal.com", Senha = "" };
 
             var excecao = Assert.Throws<Exception>(() => service.AtualizarUsuario(9999, request));
-            Assert.Equal("Usuário não encontrado.", excecao.Message);
+
+            Assert.Equal("Usuário não encontrado ou conta desativada.", excecao.Message);
         }
 
         [Fact]
