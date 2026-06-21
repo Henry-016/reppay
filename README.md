@@ -58,7 +58,7 @@ Para fins de avaliação e registro do ciclo de vida do projeto, os artefatos pr
 
 ---
 
-## 🚀 Como executar:
+## 🚀 Como Executar o Projeto
 
 A maneira mais fácil e segura de rodar toda a stack (Front-end, Back-end, Banco de Dados e migrações) é utilizando o Docker Compose.
 
