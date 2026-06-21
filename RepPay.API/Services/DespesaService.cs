@@ -42,6 +42,10 @@ namespace RepPay.API.Services
 
             var moradoresValidos = _context.Pertences
                 .Where(p => p.IdGrupo == request.IdGrupo && request.MoradoresIds.Contains(p.IdUsuario))
+                .Include(p => p.IdUsuarioNavigation)
+                .Where(p => p.IdGrupo == request.IdGrupo
+                     && request.MoradoresIds.Contains(p.IdUsuario)
+                     && p.IdUsuarioNavigation.Ativo == true)
                 .Select(p => p.IdUsuario)
                 .ToList();
 
@@ -392,7 +396,7 @@ namespace RepPay.API.Services
             var despesa = _context.Despesas
                 .Include(d => d.IdGrupoNavigation)
                 .Include(d => d.Parcelas)
-                .FirstOrDefault(d => d.IdDespesa == idDespesa);
+                .FirstOrDefault(d => d.IdDespesa == idDespesa && d.Ativo == true);
 
             if (despesa == null)
             {
@@ -446,7 +450,7 @@ namespace RepPay.API.Services
             var despesa = _context.Despesas
                 .Include(d => d.IdGrupoNavigation)
                 .Include(d => d.Parcelas)
-                .FirstOrDefault(d => d.IdDespesa == idDespesa);
+                .FirstOrDefault(d => d.IdDespesa == idDespesa && d.Ativo == true);
 
             if (despesa == null)
             {
