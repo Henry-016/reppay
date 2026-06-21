@@ -69,41 +69,6 @@ $ docker compose up -d db api frontend-dev
 
 ---
 
-## 👨‍💻 Guia de Apresentação: Como alterar o código ao vivo
-
-O ambiente foi configurado para que não seja necessária nenhuma IDE pesada (como Visual Studio) para demonstrar alterações de código durante a apresentação. Qualquer editor de texto simples (Bloco de Notas, Nano, Gedit) é suficiente, pois **a compilação ocorre dentro do Docker**.
-
-Com a stack rodando (`docker compose up -d db api frontend-dev`), siga os fluxos abaixo de acordo com a camada que precisa ser alterada:
-
-### 🎨 Alterações no Front-end (React)
-1. Abra o arquivo desejado (ex: `.tsx` ou `.scss`) em qualquer editor de texto.
-2. Faça a alteração (ex: mudar a cor de um botão ou alterar um texto).
-3. **Salve o arquivo.**
-4. *Resultado:* O Vite detectará a mudança e recarregará a página no navegador em frações de segundo, refletindo a alteração instantaneamente.
-
-### ⚙️ Alterações no Back-end (C#)
-1. Abra o arquivo `.cs` desejado e modifique a lógica ou regra de negócio.
-2. Salve o arquivo.
-3. No terminal, execute o comando abaixo para recompilar exclusivamente a API:
-   ```bash
-   docker compose up -d --build api
-   ```
-4. *Resultado:* O Docker irá gerar a nova `.dll` e substituir o container da API de forma transparente, mantendo o banco de dados e o front-end intactos.
-
-### 🗄️ Alterações no Banco de Dados (PostgreSQL)
-1. Abra os arquivos `.sql` localizados na pasta `scripts_sql/` e faça a alteração (ex: adicionar uma nova Trigger ou alterar o limite de uma coluna).
-2. Salve o arquivo.
-3. No terminal, destrua o volume antigo do banco para forçar a leitura do novo script:
-   ```bash
-   docker compose down -v
-   ```
-4. Suba a stack novamente:
-   ```bash
-   docker compose up -d db api frontend-dev
-   ```
-5. *Resultado:* O PostgreSQL nascerá do zero e executará as novas regras estruturais imediatamente.
-
----
 
 ## 🔐 Variáveis de Ambiente & Segurança
 
