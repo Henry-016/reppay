@@ -70,6 +70,11 @@ namespace RepPay.API.Services
 
         public string EntrarNoGrupo(int idUsuario, EntrarGrupoRequestDTO request)
         {
+            if (string.IsNullOrWhiteSpace(request.CodigoAcesso))
+            {
+                throw new Exception("O código de acesso não pode estar vazio.");
+            }
+
             var grupo = _context.Grupos.FirstOrDefault(g => g.CodigoAcesso.ToLower() == request.CodigoAcesso.ToLower() && g.Ativo == true);
 
             if (grupo == null)

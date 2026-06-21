@@ -46,13 +46,12 @@ namespace RepPay.API.Services
             }
 
             var moradoresValidos = _context.Pertences
-                .Where(p => p.IdGrupo == request.IdGrupo && request.MoradoresIds.Contains(p.IdUsuario))
-                .Include(p => p.IdUsuarioNavigation)
-                .Where(p => p.IdGrupo == request.IdGrupo
-                     && request.MoradoresIds.Contains(p.IdUsuario)
-                     && p.IdUsuarioNavigation.Ativo == true)
-                .Select(p => p.IdUsuario)
-                .ToList();
+             .Include(p => p.IdUsuarioNavigation)
+             .Where(p => p.IdGrupo == request.IdGrupo
+                  && request.MoradoresIds.Contains(p.IdUsuario)
+                  && p.IdUsuarioNavigation.Ativo == true)
+             .Select(p => p.IdUsuario)
+             .ToList();
 
             if (moradoresValidos.Count != request.MoradoresIds.Count)
             {
@@ -163,7 +162,9 @@ namespace RepPay.API.Services
 
         public string PagarParcela(int idLogado, int idParcela)
         {
-            var parcela = _context.Parcelas.FirstOrDefault(p => p.IdParcela == idParcela);
+            var parcela = _context.Parcelas
+            .Include(p => p.IdDespesaNavigation)
+            .FirstOrDefault(p => p.IdParcela == idParcela && p.IdDespesaNavigation.Ativo == true);
 
             if (parcela == null)
             {
@@ -194,7 +195,9 @@ namespace RepPay.API.Services
 
         public string DesfazerPagamento(int idLogado, int idParcela)
         {
-            var parcela = _context.Parcelas.FirstOrDefault(p => p.IdParcela == idParcela);
+            var parcela = _context.Parcelas
+            .Include(p => p.IdDespesaNavigation)
+            .FirstOrDefault(p => p.IdParcela == idParcela && p.IdDespesaNavigation.Ativo == true);
 
             if (parcela == null)
             {
@@ -221,9 +224,9 @@ namespace RepPay.API.Services
         public string ValidarPagamento(int idLogado, int idParcela, ValidarPagamentoRequestDTO request)
         {
             var parcela = _context.Parcelas
-                .Include(p => p.IdDespesaNavigation)
-                .ThenInclude(d => d.IdGrupoNavigation)
-                .FirstOrDefault(p => p.IdParcela == idParcela);
+            .Include(p => p.IdDespesaNavigation)
+            .ThenInclude(d => d.IdGrupoNavigation)
+            .FirstOrDefault(p => p.IdParcela == idParcela && p.IdDespesaNavigation.Ativo == true);
 
             if (parcela == null)
             {
@@ -366,9 +369,9 @@ namespace RepPay.API.Services
         public string QuitarDividaAdmin(int idLogado, int idParcela)
         {
             var parcela = _context.Parcelas
-                .Include(p => p.IdDespesaNavigation)
-                .ThenInclude(d => d.IdGrupoNavigation)
-                .FirstOrDefault(p => p.IdParcela == idParcela);
+            .Include(p => p.IdDespesaNavigation)
+            .ThenInclude(d => d.IdGrupoNavigation)
+            .FirstOrDefault(p => p.IdParcela == idParcela && p.IdDespesaNavigation.Ativo == true);
 
             if (parcela == null)
             {
