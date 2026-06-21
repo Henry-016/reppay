@@ -19,7 +19,6 @@ services:
     container_name: reppay_api
     restart: always
     ports:
-      # O React procura a porta 5149. O container entrega o 8080.
       - "5149:8080" 
     depends_on:
       - db
@@ -41,15 +40,15 @@ services:
   frontend-dev:
     build:
       context: ./react
-      dockerfile: Dockerfile.dev  # Um ficheiro novo para dev
+      dockerfile: Dockerfile.dev  
     container_name: reppay_frontend_dev
     volumes:
-      - ./react:/app           # Sincroniza a sua pasta do Windows com a do Linux
-      - /app/node_modules      # Protege os módulos instalados no Linux
+      - ./react:/app           
+      - /app/node_modules      
     ports:
-      - "5173:5173"            # Porta padrão do Vite
+      - "5173:5173"           
     environment:
-      - CHOKIDAR_USEPOLLING=true # Necessário para o Windows detetar mudanças no Docker
+      - CHOKIDAR_USEPOLLING=true 
 
 volumes:
   pgdata:

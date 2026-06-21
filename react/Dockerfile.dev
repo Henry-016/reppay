@@ -3,5 +3,4 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-# O comando "dev" do Vite tem Hot Reload (atualiza a página sozinho)
 CMD ["npm", "run", "dev", "--", "--host"]

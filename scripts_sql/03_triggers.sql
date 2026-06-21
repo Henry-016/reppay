@@ -1,8 +1,3 @@
--- ==============================================================================
--- REPPAY - TRIGGERS DE INTEGRIDADE ESTRUTURAL E FINANCEIRA (VERSÃO FINAL)
--- ==============================================================================
-
--- 1. Máquina de Estados: Sincroniza a despesa quando as parcelas são pagas
 CREATE OR REPLACE FUNCTION fn_sync_status_despesa()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -44,7 +39,6 @@ AFTER INSERT OR UPDATE OF status OR DELETE ON parcela
 FOR EACH ROW
 EXECUTE FUNCTION fn_sync_status_despesa();
 
--- 2. Integridade Estrutural: O criador do grupo deve nascer como membro
 CREATE OR REPLACE FUNCTION fn_admin_vira_membro()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -59,11 +53,9 @@ CREATE TRIGGER trg_admin_vira_membro
 AFTER INSERT ON grupo
 FOR EACH ROW EXECUTE FUNCTION fn_admin_vira_membro();
 
--- 3. Integridade Estrutural: Admin DEVE ser ativo e pertencer ao grupo (CORRIGIDO)
 CREATE OR REPLACE FUNCTION fn_validar_admin_no_grupo()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Se for atualização, valida se o novo admin já é morador do grupo e está ativo
     IF TG_OP = 'UPDATE' THEN
         IF NOT EXISTS (
             SELECT 1 FROM pertence p
@@ -76,8 +68,6 @@ BEGIN
         END IF;
     END IF;
 
-    -- Se for criação do grupo, valida apenas se o usuário criador está ativo
-    -- (O vínculo de pertencimento será feito no AFTER INSERT)
     IF TG_OP = 'INSERT' THEN
         IF NOT EXISTS (
             SELECT 1 FROM usuario
@@ -95,7 +85,6 @@ CREATE TRIGGER trg_validar_admin_no_grupo
 BEFORE INSERT OR UPDATE OF id_admin ON grupo
 FOR EACH ROW EXECUTE FUNCTION fn_validar_admin_no_grupo();
 
--- 4. Integridade Cruzada: Usuário da parcela deve morar no grupo da despesa
 CREATE OR REPLACE FUNCTION fn_validar_usuario_no_grupo()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -115,7 +104,6 @@ CREATE TRIGGER trg_validar_usuario_no_grupo
 BEFORE INSERT OR UPDATE OF id_usuario, id_despesa ON parcela
 FOR EACH ROW EXECUTE FUNCTION fn_validar_usuario_no_grupo();
 
--- 5. Proteção Financeira: Bloqueia mutação de contas com histórico pago
 CREATE OR REPLACE FUNCTION fn_bloquear_alteracao_despesa_paga()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -138,7 +126,6 @@ CREATE TRIGGER trg_bloquear_delete_despesa_paga
 BEFORE DELETE ON despesa
 FOR EACH ROW EXECUTE FUNCTION fn_bloquear_alteracao_despesa_paga();
 
--- 6. Proteção Financeira: Bloqueia inserção de novas parcelas em contas quitadas
 CREATE OR REPLACE FUNCTION fn_bloquear_parcela_em_despesa_quitada()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -158,7 +145,6 @@ CREATE TRIGGER trg_bloquear_parcela_em_despesa_quitada
 BEFORE INSERT ON parcela
 FOR EACH ROW EXECUTE FUNCTION fn_bloquear_parcela_em_despesa_quitada();
 
--- 7. Integridade Estrutural: Impede exclusão de Admin da tabela pertence
 CREATE OR REPLACE FUNCTION fn_validar_saida_pertence()
 RETURNS TRIGGER AS $$
 BEGIN
