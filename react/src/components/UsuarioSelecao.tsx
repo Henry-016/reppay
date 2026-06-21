@@ -1,6 +1,6 @@
 import iconeCheck from './../assets/check.svg'
 import avatarPadrao from './../assets/user_icon.svg';
-import styles from './usuarioSelecao.module.scss'
+import styles from './UsuarioSelecao.module.scss'
 
 interface ComponentProps {
     nome: string;
