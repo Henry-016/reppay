@@ -363,9 +363,12 @@ namespace RepPay.API.Tests.Services
             var context = CriarContextoEmMemoria();
             var caloteiro = new Usuario { Nome = "Caloteiro", Email = "caloteiro@ufal.com", Senha = "123", Ativo = true };
             context.Usuarios.Add(caloteiro);
+
+            var despesa = new Despesa { Nome = "Conta", Valor = 100, Ativo = true };
+            context.Despesas.Add(despesa);
             context.SaveChanges();
 
-            context.Parcelas.Add(new Parcela { IdUsuario = caloteiro.IdUsuario, Valor = 100, Status = StatusParcela.PENDENTE });
+            context.Parcelas.Add(new Parcela { IdUsuario = caloteiro.IdUsuario, IdDespesa = despesa.IdDespesa, Valor = 100, Status = StatusParcela.PENDENTE });
             context.SaveChanges();
 
             var service = CriarService(context);
@@ -395,9 +398,12 @@ namespace RepPay.API.Tests.Services
             var context = CriarContextoEmMemoria();
             var usuario = new Usuario { Nome = "Atrasado", Email = "atrasado@ufal.com", Senha = "123", Ativo = true };
             context.Usuarios.Add(usuario);
+
+            var despesa = new Despesa { Nome = "Conta", Valor = 50, Ativo = true };
+            context.Despesas.Add(despesa);
             context.SaveChanges();
 
-            context.Parcelas.Add(new Parcela { IdUsuario = usuario.IdUsuario, Valor = 50, Status = StatusParcela.ATRASADO });
+            context.Parcelas.Add(new Parcela { IdUsuario = usuario.IdUsuario, IdDespesa = despesa.IdDespesa, Valor = 50, Status = StatusParcela.ATRASADO });
             context.SaveChanges();
 
             var service = CriarService(context);
@@ -412,9 +418,12 @@ namespace RepPay.API.Tests.Services
             var context = CriarContextoEmMemoria();
             var usuario = new Usuario { Nome = "EmAnalise", Email = "emanalise@ufal.com", Senha = "123", Ativo = true };
             context.Usuarios.Add(usuario);
+
+            var despesa = new Despesa { Nome = "Conta", Valor = 75, Ativo = true };
+            context.Despesas.Add(despesa);
             context.SaveChanges();
 
-            context.Parcelas.Add(new Parcela { IdUsuario = usuario.IdUsuario, Valor = 75, Status = StatusParcela.EM_ANALISE });
+            context.Parcelas.Add(new Parcela { IdUsuario = usuario.IdUsuario, IdDespesa = despesa.IdDespesa, Valor = 75, Status = StatusParcela.EM_ANALISE });
             context.SaveChanges();
 
             var service = CriarService(context);
