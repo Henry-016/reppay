@@ -190,8 +190,8 @@ namespace RepPay.API.Services
             }     
 
             bool temDividas = _context.Parcelas
-                .Include(p => p.IdDespesaNavigation)
                 .Any(p => p.IdUsuario == idLogado && p.IdDespesaNavigation.IdGrupo == idGrupo
+                       && p.IdDespesaNavigation.Ativo == true
                        && (p.Status == StatusParcela.PENDENTE || p.Status == StatusParcela.ATRASADO || p.Status == StatusParcela.EM_ANALISE));
 
             if (temDividas)
@@ -325,40 +325,49 @@ namespace RepPay.API.Services
                 throw new UnauthorizedAccessException("Apenas o administrador pode encerrar a república.");
             }
 
-            bool temDespesas = _context.Despesas.Any(d => d.IdGrupo == idGrupo);
+            var moradoresExtras = _context.Pertences
+                .Where(p => p.IdGrupo == idGrupo && p.IdUsuario != idLogado)
+                .ToList();
 
-            if (!temDespesas)
+            if (moradoresExtras.Any())
             {
-                var pertences = _context.Pertences
-                    .Where(p => p.IdGrupo == idGrupo && p.IdUsuario != idLogado)
-                    .ToList();
+                var parcelasDosMoradores = _context.Parcelas
+                .Where(p => p.IdDespesaNavigation.IdGrupo == idGrupo
+                         && p.IdDespesaNavigation.Ativo == true
+                         && p.IdUsuario != idLogado);
 
-                if (pertences.Any())
-                {
-                    _context.Pertences.RemoveRange(pertences);
-                }
-            }
-            else
-            {
-                int quantidadeMoradores = _context.Pertences.Count(p => p.IdGrupo == idGrupo);
+                bool temDividaOuAnalise = parcelasDosMoradores.Any(p =>
+                    p.Status == StatusParcela.PENDENTE ||
+                    p.Status == StatusParcela.ATRASADO ||
+                    p.Status == StatusParcela.EM_ANALISE);
 
-                if (quantidadeMoradores > 1)
+                if (temDividaOuAnalise)
                 {
-                    throw new Exception("Não é possível encerrar a república enquanto houver outros moradores nela. Peça para que saiam voluntariamente ou remova-os primeiro.");
+                    throw new InvalidOperationException("Não é possível encerrar a república. Existem moradores com parcelas pendentes, atrasadas ou em análise. Quite todas as contas primeiro.");
                 }
+
+                bool temParcelaPaga = parcelasDosMoradores.Any(p => p.Status == StatusParcela.PAGO);
+
+                if (temParcelaPaga)
+                {
+                    throw new InvalidOperationException("Não é possível encerrar a república com moradores que possuem histórico financeiro pago. Você deve remover esses moradores do grupo primeiro.");
+                }
+
+                _context.Pertences.RemoveRange(moradoresExtras);
             }
 
             grupo.Ativo = false;
 
-            try
+            var despesasDoGrupo = _context.Despesas.Where(d => d.IdGrupo == idGrupo && d.Ativo == true).ToList();
+
+            foreach (var despesa in despesasDoGrupo)
             {
-                _context.SaveChanges();
-                return "República encerrada com sucesso! Todas as despesas atreladas foram arquivadas.";
+                despesa.Ativo = false;
             }
-            catch (Exception)
-            {
-                throw new Exception("Não é possível encerrar a república no momento. Existem despesas com parcelas pendentes ou em análise. Quite todas as contas primeiro.");
-            }
+
+            _context.SaveChanges();
+
+            return "República encerrada com sucesso! Todas as despesas atreladas foram arquivadas.";
         }
     }
 }

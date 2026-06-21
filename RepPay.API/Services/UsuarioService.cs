@@ -53,9 +53,9 @@ namespace RepPay.API.Services
                 throw new Exception("A senha é obrigatória e não pode estar vazia!");
             }
 
-            if (_context.Usuarios.Any(u => u.Email.ToLower() == novoUsuarioDTO.Email.ToLower()))
+            if (_context.Usuarios.Any(u => u.Email.ToLower() == novoUsuarioDTO.Email.ToLower() && u.Ativo))
             {
-                throw new Exception("Este e-mail já está cadastrado no sistema!");
+                throw new Exception("Este e-mail já está cadastrado em uma conta ativa no sistema!");
             }
 
             var usuarioParaSalvar = new Usuario
@@ -71,9 +71,9 @@ namespace RepPay.API.Services
 
         public LoginResponseDTO Login(LoginRequestDTO request)
         {
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.Email.ToLower() == request.Email.ToLower());
+            var usuario = _context.Usuarios.FirstOrDefault(u => u.Email.ToLower() == request.Email.ToLower() && u.Ativo);
 
-            if (usuario == null || !usuario.Ativo || !BCrypt.Net.BCrypt.Verify(request.Senha, usuario.Senha))
+            if (usuario == null || !BCrypt.Net.BCrypt.Verify(request.Senha, usuario.Senha))
             {
                 throw new UnauthorizedAccessException("E-mail ou senha incorretos, ou conta desativada.");
             }
@@ -189,7 +189,7 @@ namespace RepPay.API.Services
                 throw new Exception("Usuário não encontrado.");
             }
 
-            bool emailEmUso = _context.Usuarios.Any(u => u.Email.ToLower() == usuarioAtualizado.Email.ToLower() && u.IdUsuario != idLogado);
+            bool emailEmUso = _context.Usuarios.Any(u => u.Email.ToLower() == usuarioAtualizado.Email.ToLower() && u.IdUsuario != idLogado && u.Ativo);
 
             if (emailEmUso)
             {
@@ -238,7 +238,7 @@ namespace RepPay.API.Services
 
         public void EsqueciSenha(EsqueciSenhaRequestDTO request)
         {
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.Email.ToLower() == request.Email.ToLower());
+            var usuario = _context.Usuarios.FirstOrDefault(u => u.Email.ToLower() == request.Email.ToLower() && u.Ativo);
 
             if (usuario == null)
             {
@@ -264,7 +264,7 @@ namespace RepPay.API.Services
 
         public void ValidarCodigo(ValidarCodigoRequestDTO request)
         {
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.Email.ToLower() == request.Email.ToLower());
+            var usuario = _context.Usuarios.FirstOrDefault(u => u.Email.ToLower() == request.Email.ToLower() && u.Ativo);
 
             if (usuario == null)
             {
@@ -303,7 +303,7 @@ namespace RepPay.API.Services
         {
             const int limiteDeTentativas = 3;
 
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.Email.ToLower() == request.Email.ToLower());
+            var usuario = _context.Usuarios.FirstOrDefault(u => u.Email.ToLower() == request.Email.ToLower() && u.Ativo);
 
             if (usuario == null)
             {
