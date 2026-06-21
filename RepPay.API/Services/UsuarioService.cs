@@ -163,7 +163,7 @@ namespace RepPay.API.Services
         public UsuarioResponseDTO GetMeuPerfil(int idLogado)
         {
             var usuario = _context.Usuarios
-                .Where(u => u.IdUsuario == idLogado)
+                .Where(u => u.IdUsuario == idLogado && u.Ativo == true)
                 .Select(u => new UsuarioResponseDTO
                 {
                     IdUsuario = u.IdUsuario,
@@ -182,11 +182,11 @@ namespace RepPay.API.Services
 
         public void AtualizarUsuario(int idLogado, UsuarioAtualizarRequestDTO usuarioAtualizado)
         {
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.IdUsuario == idLogado);
+            var usuario = _context.Usuarios.FirstOrDefault(u => u.IdUsuario == idLogado && u.Ativo == true);
 
             if (usuario == null)
             {
-                throw new Exception("Usuário não encontrado.");
+                throw new Exception("Usuário não encontrado ou conta desativada.");
             }
 
             bool emailEmUso = _context.Usuarios.Any(u => u.Email.ToLower() == usuarioAtualizado.Email.ToLower() && u.IdUsuario != idLogado && u.Ativo);
@@ -210,26 +210,35 @@ namespace RepPay.API.Services
 
         public void DeletarUsuario(int idLogado)
         {
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.IdUsuario == idLogado);
+            var usuario = _context.Usuarios.FirstOrDefault(u => u.IdUsuario == idLogado && u.Ativo == true);
 
             if (usuario == null)
             {
-                throw new Exception("Usuário não encontrado!");
+                throw new Exception("Usuário não encontrado ou já desativado!");
             }
 
             bool isAdminDeGrupoAtivo = _context.Grupos.Any(g => g.IdAdmin == idLogado && g.Ativo);
 
             if (isAdminDeGrupoAtivo)
             {
-                throw new Exception("Não é possível excluir sua conta no momento. Você é o administrador de uma república ativa. Transfira a liderança.");
+                throw new Exception("Não é possível excluir sua conta no momento. Você é o administrador de uma república ativa. Transfira a liderança ou encerre o grupo primeiro.");
             }
 
-            bool temDividasPendentes = _context.Parcelas.Any(p => p.IdUsuario == idLogado &&
+            bool temDividasPendentes = _context.Parcelas.Any(p =>
+                p.IdUsuario == idLogado &&
+                p.IdDespesaNavigation.Ativo == true &&
                 (p.Status == StatusParcela.PENDENTE || p.Status == StatusParcela.ATRASADO || p.Status == StatusParcela.EM_ANALISE));
 
             if (temDividasPendentes)
             {
                 throw new Exception("Você possui contas pendentes ou em análise. Quite todas as suas dívidas antes de excluir a conta.");
+            }
+
+            var vinculos = _context.Pertences.Where(p => p.IdUsuario == idLogado).ToList();
+
+            if (vinculos.Any())
+            {
+                _context.Pertences.RemoveRange(vinculos);
             }
 
             usuario.Ativo = false;
