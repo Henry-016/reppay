@@ -39,10 +39,9 @@ function Modal_FeedBack_ContaCriada( {isOpen, onClose}: ModalProps ) {
                     e.preventDefault()
                     firstElement.focus()
                 }
+                
             }
-            if (e.key === 'Escape') {
-                onClose();
-            }
+
         }
 
         document.addEventListener('keydown', handleKeyDown)
@@ -50,7 +49,7 @@ function Modal_FeedBack_ContaCriada( {isOpen, onClose}: ModalProps ) {
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
             document.body.style.overflow = 'unset'
-            
+
         } 
 
 

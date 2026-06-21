@@ -52,10 +52,9 @@ function ModalEntrar( {isOpen, onClose, onFinish}: ModalProps ) {
                     e.preventDefault()
                     firstElement.focus()
                 }
+                
             }
-            if (e.key === 'Escape') {
-                onClose();
-            }
+
         }
 
         document.addEventListener('keydown', handleKeyDown)

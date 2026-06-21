@@ -53,11 +53,11 @@ function ModalCriar( {isOpen, onClose, onFinish}: ModalProps ) {
                 } else if (!e.shiftKey && document.activeElement === lastElement) {
                     e.preventDefault()
                     firstElement.focus()
+
                 }
+
             }
-            if (e.key === 'Escape') {
-                onClose();
-            }
+
         }
 
         document.addEventListener('keydown', handleKeyDown)
