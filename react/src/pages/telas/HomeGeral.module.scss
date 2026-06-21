@@ -1,13 +1,31 @@
 .tela_home_geral {
     min-width: 100vw;
-    min-height: 100vh;
+    height: 100vh;
     background-color: var(--cor-fundo-escuro);
+    overflow: hidden; 
+    display: flex;       
+    flex-direction: column;
     
     .conteudo {
-        padding-left: 4.5rem;
-        padding-right: 4.5rem;
-        padding-bottom: 4.5rem;
+        flex: 1;
+        min-height: 0;
+        padding: 4.5rem;
+        padding-top: 1.5rem;
+        overflow-y: auto;
+        overflow-x: hidden;
 
+        &::-webkit-scrollbar {
+            width: 1rem;
+        }
+        &::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        &::-webkit-scrollbar-thumb {
+            background-color: #3B494C;
+            border-radius: 0.5rem;
+            border: 0.125rem solid transparent;
+            background-clip: content-box;
+        }
     }
 
     .titulos {
