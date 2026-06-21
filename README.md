@@ -81,19 +81,23 @@ $ docker compose up -d db api frontend-dev
 ## 📂 Estrutura do Repositório
 
 ```text
-reppay/
-├── react/                   # Código-fonte do Front-end (React/Vite)
-├── RepPay.API/              # Código-fonte do Back-end (Controllers, Models, Services)
-├── scripts_sql/             # Scripts automáticos do BD (DDL e Triggers)
-├── docker-compose.yml       # Orquestração da infraestrutura Docker
-└── README.md                # Documentação do projeto
+📦 RepPay
+├── 📂 .vscode/               # Configurações de ambiente do VS Code
+├── 📂 Artefatos/             # Documentação, diagramas de banco e imagens do projeto
+├── 📂 react/                 # Aplicação Front-end (Interface com o usuário)
+├── 📂 RepPay.API/            # Aplicação Back-end (API em C# .NET)
+├── 📂 RepPay.API.Tests/      # Testes unitários para garantir a qualidade da API
+├── 📂 scripts_sql/           # Scripts de criação de tabelas, triggers e índices do PostgreSQL
+├── 📄 .gitignore             # Arquivos e pastas ignorados pelo controle de versão
+├── 📄 docker-compose.yml     # Orquestração dos containers (Banco, API e Front)
+├── 📄 README.md              # Documentação principal do repositório
+└── 📄 RepPay.sln             # Solução do Visual Studio que agrupa o back-end e os testes
 ```
 
 ---
 
 ## ✍️ Autores
 
-* **[Davison / Seu Nome]** - *Desenvolvimento Back-end / Front-end / Infraestrutura*
-* **[Nome do Integrante 2]** - *Responsabilidade no projeto*
-* **[Nome do Integrante 3]** - *Responsabilidade no projeto*
-* **[Nome do Integrante 4]** - *Responsabilidade no projeto*
+* **[DANIEL MENDES DA SILVA]** - *Front-end*
+* **[ENRIQUE FERREIRA DA SILVA]** - *Back-end*
+* **[DAVISON GABRIEL MONTEIRO DE FARIAS]** - *Banco de dados*
