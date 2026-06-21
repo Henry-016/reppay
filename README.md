@@ -12,7 +12,18 @@ O **RepPay** foi criado para eliminar o atrito na divisão de despesas, controle
 
 ## 💻 Demonstração
 
-> *(Dica: Adicione aqui um GIF ou link para um vídeo curto demonstrando o login e a criação de uma despesa na plataforma).*
+> <img width="1908" height="1019" alt="Cadastro" src="https://github.com/user-attachments/assets/b50b230c-0381-485c-8426-977f133d2b42" />
+
+
+  <img width="1908" height="1019" alt="Login" src="https://github.com/user-attachments/assets/9ba93e88-c802-4a23-893c-c1d917b100ac" />
+
+  
+  <img width="1908" height="1019" alt="Criar_Republica" src="https://github.com/user-attachments/assets/a7283366-3b92-45e5-b4cc-7fc5ea569aa6" />
+
+  
+  <img width="1908" height="1019" alt="Criar_Despesa" src="https://github.com/user-attachments/assets/b272b660-6ee3-4322-bb88-988a25a197c2" />
+
+
 
 ## 🛠️ Tecnologias Utilizadas
 
