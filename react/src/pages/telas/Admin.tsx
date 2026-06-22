@@ -59,6 +59,7 @@ interface Moradores {
     email: string 
     totalDevido: number
     fotoPerfil: string
+    statusFinanceiro: string
 
 }
 
@@ -183,6 +184,7 @@ function Admin() {
             setEmAnalise(dadosAnalises.listaAnalises)
             setHistoricoPago(dadosHistorico.listaHistorico)
             setDespesasPendentes(dadosDespesasPendendes)
+            console.log(dadosMoradores)
 
         }
 
@@ -515,7 +517,8 @@ function Admin() {
                                         onClick={morador.isAdmin ? () => {} : () => setModalTrocar(morador.idUsuario)}
                                         clickExpulsar={() => setModalExpulsar(morador.idUsuario)}
                                         isAdmin={grupo?.isAdmin}  
-                                        iconeUsuario={morador.fotoPerfil}                           
+                                        iconeUsuario={morador.fotoPerfil}
+                                        status={morador.statusFinanceiro}                         
                                     />
                                 ))}
                                 </div>
