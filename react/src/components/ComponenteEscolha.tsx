@@ -6,6 +6,7 @@ interface ComponentProps {
     texto: string
     button: string
     onClick: () => void
+    
 
 }
 

@@ -97,6 +97,30 @@
 
         }
 
+        &.corAtrasado {
+            h2 { 
+            color: #EF4444;
+
+            }
+
+        }
+    
+        &.corPendente {
+            h2 { 
+                color: #EAB308; 
+
+            }
+
+        }
+    
+        &.corEmDia {
+            h2 { 
+                color: #22C55E; 
+
+            } 
+
+        }
+
     }
 
 }
