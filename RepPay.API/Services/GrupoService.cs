@@ -171,7 +171,20 @@ namespace RepPay.API.Services
                                        && parcela.IdDespesaNavigation.IdGrupo == idGrupo
                                        && parcela.IdDespesaNavigation.Ativo == true
                                        && (parcela.Status == StatusParcela.PENDENTE || parcela.Status == StatusParcela.ATRASADO))
-                        .Sum(parcela => parcela.Valor)
+                        .Sum(parcela => parcela.Valor),
+
+                    // Mudança Feita em Sala!
+                    StatusFinanceiro = _context.Parcelas
+                        .Where(parcela => parcela.IdUsuario == p.IdUsuario
+                                       && parcela.IdDespesaNavigation.IdGrupo == idGrupo
+                                       && parcela.IdDespesaNavigation.Ativo == true)
+                        .Any(parcela => parcela.Status == StatusParcela.ATRASADO) ? "ATRASADO" :
+
+                        _context.Parcelas
+                        .Where(parcela => parcela.IdUsuario == p.IdUsuario
+                                       && parcela.IdDespesaNavigation.IdGrupo == idGrupo
+                                       && parcela.IdDespesaNavigation.Ativo == true)
+                        .Any(parcela => parcela.Status == StatusParcela.PENDENTE || parcela.Status == StatusParcela.EM_ANALISE) ? "PENDENTE" : "REGULAR"
                 })
                 .OrderByDescending(m => m.IsAdmin)
                 .ThenBy(m => m.Nome)
@@ -215,42 +228,87 @@ namespace RepPay.API.Services
             var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == idGrupo);
 
             if (grupo == null)
-            {
                 throw new KeyNotFoundException("Grupo não encontrado.");
-            }
 
             if (grupo.IdAdmin != idLogado)
-            {
                 throw new UnauthorizedAccessException("Acesso negado. Apenas o administrador pode expulsar moradores.");
-            }
 
             if (idLogado == idMorador)
-            {
                 throw new Exception("Você não pode expulsar a si mesmo. Caso queira sair, utilize a opção de saída voluntária ou exclua o grupo.");
-            }
 
             var vinculo = _context.Pertences.FirstOrDefault(p => p.IdGrupo == idGrupo && p.IdUsuario == idMorador);
 
             if (vinculo == null)
-            {
                 throw new KeyNotFoundException("Este usuário não é um morador da sua república.");
-            }
 
-            bool moradorTemDividas = _context.Parcelas
-                .Any(p => p.IdUsuario == idMorador
-                       && p.IdDespesaNavigation.IdGrupo == idGrupo
-                       && p.IdDespesaNavigation.Ativo == true
-                       && (p.Status == StatusParcela.PENDENTE || p.Status == StatusParcela.ATRASADO || p.Status == StatusParcela.EM_ANALISE));
+            var parcelasDevedoras = _context.Parcelas
+                .Include(p => p.IdDespesaNavigation)
+                .Where(p => p.IdUsuario == idMorador
+                         && p.IdDespesaNavigation.IdGrupo == idGrupo
+                         && p.IdDespesaNavigation.Ativo == true
+                         && (p.Status == StatusParcela.PENDENTE || p.Status == StatusParcela.ATRASADO || p.Status == StatusParcela.EM_ANALISE))
+                .ToList();
 
-            if (moradorTemDividas)
+            var moradoresRestantes = _context.Pertences
+                .Where(p => p.IdGrupo == idGrupo && p.IdUsuario != idMorador)
+                .Select(p => p.IdUsuario)
+                .ToList();
+
+            if (parcelasDevedoras.Any())
             {
-                throw new Exception("Não é possível expulsar este morador pois ele possui dívidas ativas. Quite as pendências financeiras dele antes de removê-lo.");
+                if (!moradoresRestantes.Any())
+                {
+                    throw new Exception("Não há outros moradores no grupo para assumir as dívidas deste usuário.");
+                }
+
+                foreach (var parcela in parcelasDevedoras)
+                {
+                    decimal valorDividido = Math.Round(parcela.Valor / moradoresRestantes.Count, 2);
+                    decimal diferencaCentavos = parcela.Valor - (valorDividido * moradoresRestantes.Count);
+
+                    for (int i = 0; i < moradoresRestantes.Count; i++)
+                    {
+                        int idMoradorRestante = moradoresRestantes[i];
+
+                        decimal valorAcrescentar = (i == moradoresRestantes.Count - 1) ? valorDividido + diferencaCentavos : valorDividido;
+
+                        var parcelaExistente = _context.Parcelas.FirstOrDefault(p => p.IdDespesa == parcela.IdDespesa && p.IdUsuario == idMoradorRestante);
+
+                        if (parcelaExistente != null)
+                        {
+                            parcelaExistente.Valor += valorAcrescentar;
+
+                            if (parcelaExistente.Status == StatusParcela.PAGO || parcelaExistente.Status == StatusParcela.EM_ANALISE)
+                            {
+                                parcelaExistente.Status = parcela.IdDespesaNavigation.Vencimento < DateOnly.FromDateTime(DateTime.UtcNow)
+                                    ? StatusParcela.ATRASADO
+                                    : StatusParcela.PENDENTE;
+
+                                parcelaExistente.DataPagamento = null;
+                            }
+                        }
+                        else
+                        {
+                            _context.Parcelas.Add(new Parcela
+                            {
+                                IdDespesa = parcela.IdDespesa,
+                                IdUsuario = idMoradorRestante,
+                                Valor = valorAcrescentar,
+                                Status = parcela.IdDespesaNavigation.Vencimento < DateOnly.FromDateTime(DateTime.UtcNow)
+                                    ? StatusParcela.ATRASADO
+                                    : StatusParcela.PENDENTE
+                            });
+                        }
+                    }
+
+                    _context.Parcelas.Remove(parcela);
+                }
             }
 
             _context.Pertences.Remove(vinculo);
             _context.SaveChanges();
 
-            return "Morador removido da república com sucesso.";
+            return "Morador removido e dívidas redistribuídas entre os moradores restantes com sucesso!";
         }
 
         public string TransferirAdmin(int idLogado, int idGrupo, int idNovoAdmin)
