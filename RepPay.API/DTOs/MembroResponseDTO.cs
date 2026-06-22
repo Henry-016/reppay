@@ -8,5 +8,7 @@ namespace RepPay.API.DTOs
         public string Email { get; set; } = string.Empty;
         public string? FotoPerfil { get; set; }
         public decimal TotalDevido { get; set; }
+
+        public string StatusFinanceiro { get; set; } = string.Empty;
     }
 }
